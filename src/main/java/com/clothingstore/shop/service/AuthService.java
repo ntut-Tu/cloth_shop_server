@@ -21,7 +21,7 @@ public class AuthService {
     public String authenticate(String username, String password, String role) {
         var user = authRepository.findByUserAccount(username);
         if(user.isPresent()){
-            if(user.get().getPassword().equals(password)){
+            if(user.get().getPassword().equals(password) && user.get().getUserType().equals(role) && !user.get().getIsDisable()){
                 return jwtService.generateJwtToken(username,role);
             }else {
                 return null;

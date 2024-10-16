@@ -48,5 +48,5 @@ databaseChangeLog:
         - addDefaultValue:
             tableName: users
             columnName: is_disable
-            defaultValueBoolean: true
+            defaultValueBoolean: false
 
