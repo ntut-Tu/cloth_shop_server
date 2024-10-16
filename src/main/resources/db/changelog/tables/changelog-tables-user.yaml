@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: user-1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: account
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_disable
+                  type: boolean
+                  constraints:
+                    nullable: false
+
+
