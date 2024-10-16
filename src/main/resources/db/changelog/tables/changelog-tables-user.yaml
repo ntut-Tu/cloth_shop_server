@@ -32,5 +32,21 @@ databaseChangeLog:
                   type: boolean
                   constraints:
                     nullable: false
-
+  - changeSet:
+      id: user-2
+      author: quinn
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: user_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                    checkConstraint: "user_type in ('admin','customer','vendor')"
+        - addDefaultValue:
+            tableName: users
+            columnName: is_disable
+            defaultValueBoolean: true
 

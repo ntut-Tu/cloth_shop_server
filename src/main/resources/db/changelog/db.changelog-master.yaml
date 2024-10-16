@@ -6,4 +6,6 @@ databaseChangeLog:
   - include:
       file: tables/changelog-tables-user.yaml
       relativeToChangelogFile: true
-
+  - include:
+      file: insert/changelog-insert-user.yaml
+      relativeToChangelogFile: true
