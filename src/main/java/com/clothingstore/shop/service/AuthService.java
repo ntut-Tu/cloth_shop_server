@@ -4,6 +4,7 @@ import com.clothingstore.shop.repository.AuthRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -12,7 +13,9 @@ import java.util.Date;
 @Service
 public class AuthService {
 
+    @Autowired
     private JwtService jwtService;
+    @Autowired
     private AuthRepository authRepository;
 
     public String authenticate(String username, String password, String role) {

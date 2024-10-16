@@ -25,7 +25,6 @@ public class AuthRepository {
         Record record = dsl.selectFrom(USERS)
                 .where(USERS.ACCOUNT.eq(userAccount))
                 .fetchOne();
-
         return Optional.ofNullable(record).map(this::mapToUser);
     }
 

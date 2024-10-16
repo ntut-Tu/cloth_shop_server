@@ -3,10 +3,11 @@ package com.clothingstore.shop.service;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
-
+@Service
 public class JwtService {
     private final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
