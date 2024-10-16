@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: user_log-1
+      author: admin
+      changes:
+        - createTable:
+            tableName: user_log
+            columns:
+              - column:
+                  name: id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: id
+                    referencedTableName: users
+              - column:
+                  name: action
+                  type: text
+              - column:
+                  name: date
+                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+                  defaultValueComputed: now()
