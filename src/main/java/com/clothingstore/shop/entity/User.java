@@ -13,8 +13,20 @@ public class User {
     private String account;
     private String password;
     private String email;
-    private boolean is_disabled;
-    private String user_type;
+    private boolean isDisable;
+    private String userType;
+
+    public User() {}
+
+    public User(int id, String account, String password, String email, boolean isDisable, String userType) {
+        this.id = id;
+        this.account = account;
+        this.password = password;
+        this.email = email;
+        this.isDisable = isDisable;
+        this.userType = userType;
+    }
+
 
     public int getId() {
         return id;
@@ -32,12 +44,12 @@ public class User {
         return email;
     }
 
-    public boolean getIs_disabled() {
-        return is_disabled;
+    public boolean getIsDisable() {
+        return isDisable;
     }
 
-    public String getUser_type() {
-        return user_type;
+    public String getUserType() {
+        return userType;
     }
 
     public void setId(int id) {
@@ -56,11 +68,11 @@ public class User {
         this.email = email;
     }
 
-    public void setIs_disabled(boolean is_disabled) {
-        this.is_disabled = is_disabled;
+    public void setIsDisable(boolean isDisable) {
+        this.isDisable = isDisable;
     }
 
-    public void setUser_type(String user_type) {
-        this.user_type = user_type;
+    public void setUserType(String userType) {
+        this.userType = userType;
     }
 }

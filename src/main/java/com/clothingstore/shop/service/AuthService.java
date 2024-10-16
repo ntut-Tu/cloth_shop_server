@@ -1,5 +1,6 @@
 package com.clothingstore.shop.service;
 
+import com.clothingstore.shop.repository.AuthRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -11,32 +12,24 @@ import java.util.Date;
 @Service
 public class AuthService {
 
-    private final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private JwtService jwtService;
+    private AuthRepository authRepository;
 
     public String authenticate(String username, String password, String role) {
-        if ("admin".equals(username) && "123".equals(password) && "admin".equals(role)) {
-            return generateJwtToken(username, role);
+        var user = authRepository.findByUserAccount(username);
+        if(user.isPresent()){
+            if(user.get().getPassword().equals(password)){
+                return jwtService.generateJwtToken(username,role);
+            }else {
+                return null;
+            }
+        }else {
+            return null;
         }
-        if ("customer".equals(username) && "123".equals(password) && "customer".equals(role)) {
-            return generateJwtToken(username, role);
-        }
-        if ("vendor".equals(username) && "123".equals(password) && "vendor".equals(role)) {
-            return generateJwtToken(username, role);
-        }
-        return null;
     }
 
     public boolean register(String username, String email, String password, String role) {
         return true;
     }
 
-    private String generateJwtToken(String username, String role) {
-        return Jwts.builder()
-                .setSubject(username)
-                .claim("role", role)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day
-                .signWith(SECRET_KEY)  // 使用安全的密钥进行签名
-                .compact();
-    }
 }
