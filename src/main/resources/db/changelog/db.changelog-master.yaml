@@ -4,7 +4,7 @@ databaseChangeLog:
       author: quinn
       comment: "Empty changeset"
   - include:
-      file: tables/changelog-tables-user.yaml
+      file: tables/changelog-table-user.yaml
       relativeToChangelogFile: true
   - include:
       file: insert/changelog-insert-user.yaml
