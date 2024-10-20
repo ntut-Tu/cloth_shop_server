@@ -12,7 +12,7 @@ import java.util.Date;
 
 @Service
 public class AuthService {
-    int a;
+
     @Autowired
     private JwtService jwtService;
 //    @Autowired
