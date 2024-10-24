@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: vendor-product_variant-1
+      author: jason
+      changes:
+        - createTable:
+            tableName: vendor-product_variant
+            columns:
+              - column:
+                  name: id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: color
+                  type: text
+              - column:
+                  name: stock
+                  type: int
+              - column:
+                  name: size
+                  type: int
+              - column:
+                  name: price
+                  type: int

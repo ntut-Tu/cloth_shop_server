@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: vendor-product-1
+      author: jason
+      changes:
+        - createTable:
+            tableName: vendor-product
+            columns:
+              - column:
+                  name: id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: text
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: total_sales
+                  type: int
+              - column:
+                  name: image_url
+                  type: text
+              - column:
+                  name: category
+                  type: text
+              - column:
+                  name: is_list
+                  type: boolean

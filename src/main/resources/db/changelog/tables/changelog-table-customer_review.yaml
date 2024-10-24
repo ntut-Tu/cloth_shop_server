@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: customer_review-1
+      author: jason
+      changes:
+        - createTable:
+            tableName: customer_review
+            columns:
+              - column:
+                  name: id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: rate
+                  type: text
+              - column:
+                  name: comment
+                  type: text
+              - column:
+                  name: review_date
+                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+                  defaultValueComputed: now()

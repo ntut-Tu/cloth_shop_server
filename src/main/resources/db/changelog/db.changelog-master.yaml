@@ -12,3 +12,12 @@ databaseChangeLog:
   - include:
       file: tables/changelog-table-user_log.yaml
       relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-customer_review.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-vendor-product.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-vendor-product_variant.yaml
+      relativeToChangelogFile: true
