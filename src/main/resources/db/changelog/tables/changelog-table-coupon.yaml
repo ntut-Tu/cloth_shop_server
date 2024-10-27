@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: coupon-1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: coupon
+            columns:
+              - column:
+                  name: coupon_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_date
+                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+                  defaultValueComputed: now()
+              - column:
+                  name: end_date
+                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+              - column:
+                  name: is_list
+                  type: boolean
+              - column:
+                  name: fk_vendor_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+              - column:
+                  name: fk_admin_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            baseTableName: coupon
+            baseColumnNames: fk_vendor_id
+            constraintName: fk_coupon_vendor_id
+            referencedTableName: vendor
+            referencedColumnNames: vendor_id
+        - addForeignKeyConstraint:
+            baseTableName: coupon
+            baseColumnNames: fk_admin_id
+            constraintName: fk_coupon_admin_id
+            referencedTableName: admin
+            referencedColumnNames: admin_id
+        - sql:
+            sql: "ALTER TABLE coupon ADD CONSTRAINT chk_coupon_creator CHECK ((fk_vendor_id IS NOT NULL AND fk_admin_id IS NULL) OR (fk_vendor_id IS NULL AND fk_admin_id IS NOT NULL));"

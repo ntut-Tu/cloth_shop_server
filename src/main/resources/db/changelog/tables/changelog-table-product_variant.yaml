@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: product_variant-1
+      author: jason
+      changes:
+        - createTable:
+            tableName: product_variant
+            columns:
+              - column:
+                  name: product_variant_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: color
+                  type: text
+              - column:
+                  name: stock
+                  type: integer
+              - column:
+                  name: size
+                  type: varchar(10)
+              - column:
+                  name: price
+                  type: integer
+              - column:
+                  name: fk_product_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: product_variant
+            baseColumnNames: fk_product_id
+            constraintName: fk_product_variant_product_id
+            referencedTableName: product
+            referencedColumnNames: product_id

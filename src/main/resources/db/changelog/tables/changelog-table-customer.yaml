@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: customer-1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: customer
+            columns:
+              - column:
+                  name: customer_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: fk_user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: default_shipping_address
+                  type: varchar(200)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: billing_address
+                  type: varchar(200)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: is_active
+                  type: boolean
+                  constraints:
+                    nullable: false
+        - addDefaultValue:
+            tableName: customer
+            columnName: is_active
+            defaultValueBoolean: true
+        - addForeignKeyConstraint:
+            baseTableName: customer
+            baseColumnNames: fk_user_id
+            constraintName: fk_user_id_to_users
+            referencedTableName: users
+            referencedColumnNames: user_id
