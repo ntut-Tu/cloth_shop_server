@@ -24,17 +24,17 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: fk_product_variant_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
               - column:
                   name: fk_order_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
               - column:
                   name: fk_store_order_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
         - addForeignKeyConstraint:

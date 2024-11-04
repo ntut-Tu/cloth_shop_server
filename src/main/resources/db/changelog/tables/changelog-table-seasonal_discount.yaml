@@ -39,7 +39,7 @@ databaseChangeLog:
                     nullable: true
               - column:
                   name: fk_coupon_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
         - addForeignKeyConstraint:

@@ -24,7 +24,7 @@ databaseChangeLog:
                   defaultValueComputed: now()
               - column:
                   name: fk_customer_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
         - addForeignKeyConstraint:

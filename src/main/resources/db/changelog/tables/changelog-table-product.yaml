@@ -47,12 +47,12 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: fk_review_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: true
               - column:
                   name: fk_vendor_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
         - addDefaultValue:
