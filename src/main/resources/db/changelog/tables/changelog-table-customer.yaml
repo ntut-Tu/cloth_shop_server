@@ -28,15 +28,6 @@ databaseChangeLog:
                   type: varchar(200)
                   constraints:
                     nullable: true
-              - column:
-                  name: is_active
-                  type: boolean
-                  constraints:
-                    nullable: false
-        - addDefaultValue:
-            tableName: customer
-            columnName: is_active
-            defaultValueBoolean: true
         - addForeignKeyConstraint:
             baseTableName: customer
             baseColumnNames: fk_user_id

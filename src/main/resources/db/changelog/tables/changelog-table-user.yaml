@@ -36,6 +36,11 @@ databaseChangeLog:
                   type: varchar(50)
                   constraints:
                     nullable: true
+              - column:
+                  name: is_active
+                  type: boolean
+                  constraints:
+                    nullable: false
   - changeSet:
       id: user-2
       author: quinn
@@ -49,3 +54,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     checkConstraint: "user_type in ('admin','customer','vendor')"
+        - addDefaultValue:
+            tableName: users
+            columnName: is_active
+            defaultValueBoolean: true

@@ -14,7 +14,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: rate
-                  type: integer
+                  type: DECIMAL(3,2)
               - column:
                   name: comment
                   type: text
