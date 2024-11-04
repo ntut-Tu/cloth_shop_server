@@ -1,75 +1,79 @@
 package com.clothingstore.shop.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import java.time.OffsetDateTime;
 
-@Entity
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String account;
     private String password;
     private String email;
-    private boolean isDisable;
+    private OffsetDateTime createdAt;
+    private String phoneNumber;
     private String userType;
 
     public User() {}
 
-    public User(int id, String account, String password, String email, boolean isDisable, String userType) {
+    public User(int id, String account, String password, String email, OffsetDateTime createdAt, String phoneNumber, String userType) {
         this.id = id;
         this.account = account;
         this.password = password;
         this.email = email;
-        this.isDisable = isDisable;
+        this.createdAt = createdAt;
+        this.phoneNumber = phoneNumber;
         this.userType = userType;
     }
 
-
+    // Getters and setters for each field
     public int getId() {
         return id;
-    }
-
-    public String getAccount() {
-        return account;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public boolean getIsDisable() {
-        return isDisable;
-    }
-
-    public String getUserType() {
-        return userType;
     }
 
     public void setId(int id) {
         this.id = id;
     }
 
+    public String getAccount() {
+        return account;
+    }
+
     public void setAccount(String account) {
         this.account = account;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public void setPassword(String password) {
         this.password = password;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
     public void setEmail(String email) {
         this.email = email;
     }
 
-    public void setIsDisable(boolean isDisable) {
-        this.isDisable = isDisable;
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getUserType() {
+        return userType;
     }
 
     public void setUserType(String userType) {
