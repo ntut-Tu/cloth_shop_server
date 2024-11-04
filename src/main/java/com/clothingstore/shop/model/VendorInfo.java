@@ -3,7 +3,7 @@ package com.clothingstore.shop.model;
 
 public class VendorInfo {
 
-    private int vendorId;
+    private Integer vendorId;
 
 
     private User user;
@@ -12,20 +12,18 @@ public class VendorInfo {
     private String storeDescription;
     private String storeLogoUrl;
     private String paymentAccount;
-    private boolean isActive;
 
     public VendorInfo() {}
 
-    public VendorInfo(User user, String storeAddress, String storeDescription, String storeLogoUrl, String paymentAccount, boolean isActive) {
+    public VendorInfo(User user, String storeAddress, String storeDescription, String storeLogoUrl, String paymentAccount) {
         this.user = user;
         this.storeAddress = storeAddress;
         this.storeDescription = storeDescription;
         this.storeLogoUrl = storeLogoUrl;
         this.paymentAccount = paymentAccount;
-        this.isActive = isActive;
     }
 
-    public int getVendorId() {
+    public Integer getVendorId() {
         return vendorId;
     }
 
@@ -49,11 +47,7 @@ public class VendorInfo {
         return paymentAccount;
     }
 
-    public boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setVendorId(int vendorId) {
+    public void setVendorId(Integer vendorId) {
         this.vendorId = vendorId;
     }
 
@@ -77,7 +71,4 @@ public class VendorInfo {
         this.paymentAccount = paymentAccount;
     }
 
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
-    }
 }

@@ -3,24 +3,22 @@ package com.clothingstore.shop.model;
 
 public class CustomerInfo {
 
-    private int customerId;
+    private Integer customerId;
 
     private User user;
 
     private String defaultShippingAddress;
     private String billingAddress;
-    private boolean isActive;
 
     public CustomerInfo() {}
 
-    public CustomerInfo(User user, String defaultShippingAddress, String billingAddress, boolean isActive) {
+    public CustomerInfo(User user, String defaultShippingAddress, String billingAddress) {
         this.user = user;
         this.defaultShippingAddress = defaultShippingAddress;
         this.billingAddress = billingAddress;
-        this.isActive = isActive;
     }
 
-    public int getCustomerId() {
+    public Integer getCustomerId() {
         return customerId;
     }
 
@@ -36,11 +34,7 @@ public class CustomerInfo {
         return billingAddress;
     }
 
-    public boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setCustomerId(int customerId) {
+    public void setCustomerId(Integer customerId) {
         this.customerId = customerId;
     }
 
@@ -54,9 +48,5 @@ public class CustomerInfo {
 
     public void setBillingAddress(String billingAddress) {
         this.billingAddress = billingAddress;
-    }
-
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
     }
 }

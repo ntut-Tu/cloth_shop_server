@@ -3,7 +3,7 @@ package com.clothingstore.shop.model;
 
 public class AdminInfo {
 
-    private int adminId;
+    private Integer adminId;
 
     private User user;
 
@@ -13,7 +13,7 @@ public class AdminInfo {
         this.user = user;
     }
 
-    public int getAdminId() {
+    public Integer getAdminId() {
         return adminId;
     }
 
@@ -21,7 +21,7 @@ public class AdminInfo {
         return user;
     }
 
-    public void setAdminId(int adminId) {
+    public void setAdminId(Integer adminId) {
         this.adminId = adminId;
     }
 

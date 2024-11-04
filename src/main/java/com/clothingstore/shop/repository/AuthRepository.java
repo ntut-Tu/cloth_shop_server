@@ -58,13 +58,14 @@ public class AuthRepository {
                 record.get(USERS.ACCOUNT),
                 record.get(USERS.PASSWORD),
                 record.get(USERS.EMAIL),
+                record.get(USERS.IS_ACTIVE),
                 record.get(USERS.USER_TYPE),
                 record.get(USERS.CREATED_AT),
                 record.get(USERS.PHONE_NUMBER)
         );
     }
 
-    private VendorInfo loadVendorInfo(int userId) {
+    private VendorInfo loadVendorInfo(Integer userId) {
         Record vendorRecord = dsl.selectFrom(VENDOR)
                 .where(VENDOR.FK_USER_ID.eq(userId))
                 .fetchOne();
@@ -75,8 +76,7 @@ public class AuthRepository {
                 vendorRecord.get(VENDOR.STORE_ADDRESS),
                 vendorRecord.get(VENDOR.STORE_DESCRIPTION),
                 vendorRecord.get(VENDOR.STORE_LOGO_URL),
-                vendorRecord.get(VENDOR.PAYMENT_ACCOUNT),
-                vendorRecord.get(VENDOR.IS_ACTIVE)
+                vendorRecord.get(VENDOR.PAYMENT_ACCOUNT)
         );
     }
 
@@ -89,8 +89,7 @@ public class AuthRepository {
 
         return new CustomerInfo(
                 customerRecord.get(CUSTOMER.DEFAULT_SHIPPING_ADDRESS),
-                customerRecord.get(CUSTOMER.BILLING_ADDRESS),
-                customerRecord.get(CUSTOMER.IS_ACTIVE)
+                customerRecord.get(CUSTOMER.BILLING_ADDRESS)
         );
     }
 }
