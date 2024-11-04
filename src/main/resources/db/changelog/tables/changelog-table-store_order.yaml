@@ -1,0 +1,69 @@
+databaseChangeLog:
+  - changeSet:
+      id: store-order-1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: store_order
+            columns:
+              - column:
+                  name: store_order_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: fk_order_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fk_vendor_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: seasonal_discount_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+              - column:
+                  name: special_discount_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+              - column:
+                  name: shipping_discount_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            baseTableName: store_order
+            baseColumnNames: fk_order_id
+            constraintName: fk_store_order_to_order
+            referencedTableName: order
+            referencedColumnNames: order_id
+        - addForeignKeyConstraint:
+            baseTableName: store_order
+            baseColumnNames: fk_vendor_id
+            constraintName: fk_store_order_to_vendor
+            referencedTableName: vendor
+            referencedColumnNames: vendor_id
+        - addForeignKeyConstraint:
+            baseTableName: store_order
+            baseColumnNames: seasonal_discount_id
+            constraintName: fk_store_order_seasonal_discount
+            referencedTableName: coupon
+            referencedColumnNames: coupon_id
+        - addForeignKeyConstraint:
+            baseTableName: store_order
+            baseColumnNames: special_discount_id
+            constraintName: fk_store_order_special_discount
+            referencedTableName: coupon
+            referencedColumnNames: coupon_id
+        - addForeignKeyConstraint:
+            baseTableName: store_order
+            baseColumnNames: shipping_discount_id
+            constraintName: fk_store_order_shipping_discount
+            referencedTableName: coupon
+            referencedColumnNames: coupon_id

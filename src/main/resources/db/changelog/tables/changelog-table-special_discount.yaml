@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: special_discount-1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: special_discount
+            columns:
+              - column:
+                  name: special_discount_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: buy_quantity
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: gift_quantity
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: buy_variant_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: gift_variant_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+              - column:
+                  name: fk_coupon_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: special_discount
+            baseColumnNames: buy_variant_id
+            constraintName: fk_special_discount_buy_variant
+            referencedTableName: product_variant
+            referencedColumnNames: product_variant_id
+        - addForeignKeyConstraint:
+            baseTableName: special_discount
+            baseColumnNames: gift_variant_id
+            constraintName: fk_special_discount_gift_variant
+            referencedTableName: product_variant
+            referencedColumnNames: product_variant_id
+        - addForeignKeyConstraint:
+            baseTableName: special_discount
+            baseColumnNames: fk_coupon_id
+            constraintName: fk_special_discount_coupon
+            referencedTableName: coupon
+            referencedColumnNames: coupon_id
