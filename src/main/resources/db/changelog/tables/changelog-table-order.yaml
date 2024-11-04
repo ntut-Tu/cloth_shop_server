@@ -54,12 +54,12 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: fk_customer_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
               - column:
                   name: fk_shipping_discount_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: true
         - addForeignKeyConstraint:

@@ -14,27 +14,27 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: fk_order_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
               - column:
                   name: fk_vendor_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
               - column:
                   name: seasonal_discount_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: true
               - column:
                   name: special_discount_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: true
               - column:
                   name: shipping_discount_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: true
         - addForeignKeyConstraint:

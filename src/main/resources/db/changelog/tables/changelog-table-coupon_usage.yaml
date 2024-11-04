@@ -14,12 +14,12 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: fk_coupon_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
               - column:
                   name: fk_customer_id
-                  type: bigint
+                  type: integer
                   constraints:
                     nullable: false
               - column:
