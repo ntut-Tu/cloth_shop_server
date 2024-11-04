@@ -4,11 +4,54 @@ databaseChangeLog:
       author: quinn
       comment: "Empty changeset"
   - include:
-      file: tables/changelog-tables-user.yaml
+      file: tables/changelog-table-user.yaml
+      relativeToChangelogFile: true
+#  - include:
+#      file: insert/changelog-insert-user.yaml
+#      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-customer.yaml
       relativeToChangelogFile: true
   - include:
-      file: insert/changelog-insert-user.yaml
+      file: tables/changelog-table-vendor.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-admin.yaml
       relativeToChangelogFile: true
   - include:
       file: tables/changelog-table-user_log.yaml
       relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-review.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-product.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-product_variant.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-coupon.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-seasonal_discount.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-special_discount.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-shipping_discount.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-coupon_usage.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-order.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-store_order.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-order_item.yaml
+      relativeToChangelogFile: true
+
