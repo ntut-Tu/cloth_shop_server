@@ -1,0 +1,73 @@
+databaseChangeLog:
+  - changeSet:
+      id: product-1
+      author: jason
+      changes:
+        - createTable:
+            tableName: product
+            columns:
+              - column:
+                  name: product_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+                  constraints:
+                    nullable: true
+              - column:
+                  name: total_sales
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rate
+                  type: DECIMAL(3,2)
+              - column:
+                  name: image_url
+                  type: varchar(500)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: category
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_list
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fk_review_id
+                  type: integer
+                  constraints:
+                    nullable: true
+              - column:
+                  name: fk_vendor_id
+                  type: integer
+                  constraints:
+                    nullable: false
+        - addDefaultValue:
+            tableName: product
+            columnName: is_list
+            defaultValueBoolean: true
+        - addForeignKeyConstraint:
+            baseTableName: product
+            baseColumnNames: fk_review_id
+            constraintName: fk_product_review_id
+            referencedTableName: review
+            referencedColumnNames: review_id
+        - addForeignKeyConstraint:
+            baseTableName: product
+            baseColumnNames: fk_vendor_id
+            constraintName: fk_product_vendor_id
+            referencedTableName: vendor
+            referencedColumnNames: vendor_id

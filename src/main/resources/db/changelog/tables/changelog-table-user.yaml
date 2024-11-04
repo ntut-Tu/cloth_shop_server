@@ -7,7 +7,7 @@ databaseChangeLog:
             tableName: users
             columns:
               - column:
-                  name: id
+                  name: user_id
                   type: serial
                   constraints:
                     primaryKey: true
@@ -28,7 +28,16 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: is_disable
+                  name: created_at
+                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+                  defaultValueComputed: now()
+              - column:
+                  name: phone_number
+                  type: varchar(50)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: is_active
                   type: boolean
                   constraints:
                     nullable: false
@@ -47,6 +56,5 @@ databaseChangeLog:
                     checkConstraint: "user_type in ('admin','customer','vendor')"
         - addDefaultValue:
             tableName: users
-            columnName: is_disable
-            defaultValueBoolean: false
-
+            columnName: is_active
+            defaultValueBoolean: true

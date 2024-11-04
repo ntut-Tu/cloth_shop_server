@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: review-1
+      author: jason
+      changes:
+        - createTable:
+            tableName: review
+            columns:
+              - column:
+                  name: review_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: rate
+                  type: DECIMAL(3,2)
+              - column:
+                  name: comment
+                  type: text
+              - column:
+                  name: review_date
+                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+                  defaultValueComputed: now()
+              - column:
+                  name: fk_customer_id
+                  type: integer
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: review
+            baseColumnNames: fk_customer_id
+            constraintName: fk_review_customer_id
+            referencedTableName: customer
+            referencedColumnNames: customer_id

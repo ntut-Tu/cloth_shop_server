@@ -1,50 +1,50 @@
-databaseChangeLog:
-  - changeSet:
-      id: insert-user-1
-      author: admin
-      changes:
-        - insert:
-            tableName: users
-            columns:
-              - column:
-                  name: account
-                  value: 'admin'
-              - column:
-                  name: password
-                  value: '123'
-              - column:
-                  name: email
-                  value: 'fake.email@email.com'
-              - column:
-                  name: user_type
-                  value: 'admin'
-        - insert:
-            tableName: users
-            columns:
-              - column:
-                  name: account
-                  value: 'customer'
-              - column:
-                  name: user_type
-                  value: 'customer'
-              - column:
-                  name: password
-                  value: '123'
-              - column:
-                  name: email
-                  value: 'fake.email@email.com'
-        - insert:
-            tableName: users
-            columns:
-              - column:
-                  name: account
-                  value: 'vendor'
-              - column:
-                  name: user_type
-                  value: 'vendor'
-              - column:
-                  name: password
-                  value: '123'
-              - column:
-                  name: email
-                  value: 'fake.email@email.com'
+#databaseChangeLog:
+#  - changeSet:
+#      id: insert-user-1
+#      author: admin
+#      changes:
+#        - insert:
+#            tableName: users
+#            columns:
+#              - column:
+#                  name: account
+#                  value: 'admin'
+#              - column:
+#                  name: password
+#                  value: '123'
+#              - column:
+#                  name: email
+#                  value: 'fake.email@email.com'
+#              - column:
+#                  name: user_type
+#                  value: 'admin'
+#        - insert:
+#            tableName: users
+#            columns:
+#              - column:
+#                  name: account
+#                  value: 'customer'
+#              - column:
+#                  name: user_type
+#                  value: 'customer'
+#              - column:
+#                  name: password
+#                  value: '123'
+#              - column:
+#                  name: email
+#                  value: 'fake.email@email.com'
+#        - insert:
+#            tableName: users
+#            columns:
+#              - column:
+#                  name: account
+#                  value: 'vendor'
+#              - column:
+#                  name: user_type
+#                  value: 'vendor'
+#              - column:
+#                  name: password
+#                  value: '123'
+#              - column:
+#                  name: email
+#                  value: 'fake.email@email.com'

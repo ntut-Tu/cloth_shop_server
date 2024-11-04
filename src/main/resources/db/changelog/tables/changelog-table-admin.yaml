@@ -1,13 +1,13 @@
 databaseChangeLog:
   - changeSet:
-      id: user_log-1
-      author: admin
+      id: admin-1
+      author: quinn
       changes:
         - createTable:
-            tableName: user_log
+            tableName: admin
             columns:
               - column:
-                  name: user_log_id
+                  name: admin_id
                   type: serial
                   constraints:
                     primaryKey: true
@@ -17,16 +17,10 @@ databaseChangeLog:
                   type: integer
                   constraints:
                     nullable: false
-              - column:
-                  name: action
-                  type: text
-              - column:
-                  name: date
-                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
-                  defaultValueComputed: now()
+                    unique: true
         - addForeignKeyConstraint:
-            baseTableName: user_log
+            baseTableName: admin
             baseColumnNames: fk_user_id
-            constraintName: fk_user_log_user_id
+            constraintName: fk_admin_user_id_to_users
             referencedTableName: users
             referencedColumnNames: user_id

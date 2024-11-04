@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: coupon_usage-1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: coupon_usage
+            columns:
+              - column:
+                  name: coupon_usage_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: fk_coupon_id
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fk_customer_id
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: usage_date
+                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+                  defaultValueComputed: now()
+        - addForeignKeyConstraint:
+            baseTableName: coupon_usage
+            baseColumnNames: fk_coupon_id
+            constraintName: fk_coupon_usage_coupon
+            referencedTableName: coupon
+            referencedColumnNames: coupon_id
+        - addForeignKeyConstraint:
+            baseTableName: coupon_usage
+            baseColumnNames: fk_customer_id
+            constraintName: fk_coupon_usage_customer
+            referencedTableName: customer
+            referencedColumnNames: customer_id

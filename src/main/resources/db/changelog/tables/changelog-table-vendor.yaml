@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: vendor-1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: vendor
+            columns:
+              - column:
+                  name: vendor_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: fk_user_id
+                  type: integer
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: store_address
+                  type: varchar(200)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: store_description
+                  type: varchar(500)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: store_logo_url
+                  type: varchar(500)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: payment_account
+                  type: varchar(100)
+        - addForeignKeyConstraint:
+            baseTableName: vendor
+            baseColumnNames: fk_user_id
+            constraintName: fk_vendor_user_id_to_users
+            referencedTableName: users
+            referencedColumnNames: user_id

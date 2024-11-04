@@ -1,0 +1,76 @@
+databaseChangeLog:
+  - changeSet:
+      id: order-1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: order
+            columns:
+              - column:
+                  name: order_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: order_date
+                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+                  defaultValueComputed: now()
+              - column:
+                  name: total_amount
+                  type: integer
+              - column:
+                  name: payment_method
+                  type: varchar(50)
+              - column:
+                  name: credit_card_last_four
+                  type: varchar(10)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: deliver_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: pickup_store
+                  type: varchar(50)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: shipping_address
+                  type: varchar(200)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: pay_status
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ship_status
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fk_customer_id
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fk_shipping_discount_id
+                  type: integer
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            baseTableName: order
+            baseColumnNames: fk_customer_id
+            constraintName: fk_order_customer
+            referencedTableName: customer
+            referencedColumnNames: customer_id
+        - addForeignKeyConstraint:
+            baseTableName: order
+            baseColumnNames: fk_shipping_discount_id
+            constraintName: fk_order_shipping_discount
+            referencedTableName: coupon
+            referencedColumnNames: coupon_id

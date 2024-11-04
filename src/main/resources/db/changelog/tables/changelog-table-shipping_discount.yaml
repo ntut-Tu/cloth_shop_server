@@ -1,0 +1,55 @@
+databaseChangeLog:
+  - changeSet:
+      id: shipping_discount-1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: shipping_discount
+            columns:
+              - column:
+                  name: shipping_discount_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: discount_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ratio
+                  type: decimal(5, 2)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: discount_amount
+                  type: integer
+                  constraints:
+                    nullable: true
+              - column:
+                  name: maximum_usage_per_customer
+                  type: integer
+                  constraints:
+                    nullable: true
+              - column:
+                  name: applicable_shipping_methods
+                  type: varchar(100)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: minimum_spend
+                  type: integer
+                  constraints:
+                    nullable: true
+              - column:
+                  name: fk_coupon_id
+                  type: integer
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: shipping_discount
+            baseColumnNames: fk_coupon_id
+            constraintName: fk_shipping_discount_coupon
+            referencedTableName: coupon
+            referencedColumnNames: coupon_id

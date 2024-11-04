@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: order_item-1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: order_item
+            columns:
+              - column:
+                  name: order_item_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: unit_price
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fk_product_variant_id
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fk_order_id
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fk_store_order_id
+                  type: integer
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: order_item
+            baseColumnNames: fk_product_variant_id
+            constraintName: fk_order_item_product_variant
+            referencedTableName: product_variant
+            referencedColumnNames: product_variant_id
+        - addForeignKeyConstraint:
+            baseTableName: order_item
+            baseColumnNames: fk_order_id
+            constraintName: fk_order_item_order
+            referencedTableName: order
+            referencedColumnNames: order_id
+        - addForeignKeyConstraint:
+            baseTableName: order_item
+            baseColumnNames: fk_store_order_id
+            constraintName: fk_order_item_store_order
+            referencedTableName: store_order
+            referencedColumnNames: store_order_id
