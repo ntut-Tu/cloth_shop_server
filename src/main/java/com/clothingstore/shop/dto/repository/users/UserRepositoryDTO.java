@@ -1,9 +1,9 @@
-package com.clothingstore.shop.model;
+package com.clothingstore.shop.dto.repository.users;
 
 
 import java.time.OffsetDateTime;
 
-public class User {
+public class UserRepositoryDTO {
     private Integer id;
     private String account;
     private String password;
@@ -13,14 +13,14 @@ public class User {
     private OffsetDateTime createdAt;
     private String phoneNumber;
 
-    private VendorInfo vendorInfo;
-    private CustomerInfo customerInfo;
-    private AdminInfo adminInfo;
+    private VendorInfoRepositoryDTO vendorInfoRepositoryDTO;
+    private CustomerInfoRepositoryDTO customerInfoRepositoryDTO;
+    private AdminInfoRepositoryDTO adminInfoRepositoryDTO;
 
-    public User() {}
+    public UserRepositoryDTO() {}
 
-    public User(Integer id, String account, String password, String email, boolean isActive, String userType,
-                OffsetDateTime createdAt, String phoneNumber) {
+    public UserRepositoryDTO(Integer id, String account, String password, String email, boolean isActive, String userType,
+                             OffsetDateTime createdAt, String phoneNumber) {
         this.id = id;
         this.account = account;
         this.password = password;
@@ -63,16 +63,16 @@ public class User {
         return phoneNumber;
     }
 
-    public VendorInfo getVendorInfo() {
-        return vendorInfo;
+    public VendorInfoRepositoryDTO getVendorInfo() {
+        return vendorInfoRepositoryDTO;
     }
 
-    public CustomerInfo getCustomerInfo() {
-        return customerInfo;
+    public CustomerInfoRepositoryDTO getCustomerInfo() {
+        return customerInfoRepositoryDTO;
     }
 
-    public AdminInfo getAdminInfo() {
-        return adminInfo;
+    public AdminInfoRepositoryDTO getAdminInfo() {
+        return adminInfoRepositoryDTO;
     }
 
     public void setId(Integer id) {
@@ -107,15 +107,15 @@ public class User {
         this.phoneNumber = phoneNumber;
     }
 
-    public void setVendorInfo(VendorInfo vendorInfo) {
-        this.vendorInfo = vendorInfo;
+    public void setVendorInfo(VendorInfoRepositoryDTO vendorInfoRepositoryDTO) {
+        this.vendorInfoRepositoryDTO = vendorInfoRepositoryDTO;
     }
 
-    public void setCustomerInfo(CustomerInfo customerInfo) {
-        this.customerInfo = customerInfo;
+    public void setCustomerInfo(CustomerInfoRepositoryDTO customerInfoRepositoryDTO) {
+        this.customerInfoRepositoryDTO = customerInfoRepositoryDTO;
     }
 
-    public void setAdminInfo(AdminInfo adminInfo) {
-        this.adminInfo = adminInfo;
+    public void setAdminInfo(AdminInfoRepositoryDTO adminInfoRepositoryDTO) {
+        this.adminInfoRepositoryDTO = adminInfoRepositoryDTO;
     }
 }

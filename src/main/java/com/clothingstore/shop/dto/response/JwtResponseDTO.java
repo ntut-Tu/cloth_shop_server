@@ -1,9 +1,9 @@
-package com.clothingstore.shop.dto;
+package com.clothingstore.shop.dto.response;
 
-public class JwtResponse {
+public class JwtResponseDTO {
     private String token;
 
-    public JwtResponse(String token) {
+    public JwtResponseDTO(String token) {
         this.token = token;
     }
 

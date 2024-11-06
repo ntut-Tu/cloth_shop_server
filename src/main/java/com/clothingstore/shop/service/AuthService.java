@@ -1,7 +1,7 @@
 package com.clothingstore.shop.service;
 
-import com.clothingstore.shop.dto.RegisterRequest;
-import com.clothingstore.shop.model.User;
+import com.clothingstore.shop.dto.request.RegisterRequestDTO;
+import com.clothingstore.shop.dto.repository.users.UserRepositoryDTO;
 import com.clothingstore.shop.repository.AuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,12 +26,12 @@ public class AuthService {
             return null;
         }
 
-        User user = userOpt.get();
+        UserRepositoryDTO userRepositoryDTO = userOpt.get();
 
-        if (user.getPassword().equals(password) &&
-                user.getUserType().equals(role) &&
-                user.getIsActive()) {
-            return jwtService.generateJwtToken(account, role); // 生成 JWT token
+        if (userRepositoryDTO.getPassword().equals(password) &&
+                userRepositoryDTO.getUserType().equals(role) &&
+                userRepositoryDTO.getIsActive()) {
+            return jwtService.generateJwtToken(account, role, userRepositoryDTO.getId()); // 生成 JWT token
         }
 
         return null;
@@ -41,19 +41,23 @@ public class AuthService {
         return authRepository.findByUserAccountAndRole(username, role).isPresent();
     }
 
-    public boolean register(RegisterRequest registerRequest) {
-        if (authRepository.findByUserAccountAndRole(registerRequest.getAccount(), registerRequest.getRole()).isPresent()) {
+    public boolean checkUserExists(Integer userId,String role) {
+        return authRepository.findByUserIDAndRole(userId, role).isPresent();
+    }
+
+    public boolean register(RegisterRequestDTO registerRequestDTO) {
+        if (authRepository.findByUserAccountAndRole(registerRequestDTO.getAccount(), registerRequestDTO.getRole()).isPresent()) {
             return false;
         }
 
-        User newUser = new User();
-        newUser.setAccount(registerRequest.getAccount());
-        newUser.setPassword(registerRequest.getPassword());
-        newUser.setEmail(registerRequest.getEmail());
-        newUser.setUserType(registerRequest.getRole());
-        newUser.setCreatedAt(OffsetDateTime.now());
-        newUser.setIsActive(true);
+        UserRepositoryDTO newUserRepositoryDTO = new UserRepositoryDTO();
+        newUserRepositoryDTO.setAccount(registerRequestDTO.getAccount());
+        newUserRepositoryDTO.setPassword(registerRequestDTO.getPassword());
+        newUserRepositoryDTO.setEmail(registerRequestDTO.getEmail());
+        newUserRepositoryDTO.setUserType(registerRequestDTO.getRole());
+        newUserRepositoryDTO.setCreatedAt(OffsetDateTime.now());
+        newUserRepositoryDTO.setIsActive(true);
 
-        return authRepository.saveUser(newUser, registerRequest);
+        return authRepository.saveUser(newUserRepositoryDTO, registerRequestDTO);
     }
 }

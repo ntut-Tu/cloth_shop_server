@@ -1,10 +1,10 @@
 package com.clothingstore.shop.repository;
 
-import com.clothingstore.shop.dto.RegisterRequest;
-import com.clothingstore.shop.model.AdminInfo;
-import com.clothingstore.shop.model.CustomerInfo;
-import com.clothingstore.shop.model.User;
-import com.clothingstore.shop.model.VendorInfo;
+import com.clothingstore.shop.dto.request.RegisterRequestDTO;
+import com.clothingstore.shop.dto.repository.users.AdminInfoRepositoryDTO;
+import com.clothingstore.shop.dto.repository.users.CustomerInfoRepositoryDTO;
+import com.clothingstore.shop.dto.repository.users.UserRepositoryDTO;
+import com.clothingstore.shop.dto.repository.users.VendorInfoRepositoryDTO;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +27,8 @@ public class AuthRepository {
         this.dsl = dsl;
     }
 
-    public Optional<User> findByUserAccount(String userAccount, String role) {
-        Optional<User> userOptional = findByUserAccountAndRole(userAccount, role);
+    public Optional<UserRepositoryDTO> findByUserAccount(String userAccount, String role) {
+        Optional<UserRepositoryDTO> userOptional = findByUserAccountAndRole(userAccount, role);
 
         userOptional.ifPresent(user -> {
             switch (user.getUserType()) {
@@ -39,7 +39,7 @@ public class AuthRepository {
                     user.setCustomerInfo(loadCustomerInfo(user, user.getId()));
                     break;
                 case "admin":
-                    user.setAdminInfo(new AdminInfo());
+                    user.setAdminInfo(new AdminInfoRepositoryDTO());
                     break;
             }
         });
@@ -48,8 +48,8 @@ public class AuthRepository {
     }
 
 
-    private User mapToUser(Record record) {
-        return new User(
+    private UserRepositoryDTO mapToUser(Record record) {
+        return new UserRepositoryDTO(
                 record.get(USERS.USER_ID),
                 record.get(USERS.ACCOUNT),
                 record.get(USERS.PASSWORD),
@@ -61,15 +61,15 @@ public class AuthRepository {
         );
     }
 
-    private VendorInfo loadVendorInfo(User user,Integer userId) {
+    private VendorInfoRepositoryDTO loadVendorInfo(UserRepositoryDTO userRepositoryDTO, Integer userId) {
         Record vendorRecord = dsl.selectFrom(VENDOR)
                 .where(VENDOR.FK_USER_ID.eq(userId))
                 .fetchOne();
 
         if (vendorRecord == null) return null;
 
-        return new VendorInfo(
-                user,
+        return new VendorInfoRepositoryDTO(
+                userRepositoryDTO,
                 vendorRecord.get(VENDOR.STORE_ADDRESS),
                 vendorRecord.get(VENDOR.STORE_DESCRIPTION),
                 vendorRecord.get(VENDOR.STORE_LOGO_URL),
@@ -77,21 +77,21 @@ public class AuthRepository {
         );
     }
 
-    private CustomerInfo loadCustomerInfo(User user,Integer userId) {
+    private CustomerInfoRepositoryDTO loadCustomerInfo(UserRepositoryDTO userRepositoryDTO, Integer userId) {
         Record customerRecord = dsl.selectFrom(CUSTOMER)
                 .where(CUSTOMER.FK_USER_ID.eq(userId))
                 .fetchOne();
 
         if (customerRecord == null) return null;
 
-        return new CustomerInfo(
-                user,
+        return new CustomerInfoRepositoryDTO(
+                userRepositoryDTO,
                 customerRecord.get(CUSTOMER.DEFAULT_SHIPPING_ADDRESS),
                 customerRecord.get(CUSTOMER.BILLING_ADDRESS)
         );
     }
 
-    public Optional<User> findByUserAccountAndRole(String userAccount, String role) {
+    public Optional<UserRepositoryDTO> findByUserAccountAndRole(String userAccount, String role) {
         Record record = dsl.selectFrom(USERS)
                 .where(USERS.ACCOUNT.eq(userAccount))
                 .and(USERS.USER_TYPE.eq(role))
@@ -100,33 +100,42 @@ public class AuthRepository {
         return record != null ? Optional.of(mapToUser(record)) : Optional.empty();
     }
 
-    public boolean saveUser(User user, RegisterRequest registerRequest) {
+    public Optional<UserRepositoryDTO> findByUserIDAndRole(Integer user_id, String role) {
+        Record record = dsl.selectFrom(USERS)
+                .where(USERS.USER_ID.eq(user_id))
+                .and(USERS.USER_TYPE.eq(role))
+                .fetchOne();
+
+        return record != null ? Optional.of(mapToUser(record)) : Optional.empty();
+    }
+
+    public boolean saveUser(UserRepositoryDTO userRepositoryDTO, RegisterRequestDTO registerRequestDTO) {
         int userId = dsl.insertInto(USERS)
-                .set(USERS.ACCOUNT, user.getAccount())
-                .set(USERS.PASSWORD, user.getPassword())
-                .set(USERS.EMAIL, user.getEmail())
-                .set(USERS.USER_TYPE, user.getUserType())
-                .set(USERS.CREATED_AT, user.getCreatedAt())
-                .set(USERS.IS_ACTIVE, user.getIsActive())
+                .set(USERS.ACCOUNT, userRepositoryDTO.getAccount())
+                .set(USERS.PASSWORD, userRepositoryDTO.getPassword())
+                .set(USERS.EMAIL, userRepositoryDTO.getEmail())
+                .set(USERS.USER_TYPE, userRepositoryDTO.getUserType())
+                .set(USERS.CREATED_AT, userRepositoryDTO.getCreatedAt())
+                .set(USERS.IS_ACTIVE, userRepositoryDTO.getIsActive())
                 .returning(USERS.USER_ID)
                 .fetchOne()
                 .getValue(USERS.USER_ID);
 
-        switch (user.getUserType()) {
+        switch (userRepositoryDTO.getUserType()) {
             case "vendor":
                 dsl.insertInto(VENDOR)
                         .set(VENDOR.FK_USER_ID, userId)
-                        .set(VENDOR.STORE_ADDRESS, registerRequest.getStoreAddress())
-                        .set(VENDOR.STORE_DESCRIPTION, registerRequest.getStoreDescription())
-                        .set(VENDOR.STORE_LOGO_URL, registerRequest.getStoreLogoUrl())
-                        .set(VENDOR.PAYMENT_ACCOUNT, registerRequest.getPaymentAccount())
+                        .set(VENDOR.STORE_ADDRESS, registerRequestDTO.getStoreAddress())
+                        .set(VENDOR.STORE_DESCRIPTION, registerRequestDTO.getStoreDescription())
+                        .set(VENDOR.STORE_LOGO_URL, registerRequestDTO.getStoreLogoUrl())
+                        .set(VENDOR.PAYMENT_ACCOUNT, registerRequestDTO.getPaymentAccount())
                         .execute();
                 break;
             case "customer":
                 dsl.insertInto(CUSTOMER)
                         .set(CUSTOMER.FK_USER_ID, userId)
-                        .set(CUSTOMER.DEFAULT_SHIPPING_ADDRESS, registerRequest.getDefaultShippingAddress())
-                        .set(CUSTOMER.BILLING_ADDRESS, registerRequest.getBillingAddress())
+                        .set(CUSTOMER.DEFAULT_SHIPPING_ADDRESS, registerRequestDTO.getDefaultShippingAddress())
+                        .set(CUSTOMER.BILLING_ADDRESS, registerRequestDTO.getBillingAddress())
                         .execute();
                 break;
             case "admin":

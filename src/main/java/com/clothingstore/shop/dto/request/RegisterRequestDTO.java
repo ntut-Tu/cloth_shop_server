@@ -1,6 +1,6 @@
-package com.clothingstore.shop.dto;
+package com.clothingstore.shop.dto.request;
 
-public class RegisterRequest {
+public class RegisterRequestDTO {
     private String account;
     private String email;
     private String password;

@@ -1,19 +1,19 @@
-package com.clothingstore.shop.model;
+package com.clothingstore.shop.dto.repository.users;
 
 
-public class CustomerInfo {
+public class CustomerInfoRepositoryDTO {
 
     private Integer customerId;
 
-    private User user;
+    private UserRepositoryDTO userRepositoryDTO;
 
     private String defaultShippingAddress;
     private String billingAddress;
 
-    public CustomerInfo() {}
+    public CustomerInfoRepositoryDTO() {}
 
-    public CustomerInfo(User user, String defaultShippingAddress, String billingAddress) {
-        this.user = user;
+    public CustomerInfoRepositoryDTO(UserRepositoryDTO userRepositoryDTO, String defaultShippingAddress, String billingAddress) {
+        this.userRepositoryDTO = userRepositoryDTO;
         this.defaultShippingAddress = defaultShippingAddress;
         this.billingAddress = billingAddress;
     }
@@ -22,8 +22,8 @@ public class CustomerInfo {
         return customerId;
     }
 
-    public User getUser() {
-        return user;
+    public UserRepositoryDTO getUser() {
+        return userRepositoryDTO;
     }
 
     public String getDefaultShippingAddress() {
@@ -38,8 +38,8 @@ public class CustomerInfo {
         this.customerId = customerId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUser(UserRepositoryDTO userRepositoryDTO) {
+        this.userRepositoryDTO = userRepositoryDTO;
     }
 
     public void setDefaultShippingAddress(String defaultShippingAddress) {

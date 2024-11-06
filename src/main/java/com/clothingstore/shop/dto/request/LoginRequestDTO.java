@@ -1,6 +1,6 @@
-package com.clothingstore.shop.dto;
+package com.clothingstore.shop.dto.request;
 
-public class LoginRequest {
+public class LoginRequestDTO {
     private String username;
     private String password;
     private String role;

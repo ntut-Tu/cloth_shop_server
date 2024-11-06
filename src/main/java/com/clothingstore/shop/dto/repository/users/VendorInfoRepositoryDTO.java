@@ -1,22 +1,22 @@
-package com.clothingstore.shop.model;
+package com.clothingstore.shop.dto.repository.users;
 
 
-public class VendorInfo {
+public class VendorInfoRepositoryDTO {
 
     private Integer vendorId;
 
 
-    private User user;
+    private UserRepositoryDTO userRepositoryDTO;
 
     private String storeAddress;
     private String storeDescription;
     private String storeLogoUrl;
     private String paymentAccount;
 
-    public VendorInfo() {}
+    public VendorInfoRepositoryDTO() {}
 
-    public VendorInfo(User user, String storeAddress, String storeDescription, String storeLogoUrl, String paymentAccount) {
-        this.user = user;
+    public VendorInfoRepositoryDTO(UserRepositoryDTO userRepositoryDTO, String storeAddress, String storeDescription, String storeLogoUrl, String paymentAccount) {
+        this.userRepositoryDTO = userRepositoryDTO;
         this.storeAddress = storeAddress;
         this.storeDescription = storeDescription;
         this.storeLogoUrl = storeLogoUrl;
@@ -27,8 +27,8 @@ public class VendorInfo {
         return vendorId;
     }
 
-    public User getUser() {
-        return user;
+    public UserRepositoryDTO getUser() {
+        return userRepositoryDTO;
     }
 
     public String getStoreAddress() {
@@ -51,8 +51,8 @@ public class VendorInfo {
         this.vendorId = vendorId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUser(UserRepositoryDTO userRepositoryDTO) {
+        this.userRepositoryDTO = userRepositoryDTO;
     }
 
     public void setStoreAddress(String storeAddress) {

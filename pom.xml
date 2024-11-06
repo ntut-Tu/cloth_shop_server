@@ -90,6 +90,17 @@
 			<artifactId>jooq-codegen</artifactId>
 			<version>3.18.5</version>
 		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>1.5.2.Final</version> <!-- 確認版本 -->
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct-processor</artifactId>
+			<version>1.5.2.Final</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<profiles>
