@@ -27,6 +27,17 @@ databaseChangeLog:
                   type: integer
                   constraints:
                     nullable: false
+              - column:
+                  name: fk_product_id
+                  type: integer
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: review
+            baseColumnNames: fk_product_id
+            constraintName: fk_review_product_id
+            referencedTableName: product
+            referencedColumnNames: product_id
         - addForeignKeyConstraint:
             baseTableName: review
             baseColumnNames: fk_customer_id

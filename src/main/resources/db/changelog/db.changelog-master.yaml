@@ -22,10 +22,10 @@ databaseChangeLog:
       file: tables/changelog-table-user_log.yaml
       relativeToChangelogFile: true
   - include:
-      file: tables/changelog-table-review.yaml
+      file: tables/changelog-table-product.yaml
       relativeToChangelogFile: true
   - include:
-      file: tables/changelog-table-product.yaml
+      file: tables/changelog-table-review.yaml
       relativeToChangelogFile: true
   - include:
       file: tables/changelog-table-product_variant.yaml
