@@ -46,11 +46,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: fk_review_id
-                  type: integer
-                  constraints:
-                    nullable: true
-              - column:
                   name: fk_vendor_id
                   type: integer
                   constraints:
@@ -59,12 +54,6 @@ databaseChangeLog:
             tableName: product
             columnName: is_list
             defaultValueBoolean: true
-        - addForeignKeyConstraint:
-            baseTableName: product
-            baseColumnNames: fk_review_id
-            constraintName: fk_product_review_id
-            referencedTableName: review
-            referencedColumnNames: review_id
         - addForeignKeyConstraint:
             baseTableName: product
             baseColumnNames: fk_vendor_id
