@@ -1,4 +1,4 @@
-package com.clothingstore.shop.dto.request;
+package com.clothingstore.shop.dto.request.auth;
 
 public class LoginRequestDTO {
     private String username;

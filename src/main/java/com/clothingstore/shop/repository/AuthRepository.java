@@ -1,6 +1,6 @@
 package com.clothingstore.shop.repository;
 
-import com.clothingstore.shop.dto.request.RegisterRequestDTO;
+import com.clothingstore.shop.dto.request.auth.RegisterRequestDTO;
 import com.clothingstore.shop.dto.repository.users.AdminInfoRepositoryDTO;
 import com.clothingstore.shop.dto.repository.users.CustomerInfoRepositoryDTO;
 import com.clothingstore.shop.dto.repository.users.UserRepositoryDTO;

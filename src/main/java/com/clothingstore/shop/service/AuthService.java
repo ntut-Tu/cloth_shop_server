@@ -1,6 +1,6 @@
 package com.clothingstore.shop.service;
 
-import com.clothingstore.shop.dto.request.RegisterRequestDTO;
+import com.clothingstore.shop.dto.request.auth.RegisterRequestDTO;
 import com.clothingstore.shop.dto.repository.users.UserRepositoryDTO;
 import com.clothingstore.shop.repository.AuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;

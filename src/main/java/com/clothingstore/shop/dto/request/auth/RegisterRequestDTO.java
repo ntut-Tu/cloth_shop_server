@@ -1,4 +1,4 @@
-package com.clothingstore.shop.dto.request;
+package com.clothingstore.shop.dto.request.auth;
 
 public class RegisterRequestDTO {
     private String account;

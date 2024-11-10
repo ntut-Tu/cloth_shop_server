@@ -2,8 +2,8 @@ package com.clothingstore.shop.controller;
 
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.response.JwtResponseDTO;
-import com.clothingstore.shop.dto.request.LoginRequestDTO;
-import com.clothingstore.shop.dto.request.RegisterRequestDTO;
+import com.clothingstore.shop.dto.request.auth.LoginRequestDTO;
+import com.clothingstore.shop.dto.request.auth.RegisterRequestDTO;
 import com.clothingstore.shop.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
