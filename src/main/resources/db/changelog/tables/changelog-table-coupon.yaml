@@ -37,6 +37,11 @@ databaseChangeLog:
                   type: integer
                   constraints:
                     nullable: true
+              - column:
+                  name: maximum_usage_per_customer
+                  type: integer
+                  constraints:
+                    nullable: true
         - addForeignKeyConstraint:
             baseTableName: coupon
             baseColumnNames: fk_vendor_id
