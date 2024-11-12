@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: quinn
+      changes:
+        - createTable:
+            tableName: vendor_ledger_entry
+            columns:
+              - column:
+                  name: ledger_entry_id
+                  type: INTEGER
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    referencedTableName: ledger_entry
+                    referencedColumnNames: ledger_entry_id
+                    foreignKeyName: fk_vendor_ledger_entry_ledger_entry
+              - column:
+                  name: vendor_id
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: store_order_id
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: vendor_ledger_entry
+            baseColumnNames: vendor_id
+            referencedTableName: vendor
+            referencedColumnNames: vendor_id
+            constraintName: fk_vendor_ledger_entry_vendor
+        - addForeignKeyConstraint:
+            baseTableName: vendor_ledger_entry
+            baseColumnNames: store_order_id
+            referencedTableName: store_order
+            referencedColumnNames: store_order_id
+            constraintName: fk_vendor_ledger_entry_store_order
+

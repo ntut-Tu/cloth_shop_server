@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: quinn
+      changes:
+        - createTable:
+            tableName: platform_ledger_entry
+            columns:
+              - column:
+                  name: ledger_entry_id
+                  type: INTEGER
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    referencedTableName: ledger_entry
+                    referencedColumnNames: ledger_entry_id
+                    foreignKeyName: fk_platform_ledger_entry_ledger_entry
+              - column:
+                  name: order_id
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: platform_ledger_entry
+            baseColumnNames: order_id
+            referencedTableName: order
+            referencedColumnNames: order_id
+            constraintName: fk_platform_ledger_entry_order
