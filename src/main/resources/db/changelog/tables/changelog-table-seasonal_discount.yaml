@@ -28,11 +28,6 @@ databaseChangeLog:
                   constraints:
                     nullable: true
               - column:
-                  name: maximum_usage_per_customer
-                  type: integer
-                  constraints:
-                    nullable: true
-              - column:
                   name: minimum_spend
                   type: integer
                   constraints:
