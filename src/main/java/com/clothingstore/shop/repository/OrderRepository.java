@@ -33,7 +33,7 @@ public class OrderRepository {
 
     // 2. 查詢商家訂單簡介（延遲加載）
     public List<StoreOrderSummaryRepositoryDTO> findStoreOrdersByOrderId(Integer orderId) {
-        return dsl.select(STORE_ORDER.STORE_ORDER_ID, STORE_ORDER.FK_VENDOR_ID, STORE_ORDER.SEASONAL_DISCOUNT_ID, STORE_ORDER.SPECIAL_DISCOUNT_ID, STORE_ORDER.SHIPPING_DISCOUNT_ID)
+        return dsl.select(STORE_ORDER.STORE_ORDER_ID, STORE_ORDER.FK_VENDOR_ID, STORE_ORDER.SEASONAL_DISCOUNT_ID, STORE_ORDER.SPECIAL_DISCOUNT_ID)
                 .from(STORE_ORDER)
                 .where(STORE_ORDER.FK_ORDER_ID.eq(orderId))
                 .fetchInto(StoreOrderSummaryRepositoryDTO.class);

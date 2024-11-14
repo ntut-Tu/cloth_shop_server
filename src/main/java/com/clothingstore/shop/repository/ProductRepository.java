@@ -59,7 +59,6 @@ public class ProductRepository {
                         PRODUCT.IMAGE_URL,
                         PRODUCT.CATEGORY,
                         PRODUCT.IS_LIST,
-                        PRODUCT.FK_REVIEW_ID,
                         PRODUCT.FK_VENDOR_ID,
                         VENDOR.STORE_DESCRIPTION,
                         VENDOR.STORE_ADDRESS,

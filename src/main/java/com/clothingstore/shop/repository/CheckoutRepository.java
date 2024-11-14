@@ -12,5 +12,4 @@ public class CheckoutRepository {
         this.dsl = dslContext;
     }
 
-    public
 }

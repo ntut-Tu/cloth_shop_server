@@ -5,6 +5,9 @@ import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.repository.products.ProductDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDTO;
 import com.clothingstore.shop.service.ProductService;
+import com.clothingstore.shop.utils.TokenUtils;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +32,6 @@ public class ProductController {
             @RequestParam(defaultValue = "30") int pageSize) {
 
         List<ProductSummaryRepositoryDTO> productSummaries = productService.getProductSummaries(page, pageSize);
-
         return new ApiResponseDTO<>(true, "Product summaries retrieved successfully", productSummaries);
     }
 
@@ -41,22 +43,29 @@ public class ProductController {
 
     @PostMapping("/add")
     public ResponseEntity<ApiResponseDTO<Integer>> addProduct(
-            @RequestHeader("Authorization") String token,
+            HttpServletRequest request, // 改用 HttpServletRequest 以從 cookie 中讀取 token
             @RequestBody AddProductRequestDTO productRequestDTO) {
         try {
-            // Call the ProductService to add the product
-            Integer productId = productService.addProduct(token.replace("Bearer ", ""), productRequestDTO);
+            // 從 cookie 中提取 token
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+
+            // 調用 ProductService 以添加產品
+            Integer productId = productService.addProduct(token, productRequestDTO);
             return ResponseEntity.ok(
                     new ApiResponseDTO<>(true, "Product added successfully", productId)
             );
         } catch (IllegalArgumentException e) {
-            // Handle authorization error
+            // 處理授權錯誤
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (Exception e) {
-            // Handle general errors
+            // 處理一般錯誤
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponseDTO<>(false, "Failed to add product", null));
         }
     }
+
 }
