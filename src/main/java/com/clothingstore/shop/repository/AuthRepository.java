@@ -147,4 +147,12 @@ public class AuthRepository {
 
         return true;
     }
+
+    public Integer getVendorId(Integer userId) {
+        return dsl.select(VENDOR.VENDOR_ID)
+                .from(VENDOR)
+                .where(VENDOR.FK_USER_ID.eq(userId))
+                .fetchOne()
+                .get(VENDOR.VENDOR_ID);
+    }
 }

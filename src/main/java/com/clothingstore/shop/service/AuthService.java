@@ -60,4 +60,8 @@ public class AuthService {
 
         return authRepository.saveUser(newUserRepositoryDTO, registerRequestDTO);
     }
+
+    public Integer getVendorId(Integer userId) {
+        return authRepository.getVendorId(userId);
+    }
 }

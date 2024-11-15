@@ -40,6 +40,7 @@ public class ProductService {
         if (!authService.checkUserExists(userId,"vendor")) {
             throw new IllegalArgumentException("User is not authorized to add products for this vendor.");
         }
+        productRequestDTO.setFkVendorId(authService.getVendorId(userId));
         // Step 2: Add the product using ProductRepository
         return productRepository.addProduct(productRequestDTO);
     }
