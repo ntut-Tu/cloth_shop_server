@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: ledger_entry
+            columns:
+              - column:
+                  name: ledger_entry_id
+                  type: SERIAL
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: ledger_type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: transaction_type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: DECIMAL(10, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_balance
+                  type: DECIMAL(10, 2)
+              - column:
+                  name: transaction_date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notes
+                  type: TEXT
+              - column:
+                  name: coupon_id
+                  type: INTEGER
+        - addForeignKeyConstraint:
+            baseTableName: ledger_entry
+            baseColumnNames: coupon_id
+            referencedTableName: coupon
+            referencedColumnNames: coupon_id
+            constraintName: fk_ledger_entry_coupon
