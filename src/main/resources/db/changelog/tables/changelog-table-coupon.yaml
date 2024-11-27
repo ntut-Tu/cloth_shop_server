@@ -42,6 +42,11 @@ databaseChangeLog:
                   type: integer
                   constraints:
                     nullable: true
+              - column:
+                  name: type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
         - addForeignKeyConstraint:
             baseTableName: coupon
             baseColumnNames: fk_vendor_id

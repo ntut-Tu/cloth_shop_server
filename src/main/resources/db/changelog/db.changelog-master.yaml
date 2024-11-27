@@ -54,4 +54,12 @@ databaseChangeLog:
   - include:
       file: tables/changelog-table-order_item.yaml
       relativeToChangelogFile: true
-
+  - include:
+        file: tables/changelog-table-ledger_entry.yaml
+        relativeToChangelogFile: true
+  - include:
+        file: tables/changelog-table-platform_ledger_entry.yaml
+        relativeToChangelogFile: true
+  - include:
+        file: tables/changelog-table-vendor_ledger_entry.yaml
+        relativeToChangelogFile: true
