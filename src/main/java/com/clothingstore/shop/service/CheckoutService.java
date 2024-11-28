@@ -19,19 +19,20 @@ public class CheckoutService {
         this.jwtService = jwtService;
         this.checkoutRepository = checkoutRepository;
     }
-
-    public ConfirmAmountResponseDTO confirmAmount(String jwtToken, ConfirmAmountRequestDTO confirmAmountRequestDTO) {
-        Integer userId = jwtService.extractUserId(jwtToken);
-        //從request中提取每個商品從repository中取得的價格加總並扣掉優惠金額等完成confirmAmountResponseDTO的處理及建立
-    }
-
-    public ConfirmAmountResponseDTO confirmDiscount(String jwtToken, ConfirmDiscountRequestDTO confirmDiscountRequestDTO) {
-        Integer userId = jwtService.extractUserId(jwtToken);
-        //處裡並完成confirmDiscountResponseDTO的建立
-    }
-
-    public SubmitOrderResponseDTO submitOrder(String jwtToken, SubmitOrderRequestDTO submitOrderRequestDTO) {
-        Integer userId = jwtService.extractUserId(jwtToken);
-        //處裡並完成submitOrderResponseDTO的建立
-    }
 }
+
+//    public ConfirmAmountResponseDTO confirmAmount(String jwtToken, ConfirmAmountRequestDTO confirmAmountRequestDTO) {
+//        Integer userId = jwtService.extractUserId(jwtToken);
+//        //從request中提取每個商品從repository中取得的價格加總並扣掉優惠金額等完成confirmAmountResponseDTO的處理及建立
+//    }
+//
+//    public ConfirmAmountResponseDTO confirmDiscount(String jwtToken, ConfirmDiscountRequestDTO confirmDiscountRequestDTO) {
+//        Integer userId = jwtService.extractUserId(jwtToken);
+//        //處裡並完成confirmDiscountResponseDTO的建立
+//    }
+//
+//    public SubmitOrderResponseDTO submitOrder(String jwtToken, SubmitOrderRequestDTO submitOrderRequestDTO) {
+//        Integer userId = jwtService.extractUserId(jwtToken);
+//        //處裡並完成submitOrderResponseDTO的建立
+//    }
+//}
