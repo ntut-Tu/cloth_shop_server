@@ -20,7 +20,7 @@ import static com.clothingstore.shop.jooq.Tables.*;
 @Repository
 public class CheckoutRepository {
     private final DSLContext dsl;
-
+    private final Integer shippingFee = 60;
     @Autowired
     public CheckoutRepository(DSLContext dslContext) {
         this.dsl = dslContext;
@@ -122,6 +122,16 @@ public class CheckoutRepository {
                 throw new SharedException("Invalid order data");
             }
             Integer totalAmount = 0;
+            Integer Subtotal = 0;
+            DiscountDetailsDTO shippingDiscount = queryDiscountDetails(queryDiscountIdByCode(submitOrderRequestDTO.getShipping_discount_code()), CouponType.SHIPPING_DISCOUNT);
+            Integer shippingDiscountAmount = 0;
+            if(shippingDiscount != null){
+                if(shippingDiscount.getRatio() != null){
+                    shippingDiscountAmount = shippingFee * shippingDiscount.getRatio() / 100;
+                }else if(shippingDiscount.getAmount() != null){
+                    shippingDiscountAmount = shippingDiscount.getAmount();
+                }
+            }
             // 插入訂單資料
             Integer orderId = dsl.insertInto(ORDER)
                     .set(ORDER.FK_CUSTOMER_ID, customerId)
@@ -136,8 +146,50 @@ public class CheckoutRepository {
                     .fetchOne()
                     .getOrderId();
 
-            // TODO 商店order應該包含:商店總價,折扣金額;總order應該包含消費金額,折扣金額,總價
+            // TODO 商店order應該包含:商店總價,折扣金額;總order應該包含消費金額,折扣金額,總價 ; 已知bug store_total_amount 應該改名叫 store_subtotal_amount
             for (CheckoutBaseStoreOrderModel storeOrder : submitOrderRequestDTO.getStore_orders()) {
+                DiscountDetailsDTO storeDiscount = null;
+                Integer storeDiscountAmount = 0;
+                if(storeOrder.getSpecial_discount_code() != null){
+                    storeDiscount = queryDiscountDetails(queryDiscountIdByCode(storeOrder.getSpecial_discount_code()), CouponType.SPECIAL_DISCOUNT);
+                    if(storeDiscount instanceof SpecialDiscountDTO){
+                        Integer buyQuantity = ((SpecialDiscountDTO) storeDiscount).getBuyQuantity();
+                        Integer buyVariantId = ((SpecialDiscountDTO) storeDiscount).getBuyVariantId();
+                        Integer giftQuantity = ((SpecialDiscountDTO) storeDiscount).getGiftQuantity();
+                        Integer giftVariantId = ((SpecialDiscountDTO) storeDiscount).getGiftVariantId();
+
+                        // Check if the buy item and quantity are in the shopping list
+                        boolean hasBuyItem = false;
+                        boolean hasGiftItem = false;
+                        for (CheckoutBaseProductVariantModel productVariant : storeOrder.getProduct_variants()) {
+                            if (productVariant.getProduct_variant_id() == buyVariantId && productVariant.getQuantity() >= buyQuantity) {
+                                hasBuyItem = true;
+                            }
+                            if (productVariant.getProduct_variant_id() == giftVariantId && productVariant.getQuantity() >= giftQuantity) {
+                                hasGiftItem = true;
+                            }
+                        }
+
+                        // If buy item is present and gift item is not or quantity is insufficient, add the gift item
+                        if (hasBuyItem && (!hasGiftItem || !storeOrder.getProduct_variants().stream().anyMatch(pv -> pv.getProduct_variant_id() == giftVariantId && pv.getQuantity() >= giftQuantity))) {
+                            Integer giftUnitPrice = dsl.select(PRODUCT_VARIANT.PRICE)
+                                    .from(PRODUCT_VARIANT)
+                                    .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(giftVariantId))
+                                    .fetchOneInto(Integer.class);
+                            storeDiscountAmount = giftUnitPrice * giftQuantity;
+                        }
+                    }
+                }else if(storeOrder.getSeasonal_discount_code() != null){
+                    storeDiscount = queryDiscountDetails(queryDiscountIdByCode(storeOrder.getSeasonal_discount_code()), CouponType.SEASONAL_DISCOUNT);
+                    if(storeDiscount != null){
+                        if(storeDiscount.getRatio() != null){
+                            storeDiscountAmount = totalAmount * storeDiscount.getRatio() / 100;
+                        }else if(storeDiscount.getAmount() != null){
+                            storeDiscountAmount = storeDiscount.getAmount();
+                        }
+                    }
+                }
+                Integer storeTotalAmount = 0;
                 Integer storeOrderId = dsl.insertInto(STORE_ORDER)
                         .set(STORE_ORDER.FK_ORDER_ID, orderId)
                         .set(STORE_ORDER.FK_VENDOR_ID, storeOrder.getStore_id())
@@ -151,17 +203,27 @@ public class CheckoutRepository {
                             .from(PRODUCT_VARIANT)
                             .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariant.getProduct_variant_id()))
                             .fetchOneInto(Integer.class);
-                    totalAmount += unitPrice * productVariant.getQuantity();
                     dsl.insertInto(ORDER_ITEM)
                             .set(ORDER_ITEM.FK_STORE_ORDER_ID, storeOrderId)
                             .set(ORDER_ITEM.FK_PRODUCT_VARIANT_ID, productVariant.getProduct_variant_id())
                             .set(ORDER_ITEM.QUANTITY, productVariant.getQuantity())
                             .set(ORDER_ITEM.UNIT_PRICE, unitPrice)
                             .execute();
+                    storeTotalAmount += unitPrice * productVariant.getQuantity();
                 }
+                dsl.update(STORE_ORDER)
+                        .set(STORE_ORDER.STORE_TOTAL_AMOUNT, storeTotalAmount)
+                        .set(STORE_ORDER.STORE_DISCOUNT_AMOUNT, storeDiscountAmount)
+                        .where(STORE_ORDER.STORE_ORDER_ID.eq(storeOrderId))
+                        .execute();
+                totalAmount += storeTotalAmount - storeDiscountAmount;
+                Subtotal += storeTotalAmount;
             }
+            totalAmount -= shippingDiscountAmount;
             dsl.update(ORDER)
                     .set(ORDER.TOTAL_AMOUNT, totalAmount)
+                    .set(ORDER.SHIPPING_DISCOUNT_AMOUNT, shippingDiscountAmount)
+                    .set(ORDER.SUBTOTAL, Subtotal)
                     .where(ORDER.ORDER_ID.eq(orderId))
                     .execute();
             return orderId;
