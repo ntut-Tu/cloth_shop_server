@@ -1,5 +1,8 @@
 package com.clothingstore.shop.manager;
 
+import com.clothingstore.shop.dto.others.checkout.CheckoutBaseOrderModel;
+import com.clothingstore.shop.dto.others.checkout.CheckoutBaseProductVariantModel;
+import com.clothingstore.shop.dto.others.checkout.CheckoutBaseStoreOrderModel;
 import com.clothingstore.shop.dto.others.discount.DiscountDetailsDTO;
 import com.clothingstore.shop.dto.others.checkout.ProductVariantDTO;
 import com.clothingstore.shop.dto.request.checkout.SubmitOrderRequestDTO;
@@ -85,9 +88,18 @@ public class CheckoutManager {
             throw e;
         }
     }
-    public Integer storeOrder(SubmitOrderRequestDTO submitOrderRequestDTO) throws SharedException {
+    public Integer storeOrder(SubmitOrderRequestDTO submitOrderRequestDTO,Integer customerId) throws SharedException {
         // Save order details to database
-//        return checkoutRepository.saveOrder(submitOrderRequestDTO);
-        return 0;
+//        List<CheckoutBaseStoreOrderModel> storeOrders = submitOrderRequestDTO.getStore_orders();
+//        for(CheckoutBaseStoreOrderModel storeOrder : storeOrders){
+//            List<CheckoutBaseProductVariantModel> productVariants = storeOrder.getProduct_variants();
+//            for(CheckoutBaseProductVariantModel productVariant : productVariants){
+//                if(productVariant.getQuantity() <= 0){
+//                    throw new SharedException("Invalid quantity");
+//                }
+//            }
+//        }
+
+        return checkoutRepository.saveOrder(submitOrderRequestDTO,customerId);
     }
 }

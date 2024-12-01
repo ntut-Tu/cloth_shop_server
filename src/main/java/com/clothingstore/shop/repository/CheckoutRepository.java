@@ -1,12 +1,14 @@
 package com.clothingstore.shop.repository;
 
+import com.clothingstore.shop.dto.others.checkout.CheckoutBaseProductVariantModel;
+import com.clothingstore.shop.dto.others.checkout.CheckoutBaseStoreOrderModel;
 import com.clothingstore.shop.dto.others.discount.DiscountDetailsDTO;
 import com.clothingstore.shop.dto.others.checkout.ProductVariantDTO;
 import com.clothingstore.shop.dto.others.discount.SeasonalDiscountDTO;
 import com.clothingstore.shop.dto.others.discount.ShippingDiscountDTO;
 import com.clothingstore.shop.dto.others.discount.SpecialDiscountDTO;
-import com.clothingstore.shop.enums.CouponType;
-import com.clothingstore.shop.enums.ExceptionCode;
+import com.clothingstore.shop.dto.request.checkout.SubmitOrderRequestDTO;
+import com.clothingstore.shop.enums.*;
 import com.clothingstore.shop.exceptions.SharedException;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -113,4 +115,58 @@ public class CheckoutRepository {
     }
 
 
+    public Integer saveOrder(SubmitOrderRequestDTO submitOrderRequestDTO,Integer customerId) throws SharedException {
+        try {
+            // 驗證訂單資料
+            if (submitOrderRequestDTO == null || submitOrderRequestDTO.getStore_orders() == null) {
+                throw new SharedException("Invalid order data");
+            }
+            Integer totalAmount = 0;
+            // 插入訂單資料
+            Integer orderId = dsl.insertInto(ORDER)
+                    .set(ORDER.FK_CUSTOMER_ID, customerId)
+                    .set(ORDER.PAYMENT_METHOD, submitOrderRequestDTO.getPayment_method())
+                    .set(ORDER.PAY_STATUS, submitOrderRequestDTO.getPayment_method().equals(PayMethod.CARD.getMethod()) ? PayStatus.PAID.toString() : PayStatus.PENDING.toString())
+                    .set(ORDER.CREDIT_CARD_LAST_FOUR, submitOrderRequestDTO.getCredit_card_last_four())
+                    .set(ORDER.DELIVER_TYPE, submitOrderRequestDTO.getDelivery_type())
+                    .set(ORDER.PICKUP_STORE, submitOrderRequestDTO.getPickup_store())
+                    .set(ORDER.SHIP_STATUS, ShipStatus.PENDING.getStatus())
+                    .set(ORDER.SHIPPING_ADDRESS, submitOrderRequestDTO.getShipping_address())
+                    .returning(ORDER.ORDER_ID)
+                    .fetchOne()
+                    .getOrderId();
+
+            // TODO 商店order應該包含:商店總價,折扣金額;總order應該包含消費金額,折扣金額,總價
+            for (CheckoutBaseStoreOrderModel storeOrder : submitOrderRequestDTO.getStore_orders()) {
+                Integer storeOrderId = dsl.insertInto(STORE_ORDER)
+                        .set(STORE_ORDER.FK_ORDER_ID, orderId)
+                        .set(STORE_ORDER.FK_VENDOR_ID, storeOrder.getStore_id())
+                        .set(STORE_ORDER.SPECIAL_DISCOUNT_ID, queryDiscountIdByCode(storeOrder.getSpecial_discount_code()))
+                        .set(STORE_ORDER.SEASONAL_DISCOUNT_ID, queryDiscountIdByCode(storeOrder.getSeasonal_discount_code()))
+                        .returning(STORE_ORDER.STORE_ORDER_ID)
+                        .fetchOne()
+                        .getStoreOrderId();
+                for (CheckoutBaseProductVariantModel productVariant : storeOrder.getProduct_variants()) {
+                    Integer unitPrice = dsl.select(PRODUCT_VARIANT.PRICE)
+                            .from(PRODUCT_VARIANT)
+                            .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariant.getProduct_variant_id()))
+                            .fetchOneInto(Integer.class);
+                    totalAmount += unitPrice * productVariant.getQuantity();
+                    dsl.insertInto(ORDER_ITEM)
+                            .set(ORDER_ITEM.FK_STORE_ORDER_ID, storeOrderId)
+                            .set(ORDER_ITEM.FK_PRODUCT_VARIANT_ID, productVariant.getProduct_variant_id())
+                            .set(ORDER_ITEM.QUANTITY, productVariant.getQuantity())
+                            .set(ORDER_ITEM.UNIT_PRICE, unitPrice)
+                            .execute();
+                }
+            }
+            dsl.update(ORDER)
+                    .set(ORDER.TOTAL_AMOUNT, totalAmount)
+                    .where(ORDER.ORDER_ID.eq(orderId))
+                    .execute();
+            return orderId;
+        } catch (Exception e) {
+            throw new SharedException("Failed to save order", e);
+        }
+    }
 }
