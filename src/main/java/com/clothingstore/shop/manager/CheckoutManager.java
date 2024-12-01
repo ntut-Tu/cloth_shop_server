@@ -1,7 +1,9 @@
 package com.clothingstore.shop.manager;
 
-import com.clothingstore.shop.dto.others.checkout.DiscountDetailsDTO;
+import com.clothingstore.shop.dto.others.discount.DiscountDetailsDTO;
 import com.clothingstore.shop.dto.others.checkout.ProductVariantDTO;
+import com.clothingstore.shop.dto.request.checkout.SubmitOrderRequestDTO;
+import com.clothingstore.shop.enums.CouponType;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.CheckoutRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,23 +38,23 @@ public class CheckoutManager {
         }
         return productDetails;
     }
-    public DiscountDetailsDTO fetchStoreDiscountDetails(String discountCode) throws SharedException {
+    public DiscountDetailsDTO fetchStoreDiscountDetails(String discountCode,Integer customerId) throws SharedException {
         // Fetch discount details from database
         try{
             Integer discountId = checkoutRepository.queryDiscountIdByCode(discountCode);
-            Boolean isAvailable = checkoutRepository.queryDiscountIsAvailable(discountId);
-            String discountType = checkoutRepository.queryDiscountType(discountId);
+            if(checkoutRepository.queryDiscountIsAvailable(discountId,customerId)){
+                throw new SharedException("Discount not available");
+            }
+            CouponType discountType = checkoutRepository.queryDiscountType(discountId);
             DiscountDetailsDTO discountDetails = null;
             switch (discountType){
-                case "special":
+                case SPECIAL_DISCOUNT:
                     // Fetch special discount details
-                    discountDetails = checkoutRepository.queryDiscountDetails(discountId);
+                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SPECIAL_DISCOUNT);
                     break;
-                case "shipping":
-                    throw new SharedException("Invalid discount type");
-                case "seasonal":
+                case SEASONAL_DISCOUNT:
                     // Fetch seasonal discount details
-                    discountDetails = checkoutRepository.queryDiscountDetails(discountId);
+                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SEASONAL_DISCOUNT);
                     break;
                 default:
                     throw new SharedException("Invalid discount type");
@@ -61,5 +63,31 @@ public class CheckoutManager {
         }catch (SharedException e){
             throw e;
         }
+    }
+    public DiscountDetailsDTO fetchShippingDiscountDetails(String discountCode,Integer customerId) throws SharedException{
+        try{
+            Integer discountId = checkoutRepository.queryDiscountIdByCode(discountCode);
+            if(checkoutRepository.queryDiscountIsAvailable(discountId,customerId)){
+                throw new SharedException("Discount not available");
+            }
+            CouponType discountType = checkoutRepository.queryDiscountType(discountId);
+            DiscountDetailsDTO discountDetails = null;
+            switch (discountType){
+                case SHIPPING_DISCOUNT:
+                    // Fetch shipping discount details
+                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SHIPPING_DISCOUNT);
+                    break;
+                default:
+                    throw new SharedException("Invalid discount type");
+            }
+            return discountDetails;
+        }catch (SharedException e){
+            throw e;
+        }
+    }
+    public Integer storeOrder(SubmitOrderRequestDTO submitOrderRequestDTO) throws SharedException {
+        // Save order details to database
+//        return checkoutRepository.saveOrder(submitOrderRequestDTO);
+        return 0;
     }
 }

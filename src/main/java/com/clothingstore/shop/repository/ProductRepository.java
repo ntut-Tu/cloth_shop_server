@@ -27,6 +27,13 @@ public class ProductRepository {
         this.dsl = dsl;
     }
 
+    /**
+     * 取得產品摘要的分頁列表。
+     *
+     * @param page 當前頁碼
+     * @param pageSize 每頁顯示的項目數量
+     * @return 產品摘要列表
+     */
     public List<ProductSummaryRepositoryDTO> fetchProductSummaries(int page, int pageSize) {
         int offset = (page - 1) * pageSize;
 
@@ -47,7 +54,12 @@ public class ProductRepository {
                 .offset(offset)
                 .fetchInto(ProductSummaryRepositoryDTO.class);
     }
-
+    /**
+     * 取得特定產品的詳細資訊。
+     *
+     * @param productId 產品 ID
+     * @return 產品詳細資訊
+     */
     public ProductDetailRepositoryDTO fetchProductDetails(int productId) {
         // Step 1: Fetch the main product details and vendor info
         ProductDetailRepositoryDTO productDetail = dsl.select(
@@ -89,7 +101,12 @@ public class ProductRepository {
         }
         return productDetail;
     }
-
+    /**
+     * 新增產品到資料庫。
+     *
+     * @param productRequestDTO 產品資料
+     * @return 新增產品的 ID
+     */
     public Integer addProduct(AddProductRequestDTO productRequestDTO) {
         // Step 1: Insert product data
         Integer productId = dsl.insertInto(Product.PRODUCT)

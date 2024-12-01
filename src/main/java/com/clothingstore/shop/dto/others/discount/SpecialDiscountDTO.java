@@ -1,4 +1,4 @@
-package com.clothingstore.shop.dto.others.checkout;
+package com.clothingstore.shop.dto.others.discount;
 
 public class SpecialDiscountDTO extends DiscountDetailsDTO {
     private int buyQuantity;

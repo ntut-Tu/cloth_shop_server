@@ -1,13 +1,12 @@
 package com.clothingstore.shop.repository;
 
-import com.clothingstore.shop.dto.others.checkout.CouponSummaryDTO;
-import com.clothingstore.shop.dto.others.checkout.DiscountDetailsDTO;
+import com.clothingstore.shop.dto.others.discount.DiscountDetailsDTO;
 import com.clothingstore.shop.dto.others.checkout.ProductVariantDTO;
-import com.clothingstore.shop.dto.request.checkout.ConfirmAmountRequestDTO;
-import com.clothingstore.shop.dto.request.checkout.ConfirmDiscountRequestDTO;
-import com.clothingstore.shop.dto.request.checkout.SubmitOrderRequestDTO;
-import com.clothingstore.shop.dto.response.checkout.ConfirmAmountResponseDTO;
-import com.clothingstore.shop.dto.response.checkout.SubmitOrderResponseDTO;
+import com.clothingstore.shop.dto.others.discount.SeasonalDiscountDTO;
+import com.clothingstore.shop.dto.others.discount.ShippingDiscountDTO;
+import com.clothingstore.shop.dto.others.discount.SpecialDiscountDTO;
+import com.clothingstore.shop.enums.CouponType;
+import com.clothingstore.shop.enums.ExceptionCode;
 import com.clothingstore.shop.exceptions.SharedException;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -57,25 +56,60 @@ public class CheckoutRepository {
         }
 
     }
-    public String queryDiscountType(Integer discountId)throws SharedException {
+    public CouponType queryDiscountType(Integer discountId)throws SharedException {
         if(discountId == null){
             throw new SharedException("Failed to query");
         }
         return dsl.select(COUPON.TYPE)
                 .from(COUPON)
                 .where(COUPON.COUPON_ID.eq(discountId))
-                .fetchOneInto(String.class);
+                .fetchOneInto(CouponType.class);
     }
-    public Boolean queryDiscountIsAvailable(Integer discountId){
+    public Boolean queryDiscountIsAvailable(Integer discountId,Integer customerId){
         Record record = dsl.select(COUPON.IS_LIST,COUPON.MAXIMUM_USAGE_PER_CUSTOMER,COUPON.START_DATE,COUPON.END_DATE)
                 .from(COUPON)
                 .where(COUPON.COUPON_ID.eq(discountId))
                 .fetchOne();
-        return record != null && record.get(COUPON.IS_LIST);
+        //取得 customer 使用 coupon 的次數
+        Integer userUsed = dsl.selectCount()
+                .from(COUPON_USAGE)
+                .where(COUPON_USAGE.FK_CUSTOMER_ID.eq(customerId).and(COUPON_USAGE.FK_COUPON_ID.eq(discountId)))
+                .fetchOneInto(Integer.class);
+        if(userUsed == null){
+            userUsed = 0;
+        }
+        return record != null && record.get(COUPON.IS_LIST) && record.get(COUPON.MAXIMUM_USAGE_PER_CUSTOMER) > userUsed && record.get(COUPON.START_DATE).isBefore(java.time.OffsetDateTime.now()) && record.get(COUPON.END_DATE).isAfter(java.time.OffsetDateTime.now());
     }
-    public DiscountDetailsDTO queryDiscountDetails(Integer discountId){
+    public DiscountDetailsDTO queryDiscountDetails(Integer discountId, CouponType couponType)throws SharedException{
+        try {
+            Record record = dsl.select()
+                    .from(COUPON)
+                    .where(COUPON.COUPON_ID.eq(discountId))
+                    .fetchOne();
 
-        return null;
+            if (record == null) {
+                throw new SharedException("Failed to query");
+            }
+
+            DiscountDetailsDTO discountDetails;
+            switch (couponType) {
+                case SPECIAL_DISCOUNT:
+                    discountDetails = record.into(SpecialDiscountDTO.class);
+                    break;
+                case SEASONAL_DISCOUNT:
+                    discountDetails = record.into(SeasonalDiscountDTO.class);
+                    break;
+                case SHIPPING_DISCOUNT:
+                    discountDetails = record.into(ShippingDiscountDTO.class);
+                    break;
+                default:
+                    throw new SharedException("Invalid discount type");
+            }
+
+            return discountDetails;
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
 

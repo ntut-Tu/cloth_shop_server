@@ -1,5 +1,6 @@
 package com.clothingstore.shop.controller;
 
+import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,9 +18,9 @@ public class PhotoUploadController {
     private static final String UPLOAD_DIR = "/app/uploads/";
 
     @PostMapping("/upload/product-image")
-    public ResponseEntity<String> uploadPhoto(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ApiResponseDTO<String>> uploadPhoto(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("File is empty");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponseDTO<>(false, "File is empty", null));
         }
 
         try {
@@ -27,9 +28,9 @@ public class PhotoUploadController {
             File dest = new File(filePath);
             file.transferTo(dest);
             String fileUrl = "/uploads/" + file.getOriginalFilename();
-            return ResponseEntity.ok("File uploaded successfully: " + fileUrl);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "File uploaded successfully: " , fileUrl));
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponseDTO<>(false, "Failed to upload file", null));
         }
     }
 }

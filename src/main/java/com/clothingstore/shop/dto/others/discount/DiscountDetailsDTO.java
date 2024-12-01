@@ -1,4 +1,4 @@
-package com.clothingstore.shop.dto.others.checkout;
+package com.clothingstore.shop.dto.others.discount;
 
 public abstract class DiscountDetailsDTO {
     private Integer ratio;

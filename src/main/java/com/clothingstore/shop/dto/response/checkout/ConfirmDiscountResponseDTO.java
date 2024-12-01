@@ -1,6 +1,6 @@
 package com.clothingstore.shop.dto.response.checkout;
 
-import com.clothingstore.shop.dto.others.checkout.CouponSummaryDTO;
+import com.clothingstore.shop.dto.others.discount.CouponSummaryDTO;
 
 public class ConfirmDiscountResponseDTO {
 
