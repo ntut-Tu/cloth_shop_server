@@ -107,7 +107,9 @@ public class CheckoutService {
 
             // 获取商店折扣
             DiscountDetailsDTO storeDiscount = discountService.getStoreDiscount(storeOrder,customerId);
-            tempStoreOrder.setDiscountDetails(storeDiscount);
+            if(storeDiscount != null){
+                tempStoreOrder.setDiscountDetails(storeDiscount);
+            }
             // 遍历商品
             for (CheckoutBaseProductVariantModel productVariant : storeOrder.getProduct_variants()) {
                 Integer unitPrice = inventoryRepository.getUnitPrice(productVariant.getProduct_variant_id());
@@ -121,6 +123,7 @@ public class CheckoutService {
                 tempVariant.setProductVariantId(productVariant.getProduct_variant_id());
                 tempVariant.setUnitPrice(unitPrice);
                 tempVariant.setQuantity(productVariant.getQuantity());
+                tempVariant.setTotalAmount(productTotal);
                 tempStoreOrder.getProductVariants().add(tempVariant);
             }
 
@@ -132,6 +135,7 @@ public class CheckoutService {
             // 设置商店总计和折扣
             tempStoreOrder.setSubtotal(storeSubtotal);
             tempStoreOrder.setDiscountAmount(storeDiscountAmount);
+            tempStoreOrder.setTotalAmount(storeSubtotal - storeDiscountAmount);
             totalStoreDiscount+=storeDiscountAmount;
 
             // 更新总计和小计
@@ -147,7 +151,9 @@ public class CheckoutService {
         tempOrder.setTotalAmount(totalAmount);
         tempOrder.setSubtotal(subtotal);
         tempOrder.setShippingDiscountAmount(shippingDiscountAmount);
-        tempOrder.setShippingDiscountCode(shippingDiscount.getCode());
+        if(shippingDiscount != null){
+            tempOrder.setShippingDiscountCode(shippingDiscount.getCode());
+        }
         tempOrder.setShippingFee(checkoutRepository.queryShippingFee());
         tempOrder.setTotalStoreDiscountAmount(totalStoreDiscount);
         return tempOrder;
@@ -168,9 +174,9 @@ public class CheckoutService {
         }
     }
 
-    public SubmitOrderResponseDTO confirmOrder(SubmitOrderRequestDTO requestDTO, String tempOrderId) throws SharedException {
+    public SubmitOrderResponseDTO confirmOrder(SubmitOrderRequestDTO requestDTO, String customerId) throws SharedException {
         // 取出暫存訂單
-        TemporaryOrder tempOrder = temporaryOrderStorage.getTemporaryOrder(tempOrderId);
+        TemporaryOrder tempOrder = temporaryOrderStorage.getTemporaryOrder(requestDTO.getOrder_id());
         if (tempOrder == null) {
             throw new SharedException("Temporary order expired or not found");
         }
@@ -186,12 +192,12 @@ public class CheckoutService {
         Integer orderId = checkoutRepository.saveOrder( requestDTO, tempOrder, tempOrder.getCustomerId());
 
         // 刪除暫存訂單
-        temporaryOrderStorage.confirmOrder(tempOrderId);
+        temporaryOrderStorage.confirmOrder(requestDTO.getOrder_id());
 
         return new SubmitOrderResponseDTO(orderId, PayStatus.PENDING.toString(), tempOrder.getTotalAmount(),tempOrder.getTotalStoreDiscountAmount()+tempOrder.getShippingDiscountAmount(),tempOrder.getTotalAmount(),"2024/12/31 23:59:59");
     }
 
-    public void cancelOrder(String tempOrderId) throws SharedException {
+    public String cancelOrder(String tempOrderId) throws SharedException {
         TemporaryOrder tempOrder = temporaryOrderStorage.getTemporaryOrder(tempOrderId);
         if (tempOrder == null) {
             throw new SharedException("Temporary order expired or not found");
@@ -206,5 +212,6 @@ public class CheckoutService {
 
         // 刪除暫存訂單
         temporaryOrderStorage.confirmOrder(tempOrderId);
+        return "Order canceled successfully";
     }
 }

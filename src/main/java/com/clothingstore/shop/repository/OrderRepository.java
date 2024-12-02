@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.clothingstore.shop.jooq.Tables.*;
+import static org.jooq.impl.DSL.and;
 
 @Repository
 public class OrderRepository {
@@ -22,10 +23,11 @@ public class OrderRepository {
     }
 
     // 1. 查詢訂單簡介
-    public List<OrderSummaryRepositoryDTO> findOrderSummariesByCustomerId(Integer customerId, int limit, int offset) {
+    public List<OrderSummaryRepositoryDTO> findOrderSummariesByCustomerId(Integer userId, int limit, int offset) {
         return dsl.select(ORDER.ORDER_ID, ORDER.ORDER_DATE, ORDER.TOTAL_AMOUNT, ORDER.PAY_STATUS, ORDER.SHIP_STATUS)
                 .from(ORDER)
-                .where(ORDER.FK_CUSTOMER_ID.eq(customerId))
+                .join(CUSTOMER).on(ORDER.FK_CUSTOMER_ID.eq(CUSTOMER.CUSTOMER_ID))
+                .where(CUSTOMER.FK_USER_ID.eq(userId))
                 .limit(limit)
                 .offset(offset)
                 .fetchInto(OrderSummaryRepositoryDTO.class);

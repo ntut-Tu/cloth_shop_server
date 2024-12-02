@@ -101,4 +101,23 @@ public class CheckoutController {
                     .body(new ApiResponseDTO<>(false, "Failed to submit order", null));
         }
     }
+    @PostMapping("cancel-order")
+    public ResponseEntity<ApiResponseDTO<String>> cancelOrder(
+            HttpServletRequest request,
+            @RequestBody String orderId) {
+        try {
+            // 從 cookie 中提取 token
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order canceled successfully", checkoutService.cancelOrder(orderId)));
+        }catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new ApiResponseDTO<>(false, e.getMessage(), null));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ApiResponseDTO<>(false, "Failed to cancel order", null));
+            }
+    }
 }

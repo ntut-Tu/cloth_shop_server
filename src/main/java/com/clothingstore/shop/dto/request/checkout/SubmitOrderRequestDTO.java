@@ -8,7 +8,7 @@ public class SubmitOrderRequestDTO  {
     private String delivery_type;
     private String pickup_store;
     private String shipping_address;
-
+    private String order_id;
     // Getters and setters
     public String getPayment_method() {
         return payment_method;
@@ -48,6 +48,14 @@ public class SubmitOrderRequestDTO  {
 
     public void setShipping_address(String shipping_address) {
         this.shipping_address = shipping_address;
+    }
+
+    public String getOrder_id() {
+        return order_id;
+    }
+
+    public void setOrder_id(String order_id) {
+        this.order_id = order_id;
     }
 }
 /*

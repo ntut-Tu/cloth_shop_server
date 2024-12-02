@@ -4,6 +4,7 @@ public class TemporaryProductVariant {
     private int productVariantId;
     private int quantity;
     private Integer unitPrice;
+    private Integer totalAmount;
 
     public int getProductVariantId() {
         return productVariantId;
@@ -27,5 +28,13 @@ public class TemporaryProductVariant {
 
     public void setUnitPrice(Integer unitPrice) {
         this.unitPrice = unitPrice;
+    }
+
+    public Integer getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Integer totalAmount) {
+        this.totalAmount = totalAmount;
     }
 }

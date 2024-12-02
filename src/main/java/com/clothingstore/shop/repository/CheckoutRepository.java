@@ -239,8 +239,12 @@ public class CheckoutRepository {
 //        }
 //    }
     // ============================== 以下為新增的程式碼 ==============================
-public Integer saveOrder(SubmitOrderRequestDTO requestDTO, TemporaryOrder tempOrder, Integer customerId) throws SharedException {
-    // Step 1: 插入订单数据
+public Integer saveOrder(SubmitOrderRequestDTO requestDTO, TemporaryOrder tempOrder, Integer userId) throws SharedException {
+        // Step 1: 插入订单数据
+    Integer customerId = dsl.select(CUSTOMER.CUSTOMER_ID)
+            .from(CUSTOMER)
+            .where(CUSTOMER.FK_USER_ID.eq(userId))
+            .fetchOneInto(Integer.class);
     Integer orderId = dsl.insertInto(ORDER)
             .set(ORDER.FK_CUSTOMER_ID, customerId)
             .set(ORDER.PAYMENT_METHOD, requestDTO.getPayment_method())
@@ -256,7 +260,7 @@ public Integer saveOrder(SubmitOrderRequestDTO requestDTO, TemporaryOrder tempOr
             .set(ORDER.FK_SHIPPING_DISCOUNT_ID, tempOrder.getShippingDiscountId())
             .set(ORDER.TOTAL_AMOUNT, tempOrder.getTotalAmount())
             .returning(ORDER.ORDER_ID)
-            .fetchOne()
+            .fetchOptional().orElseThrow(() -> new SharedException("Failed to insert order"))
             .getOrderId();
 
     // Step 2: 插入商店订单和商品数据
@@ -279,6 +283,8 @@ public Integer saveOrder(SubmitOrderRequestDTO requestDTO, TemporaryOrder tempOr
                     .set(ORDER_ITEM.FK_PRODUCT_VARIANT_ID, product.getProductVariantId())
                     .set(ORDER_ITEM.QUANTITY, product.getQuantity())
                     .set(ORDER_ITEM.UNIT_PRICE, product.getUnitPrice())
+                    .set(ORDER_ITEM.TOTAL_PRICE, product.getTotalAmount())
+                    .set(ORDER_ITEM.FK_ORDER_ID, orderId)
                     .execute();
         }
     }
