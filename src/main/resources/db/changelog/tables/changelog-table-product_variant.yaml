@@ -29,6 +29,10 @@ databaseChangeLog:
                   type: integer
                   constraints:
                     nullable: false
+              - column:
+                  name: reserved_stock
+                  type: integer
+                  defaultValueNumeric: 0
         - addForeignKeyConstraint:
             baseTableName: product_variant
             baseColumnNames: fk_product_id
