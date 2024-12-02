@@ -20,86 +20,105 @@ import java.util.Map;
 public class CheckoutManager {
     @Autowired
     private CheckoutRepository checkoutRepository;
-    public List<ProductVariantDTO> fetchProductDetails(List<Map.Entry<Integer, Integer>> productVariantIds) throws SharedException {
-        List<ProductVariantDTO> productDetails = new ArrayList<>();
-        for (Map.Entry<Integer, Integer> productVariantId : productVariantIds) {
-            ProductVariantDTO productVariant = checkoutRepository.queryProductVariantById(productVariantId.getKey());
-            if(productVariant != null && productVariant.getStockQuantity()>=productVariantId.getValue()){
-                productVariant.setQuantity(productVariantId.getValue());
-                if(productDetails == null) {
-                    productDetails = List.of(productVariant);
-                } else {
-                    productDetails.add(productVariant);
-                }
-            }else{
-                if(productVariant == null) {
-                    throw new SharedException("Product not found");
-                }else {
-                    throw new SharedException("Out of stock");
-                }
-            }
-        }
-        return productDetails;
-    }
-    public DiscountDetailsDTO fetchStoreDiscountDetails(String discountCode,Integer customerId) throws SharedException {
-        // Fetch discount details from database
-        try{
-            Integer discountId = checkoutRepository.queryDiscountIdByCode(discountCode);
-            if(checkoutRepository.queryDiscountIsAvailable(discountId,customerId)){
-                throw new SharedException("Discount not available");
-            }
-            CouponType discountType = checkoutRepository.queryDiscountType(discountId);
-            DiscountDetailsDTO discountDetails = null;
-            switch (discountType){
-                case SPECIAL_DISCOUNT:
-                    // Fetch special discount details
-                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SPECIAL_DISCOUNT);
-                    break;
-                case SEASONAL_DISCOUNT:
-                    // Fetch seasonal discount details
-                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SEASONAL_DISCOUNT);
-                    break;
-                default:
-                    throw new SharedException("Invalid discount type");
-            }
-            return discountDetails;
-        }catch (SharedException e){
-            throw e;
-        }
-    }
-    public DiscountDetailsDTO fetchShippingDiscountDetails(String discountCode,Integer customerId) throws SharedException{
-        try{
-            Integer discountId = checkoutRepository.queryDiscountIdByCode(discountCode);
-            if(checkoutRepository.queryDiscountIsAvailable(discountId,customerId)){
-                throw new SharedException("Discount not available");
-            }
-            CouponType discountType = checkoutRepository.queryDiscountType(discountId);
-            DiscountDetailsDTO discountDetails = null;
-            switch (discountType){
-                case SHIPPING_DISCOUNT:
-                    // Fetch shipping discount details
-                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SHIPPING_DISCOUNT);
-                    break;
-                default:
-                    throw new SharedException("Invalid discount type");
-            }
-            return discountDetails;
-        }catch (SharedException e){
-            throw e;
-        }
-    }
-    public Integer storeOrder(SubmitOrderRequestDTO submitOrderRequestDTO,Integer customerId) throws SharedException {
-        // Save order details to database
-//        List<CheckoutBaseStoreOrderModel> storeOrders = submitOrderRequestDTO.getStore_orders();
-//        for(CheckoutBaseStoreOrderModel storeOrder : storeOrders){
-//            List<CheckoutBaseProductVariantModel> productVariants = storeOrder.getProduct_variants();
-//            for(CheckoutBaseProductVariantModel productVariant : productVariants){
-//                if(productVariant.getQuantity() <= 0){
-//                    throw new SharedException("Invalid quantity");
+//    public List<ProductVariantDTO> fetchProductDetails(List<Map.Entry<Integer, Integer>> productVariantIds) throws SharedException {
+//        List<ProductVariantDTO> productDetails = new ArrayList<>();
+//        for (Map.Entry<Integer, Integer> productVariantId : productVariantIds) {
+//            ProductVariantDTO productVariant = checkoutRepository.queryProductVariantById(productVariantId.getKey());
+//            if(productVariant != null && productVariant.getStockQuantity()>=productVariantId.getValue()){
+//                productVariant.setQuantity(productVariantId.getValue());
+//                if(productDetails == null) {
+//                    productDetails = List.of(productVariant);
+//                } else {
+//                    productDetails.add(productVariant);
+//                }
+//            }else{
+//                if(productVariant == null) {
+//                    throw new SharedException("Product not found");
+//                }else {
+//                    throw new SharedException("Out of stock");
 //                }
 //            }
 //        }
-
-        return checkoutRepository.saveOrder(submitOrderRequestDTO,customerId);
-    }
+//        return productDetails;
+//    }
+//    public DiscountDetailsDTO fetchStoreDiscountDetails(String discountCode,Integer customerId) throws SharedException {
+//        // Fetch discount details from database
+//        try{
+//            Integer discountId = checkoutRepository.queryDiscountIdByCode(discountCode);
+//            if(checkoutRepository.queryDiscountIsAvailable(discountId,customerId)){
+//                throw new SharedException("Discount not available");
+//            }
+//            CouponType discountType = checkoutRepository.queryDiscountType(discountId);
+//            DiscountDetailsDTO discountDetails = null;
+//            switch (discountType){
+//                case SPECIAL_DISCOUNT:
+//                    // Fetch special discount details
+//                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SPECIAL_DISCOUNT);
+//                    break;
+//                case SEASONAL_DISCOUNT:
+//                    // Fetch seasonal discount details
+//                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SEASONAL_DISCOUNT);
+//                    break;
+//                default:
+//                    throw new SharedException("Invalid discount type");
+//            }
+//            return discountDetails;
+//        }catch (SharedException e){
+//            throw e;
+//        }
+//    }
+//    public DiscountDetailsDTO fetchShippingDiscountDetails(String discountCode,Integer customerId) throws SharedException{
+//        try{
+//            Integer discountId = checkoutRepository.queryDiscountIdByCode(discountCode);
+//            if(checkoutRepository.queryDiscountIsAvailable(discountId,customerId)){
+//                throw new SharedException("Discount not available");
+//            }
+//            CouponType discountType = checkoutRepository.queryDiscountType(discountId);
+//            DiscountDetailsDTO discountDetails = null;
+//            switch (discountType){
+//                case SHIPPING_DISCOUNT:
+//                    // Fetch shipping discount details
+//                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SHIPPING_DISCOUNT);
+//                    break;
+//                default:
+//                    throw new SharedException("Invalid discount type");
+//            }
+//            return discountDetails;
+//        }catch (SharedException e){
+//            throw e;
+//        }
+//    }
+//    public DiscountDetailsDTO fetchDiscountDetails(String discountCode,Integer customerId) throws SharedException {
+//        try{
+//            Integer discountId = checkoutRepository.queryDiscountIdByCode(discountCode);
+//            if(checkoutRepository.queryDiscountIsAvailable(discountId,customerId)){
+//                throw new SharedException("Discount not available");
+//            }
+//            CouponType discountType = checkoutRepository.queryDiscountType(discountId);
+//            DiscountDetailsDTO discountDetails = null;
+//            switch (discountType){
+//                case SPECIAL_DISCOUNT:
+//                    // Fetch special discount details
+//                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SPECIAL_DISCOUNT);
+//                    break;
+//                case SEASONAL_DISCOUNT:
+//                    // Fetch seasonal discount details
+//                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SEASONAL_DISCOUNT);
+//                    break;
+//                case SHIPPING_DISCOUNT:
+//                    // Fetch shipping discount details
+//                    discountDetails = checkoutRepository.queryDiscountDetails(discountId, CouponType.SHIPPING_DISCOUNT);
+//                    break;
+//                default:
+//                    throw new SharedException("Invalid discount type");
+//            }
+//            return discountDetails;
+//        }catch (SharedException e){
+//            throw e;
+//        }
+//    }
+//    public Integer storeOrder(SubmitOrderRequestDTO submitOrderRequestDTO,Integer customerId) throws SharedException {
+//        // Save order details to database
+//        return checkoutRepository.saveOrder(submitOrderRequestDTO,customerId);
+//    }
 }

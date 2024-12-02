@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: alter-product-variant
+      author: quinn
+      changes:
+        - addColumn:
+            tableName: product_variant
+            columns:
+              - column:
+                  name: reserved_stock
+                  type: integer
+                  defaultValueNumeric: 0

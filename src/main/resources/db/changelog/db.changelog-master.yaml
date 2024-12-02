@@ -63,3 +63,5 @@ databaseChangeLog:
   - include:
         file: tables/changelog-table-vendor_ledger_entry.yaml
         relativeToChangelogFile: true
+  - include:
+      file: alter/changelog-alter-product-variant.yaml

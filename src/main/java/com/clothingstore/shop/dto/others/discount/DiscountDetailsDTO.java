@@ -1,6 +1,7 @@
 package com.clothingstore.shop.dto.others.discount;
 
 public abstract class DiscountDetailsDTO {
+    private String code;
     private Integer ratio;
     private Integer amount;
     private Integer minimumSpend;
@@ -27,6 +28,14 @@ public abstract class DiscountDetailsDTO {
 
     public void setMinimumSpend(Integer minimumSpend) {
         this.minimumSpend = minimumSpend;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 }
 
