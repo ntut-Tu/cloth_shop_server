@@ -6,6 +6,9 @@ import com.clothingstore.shop.dto.request.checkout.SubmitOrderRequestDTO;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.ConfirmAmountResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.SubmitOrderResponseDTO;
+import com.clothingstore.shop.service.CheckoutService;
+import com.clothingstore.shop.service.DiscountService;
+import com.clothingstore.shop.service.JwtService;
 import com.clothingstore.shop.utils.TokenUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +20,16 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/api/checkout")
 public class CheckoutController {
+
+    private final DiscountService discountService;
+    private final JwtService jwtService;
+    private final CheckoutService checkoutService;
+
+    public CheckoutController(DiscountService discountService, JwtService jwtService, CheckoutService checkoutService) {
+        this.discountService = discountService;
+        this.jwtService = jwtService;
+        this.checkoutService = checkoutService;
+    }
 
     @PostMapping("/confirm-amount")
     public ResponseEntity<ApiResponseDTO<ConfirmAmountResponseDTO>> confirmAmount(
@@ -31,7 +44,7 @@ public class CheckoutController {
 
             // TODO: 處理確認金額的業務邏輯
             // 返回處理結果（此處用 null 作為示例）
-            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount confirmed successfully", null));
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount confirmed successfully", checkoutService.saveTemporaryOrder(confirmAmountRequestDTO, token)));
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -42,7 +55,7 @@ public class CheckoutController {
         }
     }
     @PostMapping("/confirm-discount")
-    public ResponseEntity<ApiResponseDTO<ConfirmAmountResponseDTO>> confirmDiscount(
+    public ResponseEntity<ApiResponseDTO<ConfirmDiscountRequestDTO>> confirmDiscount(
             HttpServletRequest request,
             @RequestBody ConfirmDiscountRequestDTO confirmDiscountRequestDTO) {
         try {
@@ -51,8 +64,13 @@ public class CheckoutController {
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            // TODO: 處理確認優惠金額、類型的業務邏輯
-            // 返回處理結果（此處用 null 作為示例）
+            Integer customerId = jwtService.extractUserId(token);
+            String type = confirmDiscountRequestDTO.getType();
+            if(type.equals("order")){
+                ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount discount successfully", discountService.getStoreDiscount(confirmDiscountRequestDTO,customerId)));
+            }else if(type.equals("store_order")){
+                ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount discount successfully", discountService.getShippingDiscount(confirmDiscountRequestDTO,customerId)));
+            }
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount discount successfully", null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -74,7 +92,7 @@ public class CheckoutController {
             }
             // TODO: 處理結帳的業務邏輯
             // 返回處理結果（此處用 null 作為示例）
-            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount discount successfully", null));
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount discount successfully", checkoutService.confirmOrder(submitOrderRequestDTO, token)));
         }catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));

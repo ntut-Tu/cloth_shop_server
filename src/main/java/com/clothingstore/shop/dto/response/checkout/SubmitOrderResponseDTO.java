@@ -1,19 +1,29 @@
 package com.clothingstore.shop.dto.response.checkout;
 
 public class SubmitOrderResponseDTO {
-    private String orderId;
+    private Integer orderId;
     private String status; // e.g., "confirmed", "pending", "failed"
     private Integer totalAmount;
     private Integer discountAmount;
     private Integer finalAmount;
     private String estimatedDeliveryDate;
 
+    public SubmitOrderResponseDTO() {}
+    public SubmitOrderResponseDTO(Integer orderId, String status, Integer totalAmount, Integer discountAmount, Integer finalAmount, String estimatedDeliveryDate) {
+        this.orderId = orderId;
+        this.status = status;
+        this.totalAmount = totalAmount;
+        this.discountAmount = discountAmount;
+        this.finalAmount = finalAmount;
+        this.estimatedDeliveryDate = estimatedDeliveryDate;
+    }
+
     // Getters and setters
-    public String getOrderId() {
+    public Integer getOrderId() {
         return orderId;
     }
 
-    public void setOrderId(String orderId) {
+    public void setOrderId(Integer orderId) {
         this.orderId = orderId;
     }
 

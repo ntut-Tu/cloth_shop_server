@@ -14,6 +14,7 @@ public class TemporaryStoreOrder {
     private ArrayList<TemporaryProductVariant> productVariants;
     private Integer subtotal;
     private Integer discountAmount;
+    private Integer totalAmount;
     private DiscountDetailsDTO discountDetails; // 折扣详情
 
     public TemporaryStoreOrder(DiscountRepository discountRepository) {
@@ -43,6 +44,14 @@ public class TemporaryStoreOrder {
 
     public void setSubtotal(Integer subtotal) {
         this.subtotal = subtotal;
+    }
+
+    public Integer getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Integer totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
     public Integer getDiscountAmount() {

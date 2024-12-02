@@ -2,7 +2,7 @@ package com.clothingstore.shop.dto.request.checkout;
 
 import com.clothingstore.shop.dto.others.checkout.CheckoutBaseOrderModel;
 
-public class SubmitOrderRequestDTO extends CheckoutBaseOrderModel {
+public class SubmitOrderRequestDTO  {
     private String payment_method;
     private String credit_card_last_four;
     private String delivery_type;

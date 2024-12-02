@@ -14,8 +14,10 @@ public class TemporaryOrder {
     private List<TemporaryStoreOrder> storeOrders;
     private Integer totalAmount;
     private Integer subtotal;
+    private Integer shippingFee;
     private Integer shippingDiscountAmount;
     private String shippingDiscountCode;
+    private Integer totalStoreDiscountAmount;
     private long expirationTime; // 用於超時清理
 
     public TemporaryOrder(DiscountRepository discountRepository) {
@@ -56,12 +58,28 @@ public class TemporaryOrder {
         this.subtotal = subtotal;
     }
 
+    public Integer getShippingFee() {
+        return shippingFee;
+    }
+
+    public void setShippingFee(Integer shippingFee) {
+        this.shippingFee = shippingFee;
+    }
+
     public Integer getShippingDiscountAmount() {
         return shippingDiscountAmount;
     }
 
     public void setShippingDiscountAmount(Integer shippingDiscountAmount) {
         this.shippingDiscountAmount = shippingDiscountAmount;
+    }
+
+    public Integer getTotalStoreDiscountAmount() {
+        return totalStoreDiscountAmount;
+    }
+
+    public void setTotalStoreDiscountAmount(Integer totalStoreDiscountAmount) {
+        this.totalStoreDiscountAmount = totalStoreDiscountAmount;
     }
 
     public long getExpirationTime() {

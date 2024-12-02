@@ -55,15 +55,17 @@ public class DiscountRepository {
         }
         return record != null && record.get(COUPON.IS_LIST) && record.get(COUPON.MAXIMUM_USAGE_PER_CUSTOMER) > userUsed && record.get(COUPON.START_DATE).isBefore(java.time.OffsetDateTime.now()) && record.get(COUPON.END_DATE).isAfter(java.time.OffsetDateTime.now());
     }
-    public DiscountDetailsDTO queryDiscountDetails(Integer discountId, CouponType couponType)throws SharedException{
+    public DiscountDetailsDTO queryDiscountDetails(Integer discountId, CouponType couponType,Integer customerId)throws SharedException{
         try {
             Record record = dsl.select()
                     .from(COUPON)
                     .where(COUPON.COUPON_ID.eq(discountId))
                     .fetchOne();
-
             if (record == null) {
-                throw new SharedException("Failed to query");
+                return null;
+            }
+            if (!queryDiscountIsAvailable(discountId, customerId)) {
+                return null;
             }
 
             DiscountDetailsDTO discountDetails;

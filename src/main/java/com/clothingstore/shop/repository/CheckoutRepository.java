@@ -1,10 +1,6 @@
 package com.clothingstore.shop.repository;
 
 import com.clothingstore.shop.dto.others.checkout.*;
-import com.clothingstore.shop.dto.others.discount.DiscountDetailsDTO;
-import com.clothingstore.shop.dto.others.discount.SeasonalDiscountDTO;
-import com.clothingstore.shop.dto.others.discount.ShippingDiscountDTO;
-import com.clothingstore.shop.dto.others.discount.SpecialDiscountDTO;
 
 import com.clothingstore.shop.dto.others.tempOrder.TemporaryOrder;
 import com.clothingstore.shop.dto.others.tempOrder.TemporaryProductVariant;
@@ -269,7 +265,8 @@ public Integer saveOrder(SubmitOrderRequestDTO requestDTO, TemporaryOrder tempOr
                 .set(STORE_ORDER.FK_ORDER_ID, orderId)
                 .set(STORE_ORDER.FK_VENDOR_ID, storeOrderResult.getStoreId())
                 .set(STORE_ORDER.STORE_DISCOUNT_AMOUNT, storeOrderResult.getDiscountAmount())
-                .set(STORE_ORDER.STORE_TOTAL_AMOUNT, storeOrderResult.getSubtotal())
+                .set(STORE_ORDER.STORE_SUBTOTAL_AMOUNT, storeOrderResult.getSubtotal())
+                .set(STORE_ORDER.STORE_NET_AMOUNT, storeOrderResult.getTotalAmount())
                 .set(STORE_ORDER.SPECIAL_DISCOUNT_ID, storeOrderResult.getSpecialDiscountId())
                 .set(STORE_ORDER.SEASONAL_DISCOUNT_ID, storeOrderResult.getSeasonalDiscountId())
                 .returning(STORE_ORDER.STORE_ORDER_ID)

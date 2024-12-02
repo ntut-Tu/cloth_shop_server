@@ -5,6 +5,8 @@ import com.clothingstore.shop.dto.others.checkout.CheckoutBaseStoreOrderModel;
 import com.clothingstore.shop.dto.others.discount.DiscountDetailsDTO;
 import com.clothingstore.shop.dto.others.discount.SpecialDiscountDTO;
 import com.clothingstore.shop.dto.others.tempOrder.TemporaryOrder;
+import com.clothingstore.shop.dto.request.checkout.ConfirmAmountRequestDTO;
+import com.clothingstore.shop.dto.request.checkout.ConfirmDiscountRequestDTO;
 import com.clothingstore.shop.dto.request.checkout.SubmitOrderRequestDTO;
 import com.clothingstore.shop.enums.CouponType;
 import com.clothingstore.shop.exceptions.SharedException;
@@ -21,28 +23,31 @@ public class DiscountService {
     private final DiscountRepository discountRepository;
     private final CheckoutRepository checkoutRepository;
     private final InventoryRepository inventoryRepository;
+    private final JwtService jwtService;
 
-    public DiscountService(DiscountRepository discountRepository, CheckoutService checkoutService, CheckoutRepository checkoutRepository, InventoryRepository inventoryRepository) {
+    public DiscountService(DiscountRepository discountRepository, CheckoutService checkoutService, CheckoutRepository checkoutRepository, InventoryRepository inventoryRepository, JwtService jwtService) {
         this.discountRepository = discountRepository;
         this.checkoutRepository = checkoutRepository;
         this.inventoryRepository = inventoryRepository;
+        this.jwtService = jwtService;
     }
 
-    public TemporaryOrder calculateDiscounts(SubmitOrderRequestDTO requestDTO, Integer customerId) throws SharedException {
+    public TemporaryOrder calculateDiscounts(ConfirmAmountRequestDTO requestDTO, Integer customerId) throws SharedException {
         TemporaryOrder result = new TemporaryOrder(discountRepository);
 
         // 運費折扣
         if (requestDTO.getShipping_discount_code() != null) {
             DiscountDetailsDTO shippingDiscount = discountRepository.queryDiscountDetails(
                     discountRepository.queryDiscountIdByCode(requestDTO.getShipping_discount_code()),
-                    CouponType.SHIPPING_DISCOUNT
+                    CouponType.SHIPPING_DISCOUNT,
+                    customerId
             );
-            result.setShippingDiscountAmount(calculateShippingDiscount(shippingDiscount, checkoutRepository.queryShippingFee(requestDTO)));
+            result.setShippingDiscountAmount(calculateShippingDiscount(shippingDiscount, checkoutRepository.queryShippingFee()));
         }
 
         // 商店訂單折扣
         for (CheckoutBaseStoreOrderModel storeOrder : requestDTO.getStore_orders()) {
-            DiscountDetailsDTO storeDiscount = getStoreDiscount(storeOrder);
+            DiscountDetailsDTO storeDiscount = getStoreDiscount(storeOrder,customerId);
             result.addStoreDiscount(storeOrder.getStore_id(), storeDiscount);
         }
 
@@ -58,12 +63,12 @@ public class DiscountService {
         }
         return 0;
     }
-    public Integer calculateStoreDiscount(CheckoutBaseStoreOrderModel storeOrder) throws SharedException {
+    public Integer calculateStoreDiscount(CheckoutBaseStoreOrderModel storeOrder,Integer customerId) throws SharedException {
         Integer storeDiscountAmount = 0;
         List<CheckoutBaseProductVariantModel> productVariants = storeOrder.getProduct_variants();
         // 获取特殊折扣
         if (storeOrder.getSpecial_discount_code() != null) {
-            DiscountDetailsDTO storeDiscount = discountRepository.queryDiscountDetails(discountRepository.queryDiscountIdByCode(storeOrder.getSpecial_discount_code()), CouponType.SPECIAL_DISCOUNT);
+            DiscountDetailsDTO storeDiscount = discountRepository.queryDiscountDetails(discountRepository.queryDiscountIdByCode(storeOrder.getSpecial_discount_code()), CouponType.SPECIAL_DISCOUNT,customerId);
             if (storeDiscount instanceof SpecialDiscountDTO) {
                 // 提取特殊折扣相关信息
                 Integer buyQuantity = ((SpecialDiscountDTO) storeDiscount).getBuyQuantity();
@@ -96,7 +101,7 @@ public class DiscountService {
 
         // 获取季节性折扣
         if (storeOrder.getSeasonal_discount_code() != null) {
-            DiscountDetailsDTO storeDiscount = discountRepository.queryDiscountDetails(discountRepository.queryDiscountIdByCode(storeOrder.getSeasonal_discount_code()), CouponType.SEASONAL_DISCOUNT);
+            DiscountDetailsDTO storeDiscount = discountRepository.queryDiscountDetails(discountRepository.queryDiscountIdByCode(storeOrder.getSeasonal_discount_code()), CouponType.SEASONAL_DISCOUNT,customerId);
             if (storeDiscount != null) {
                 // 计算折扣金额（按比例或固定金额）
                 Integer storeSubtotal = productVariants.stream()
@@ -117,28 +122,61 @@ public class DiscountService {
         return storeDiscountAmount;
     }
 
-    public DiscountDetailsDTO getStoreDiscount(CheckoutBaseStoreOrderModel storeOrder) throws SharedException {
+    public DiscountDetailsDTO getStoreDiscount(CheckoutBaseStoreOrderModel storeOrder,Integer customerId) throws SharedException {
         if (storeOrder.getSpecial_discount_code() != null) {
             return discountRepository.queryDiscountDetails(
                     discountRepository.queryDiscountIdByCode(storeOrder.getSpecial_discount_code()),
-                    CouponType.SPECIAL_DISCOUNT
+                    CouponType.SPECIAL_DISCOUNT,
+                    customerId
             );
         } else if (storeOrder.getSeasonal_discount_code() != null) {
             return discountRepository.queryDiscountDetails(
                     discountRepository.queryDiscountIdByCode(storeOrder.getSeasonal_discount_code()),
-                    CouponType.SEASONAL_DISCOUNT
+                    CouponType.SEASONAL_DISCOUNT,
+                    customerId
+            );
+        }
+        return null;
+    }
+    public DiscountDetailsDTO getStoreDiscount(ConfirmDiscountRequestDTO requestDTO, Integer customerId) throws SharedException {
+        Integer couponId = discountRepository.queryDiscountIdByCode(requestDTO.getDiscount_code());
+        CouponType type = discountRepository.queryDiscountType(couponId);
+        if (type.equals(CouponType.SPECIAL_DISCOUNT)) {
+            return discountRepository.queryDiscountDetails(
+                    discountRepository.queryDiscountIdByCode(requestDTO.getDiscount_code()),
+                    CouponType.SPECIAL_DISCOUNT,
+                    customerId
+            );
+        } else if (type.equals(CouponType.SEASONAL_DISCOUNT)) {
+            return discountRepository.queryDiscountDetails(
+                    discountRepository.queryDiscountIdByCode(requestDTO.getDiscount_code()),
+                    CouponType.SEASONAL_DISCOUNT,
+                    customerId
             );
         }
         return null;
     }
 
-    public DiscountDetailsDTO getShippingDiscount(String shippingDiscountCode) throws SharedException {
+    public DiscountDetailsDTO getShippingDiscount(String shippingDiscountCode,Integer customerId) throws SharedException {
         return discountRepository.queryDiscountDetails(
                 discountRepository.queryDiscountIdByCode(shippingDiscountCode),
-                CouponType.SHIPPING_DISCOUNT
+                CouponType.SHIPPING_DISCOUNT,
+                customerId
         );
     }
 
+    public DiscountDetailsDTO getShippingDiscount(ConfirmDiscountRequestDTO requestDTO,Integer customerId) throws SharedException {
+        Integer couponId = discountRepository.queryDiscountIdByCode(requestDTO.getDiscount_code());
+        CouponType type = discountRepository.queryDiscountType(couponId);
+        if (type.equals(CouponType.SHIPPING_DISCOUNT)) {
+            return discountRepository.queryDiscountDetails(
+                    discountRepository.queryDiscountIdByCode(requestDTO.getDiscount_code()),
+                    CouponType.SHIPPING_DISCOUNT,
+                    customerId
+            );
+        }
+        return null;
+    }
 
 }
 

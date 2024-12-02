@@ -16,29 +16,29 @@ public class InventoryRepository {
     }
 
     public void reserveStock(Integer productVariantId, Integer quantity) throws SharedException {
-//        int updatedRows = dsl.update(PRODUCT_VARIANT)
-//                .set(PRODUCT_VARIANT.RESERVED_STOCK, PRODUCT_VARIANT.RESERVED_STOCK.plus(quantity))
-//                .set(PRODUCT_VARIANT.AVAILABLE_STOCK, PRODUCT_VARIANT.AVAILABLE_STOCK.minus(quantity))
-//                .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
-//                .and(PRODUCT_VARIANT.AVAILABLE_STOCK.greaterOrEqual(quantity))
-//                .execute();
-//
-//        if (updatedRows == 0) {
-//            throw new SharedException("Insufficient stock for product variant ID: " + productVariantId);
-//        }
+        int updatedRows = dsl.update(PRODUCT_VARIANT)
+                .set(PRODUCT_VARIANT.RESERVED_STOCK, PRODUCT_VARIANT.RESERVED_STOCK.plus(quantity))
+                .set(PRODUCT_VARIANT.STOCK, PRODUCT_VARIANT.STOCK.minus(quantity))
+                .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
+                .and(PRODUCT_VARIANT.STOCK.greaterOrEqual(quantity))
+                .execute();
+
+        if (updatedRows == 0) {
+            throw new SharedException("Insufficient stock for product variant ID: " + productVariantId);
+        }
     }
 
     public void finalizeStock(Integer productVariantId, Integer quantity) {
-//        dsl.update(PRODUCT_VARIANT)
-//                .set(PRODUCT_VARIANT.RESERVED_STOCK, PRODUCT_VARIANT.RESERVED_STOCK.minus(quantity))
-//                .execute();
+        dsl.update(PRODUCT_VARIANT)
+                .set(PRODUCT_VARIANT.RESERVED_STOCK, PRODUCT_VARIANT.RESERVED_STOCK.minus(quantity))
+                .execute();
     }
 
     public void rollbackStock(Integer productVariantId, Integer quantity) {
-//        dsl.update(PRODUCT_VARIANT)
-//                .set(PRODUCT_VARIANT.RESERVED_STOCK, PRODUCT_VARIANT.RESERVED_STOCK.minus(quantity))
-//                .set(PRODUCT_VARIANT.AVAILABLE_STOCK, PRODUCT_VARIANT.AVAILABLE_STOCK.plus(quantity))
-//                .execute();
+        dsl.update(PRODUCT_VARIANT)
+                .set(PRODUCT_VARIANT.RESERVED_STOCK, PRODUCT_VARIANT.RESERVED_STOCK.minus(quantity))
+                .set(PRODUCT_VARIANT.STOCK, PRODUCT_VARIANT.STOCK.plus(quantity))
+                .execute();
     }
     public Integer getUnitPrice(Integer productVariantId) {
         return dsl.select(PRODUCT_VARIANT.PRICE)
