@@ -1,6 +1,6 @@
 package com.clothingstore.shop.service;
 
-import com.clothingstore.shop.dto.repository.orders.OrderItemDetailRepositoryDTO;
+import com.clothingstore.shop.dto.repository.orders.OrderDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.OrderSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryDTO;
 import com.clothingstore.shop.repository.OrderRepository;
@@ -36,10 +36,42 @@ public class OrderService {
     }
 
     // 取得商家訂單的商品詳情
-    public List<OrderItemDetailRepositoryDTO> getOrderItemsByStoreOrderId(String jwtToken, Integer storeOrderId) {
-        Integer userId = jwtService.extractUserId(jwtToken);
-        // 可以加入額外驗證以確認此商家訂單屬於當前使用者
-        return orderRepository.findOrderItemsByStoreOrderId(storeOrderId);
+//    public List<OrderItemDetailRepositoryDTO> getOrderItemsByStoreOrderId(String jwtToken, Integer storeOrderId) {
+//        Integer userId = jwtService.extractUserId(jwtToken);
+//        // 可以加入額外驗證以確認此商家訂單屬於當前使用者
+//        return orderRepository.findOrderItemsByStoreOrderId(storeOrderId);
+//    }
+
+    public void updateOrderStatus(String token, String role, Integer orderId, String status) {
+        Integer userId = jwtService.extractUserId(token);
+        if (role.equals("customer")) {
+            if(!orderRepository.isOrderBelongToCustomer(userId, orderId)) {
+                throw new IllegalArgumentException("Order does not belong to customer");
+            }
+            if(!orderRepository.isEditOrderStatusValid(role,orderId)) {
+                throw new IllegalArgumentException("Invalid order status");
+            }
+            orderRepository.updateOrderStatus(orderId, status);
+        } else if (role.equals("vendor")) {
+            if(!orderRepository.isOrderBelongToVendor(userId, orderId)) {
+                throw new IllegalArgumentException("Order does not belong to vendor");
+            }
+            if(!orderRepository.isEditOrderStatusValid(role,orderId)) {
+                throw new IllegalArgumentException("Invalid order status");
+            }
+            orderRepository.updateOrderStatus(orderId, status);
+        }else if (role.equals("admin")) {
+            orderRepository.updateOrderStatus(orderId, status);
+        }else {
+            throw new IllegalArgumentException("Invalid role");
+        }
     }
 
+    public List<OrderDetailRepositoryDTO> getOrderDetailsByOrderId(String token, Integer orderId) {
+        Integer userId = jwtService.extractUserId(token);
+        if(!orderRepository.isOrderBelongToCustomer(userId, orderId)) {
+            throw new IllegalArgumentException("Order does not belong to customer");
+        }
+        return orderRepository.findOrderDetailsByOrderId(orderId);
+    }
 }

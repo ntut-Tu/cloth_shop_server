@@ -1,12 +1,11 @@
 package com.clothingstore.shop.controller;
 
+import com.clothingstore.shop.dto.repository.orders.OrderDetailRepositoryDTO;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
-import com.clothingstore.shop.dto.repository.orders.OrderItemDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.OrderSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryDTO;
 import com.clothingstore.shop.service.OrderService;
 import com.clothingstore.shop.utils.TokenUtils;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +15,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
-public class CustomerOrderController {
+public class OrderController {
 
     private final OrderService orderService;
 
     @Autowired
-    public CustomerOrderController(OrderService orderService) {
+    public OrderController(OrderService orderService) {
         this.orderService = orderService;
     }
 
@@ -48,7 +47,7 @@ public class CustomerOrderController {
      * @param orderId - 訂單的唯一標識符
      * @return 包含商家訂單摘要的 ApiResponseDTO
      */
-    @GetMapping("/{orderId}/stores")
+    @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponseDTO<List<StoreOrderSummaryRepositoryDTO>>> getStoreOrdersByOrderId(
             HttpServletRequest request,
             @PathVariable Integer orderId) {
@@ -57,19 +56,31 @@ public class CustomerOrderController {
         return ResponseEntity.ok(new ApiResponseDTO<>(true, "Store orders retrieved successfully", storeOrders));
     }
 
+
     /**
      * 根據商家訂單 ID 從 cookie 中取得商品詳情
      * @param request - HttpServletRequest 用於從 cookie 中取得 token
-     * @param storeOrderId - 商家訂單的唯一標識符
+     * @param orderId - 商家訂單的唯一標識符
      * @return 包含商品詳情的 ApiResponseDTO
      */
-    @GetMapping("/stores/{storeOrderId}/items")
-    public ResponseEntity<ApiResponseDTO<List<OrderItemDetailRepositoryDTO>>> getOrderItemsByStoreOrderId(
+    @GetMapping("/{storeOrderId}/items")
+    public ResponseEntity<ApiResponseDTO<List<OrderDetailRepositoryDTO>>> getOrderDetailsByStoreOrderId(
             HttpServletRequest request,
-            @PathVariable Integer storeOrderId) {
+            @PathVariable Integer orderId) {
         String token = TokenUtils.extractTokenFromCookies(request);
-        List<OrderItemDetailRepositoryDTO> orderItems = orderService.getOrderItemsByStoreOrderId(token, storeOrderId);
-        return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order items retrieved successfully", orderItems));
+        List<OrderDetailRepositoryDTO> orderDetails = orderService.getOrderDetailsByOrderId(token, orderId);
+        return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order details retrieved successfully", orderDetails));
+    }
+
+    @PostMapping("/{role}/{orderId}/status")
+    public ResponseEntity<ApiResponseDTO<String>> updateOrderStatus(
+            HttpServletRequest request,
+            @PathVariable String role,
+            @PathVariable Integer orderId,
+            @RequestParam String status) {
+        String token = TokenUtils.extractTokenFromCookies(request);
+        orderService.updateOrderStatus(token, role, orderId, status);
+        return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order status updated successfully", null));
     }
 
 }

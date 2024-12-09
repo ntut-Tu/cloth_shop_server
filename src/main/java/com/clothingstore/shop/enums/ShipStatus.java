@@ -3,7 +3,9 @@ package com.clothingstore.shop.enums;
 public enum ShipStatus {
     PENDING("Pending"),
     SHIPPED("Shipped"),
-    DELIVERED("Delivered");
+    DELIVERED("Delivered"),
+    CANCELLED("Cancelled"),
+    COMPLETED("Completed");
 
     private final String status;
 

@@ -90,8 +90,6 @@ public class CheckoutController {
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            // TODO: 處理結帳的業務邏輯
-            // 返回處理結果（此處用 null 作為示例）
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount discount successfully", checkoutService.confirmOrder(submitOrderRequestDTO, token)));
         }catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)

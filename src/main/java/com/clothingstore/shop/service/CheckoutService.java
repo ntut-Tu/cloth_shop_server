@@ -7,13 +7,11 @@ import com.clothingstore.shop.dto.others.tempOrder.TemporaryOrder;
 import com.clothingstore.shop.dto.others.tempOrder.TemporaryProductVariant;
 import com.clothingstore.shop.dto.others.tempOrder.TemporaryStoreOrder;
 import com.clothingstore.shop.dto.request.checkout.ConfirmAmountRequestDTO;
-import com.clothingstore.shop.dto.request.checkout.ConfirmDiscountRequestDTO;
 import com.clothingstore.shop.dto.request.checkout.SubmitOrderRequestDTO;
 import com.clothingstore.shop.dto.response.checkout.ConfirmAmountResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.SubmitOrderResponseDTO;
 import com.clothingstore.shop.enums.PayStatus;
 import com.clothingstore.shop.exceptions.SharedException;
-import com.clothingstore.shop.manager.CheckoutManager;
 import com.clothingstore.shop.repository.CheckoutRepository;
 import com.clothingstore.shop.repository.DiscountRepository;
 import com.clothingstore.shop.repository.InventoryRepository;
@@ -27,41 +25,20 @@ import java.util.ArrayList;
 public class CheckoutService {
     private final JwtService jwtService;
     private final CheckoutRepository checkoutRepository;
-    private final CheckoutManager checkoutManager;
     private final TemporaryOrderStorage temporaryOrderStorage;
     private final InventoryRepository inventoryRepository;
     private final DiscountService discountService;
     private final DiscountRepository discountRepository;
 
     @Autowired
-    public CheckoutService(JwtService jwtService, CheckoutRepository checkoutRepository, CheckoutManager checkoutManager, TemporaryOrderStorage temporaryOrderStorage, InventoryRepository inventoryRepository, @Lazy DiscountService discountService, DiscountRepository discountRepository) {
+    public CheckoutService(JwtService jwtService, CheckoutRepository checkoutRepository, TemporaryOrderStorage temporaryOrderStorage, InventoryRepository inventoryRepository, @Lazy DiscountService discountService, DiscountRepository discountRepository) {
         this.jwtService = jwtService;
         this.checkoutRepository = checkoutRepository;
-        this.checkoutManager = checkoutManager;
         this.temporaryOrderStorage = temporaryOrderStorage;
         this.inventoryRepository = inventoryRepository;
         this.discountService = discountService;
         this.discountRepository = discountRepository;
     }
-//     TODO: 應該改成 confirm 時先下一個暫時訂單，submit 時再用 id 確認完成動作，避免邏輯重複
-//    public ConfirmAmountResponseDTO confirmAmount(String jwtToken, ConfirmAmountRequestDTO confirmAmountRequestDTO) throws SharedException{
-//        Integer userId = jwtService.extractUserId(jwtToken);
-//        //從request中提取每個商品從repository中取得的價格加總並扣掉優惠金額等完成confirmAmountResponseDTO的處理及建立
-//        return null;
-//    }
-//
-//    public DiscountDetailsDTO confirmDiscount(String jwtToken, ConfirmDiscountRequestDTO confirmDiscountRequestDTO) throws SharedException{
-//        Integer userId = jwtService.extractUserId(jwtToken);
-//        //處裡並完成confirmDiscountResponseDTO的建立
-//        return checkoutManager.fetchDiscountDetails(confirmDiscountRequestDTO.getDiscount_code(),userId);
-//    }
-//
-//    public Integer submitOrder(String jwtToken, SubmitOrderRequestDTO submitOrderRequestDTO) throws SharedException {
-//        Integer userId = jwtService.extractUserId(jwtToken);
-//        //處裡並完成submitOrderResponseDTO的建立
-//        return checkoutManager.storeOrder(submitOrderRequestDTO, userId);
-//    }
-    // ============================== 以下為新增的程式碼 ==============================
     public ConfirmAmountResponseDTO saveTemporaryOrder(ConfirmAmountRequestDTO requestDTO, String jwtToken) throws SharedException {
         Integer customerId = jwtService.extractUserId(jwtToken);
         // 驗證訂單
