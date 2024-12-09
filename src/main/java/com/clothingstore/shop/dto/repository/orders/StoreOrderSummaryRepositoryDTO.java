@@ -2,10 +2,10 @@ package com.clothingstore.shop.dto.repository.orders;
 
 public class StoreOrderSummaryRepositoryDTO {
     private Integer storeOrderId;
-    private Integer vendorId;
-    private Integer seasonalDiscountId;
-    private Integer specialDiscountId;
-    private Integer shippingDiscountId;
+    private String storeName;
+    private String imageUrl;
+    private String vendorCouponCode;
+
     // Getters and Setters
     public Integer getStoreOrderId() {
         return storeOrderId;
@@ -15,39 +15,29 @@ public class StoreOrderSummaryRepositoryDTO {
         this.storeOrderId = storeOrderId;
     }
 
-    public Integer getVendorId() {
-        return vendorId;
+    public String getStoreName() {
+        return storeName;
     }
 
-    public void setVendorId(Integer vendorId) {
-        this.vendorId = vendorId;
+    public void setStoreName(String storeName) {
+        this.storeName = storeName;
     }
 
-    public Integer getSeasonalDiscountId() {
-        return seasonalDiscountId;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setSeasonalDiscountId(Integer seasonalDiscountId) {
-        this.seasonalDiscountId = seasonalDiscountId;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
-    public Integer getSpecialDiscountId() {
-        return specialDiscountId;
+    public String getVendorCouponCode() {
+        return vendorCouponCode;
     }
 
-    public void setSpecialDiscountId(Integer specialDiscountId) {
-        this.specialDiscountId = specialDiscountId;
+    public void setVendorCouponCode(String vendorCouponCode) {
+        this.vendorCouponCode = vendorCouponCode;
     }
-
-    public Integer getShippingDiscountId() {
-        return shippingDiscountId;
-    }
-
-    public void setShippingDiscountId(Integer shippingDiscountId) {
-        this.shippingDiscountId = shippingDiscountId;
-    }
-
-
 
 }
 

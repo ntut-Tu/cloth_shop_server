@@ -9,6 +9,8 @@ public class OrderSummaryRepositoryDTO {
     private Integer totalAmount;
     private String payStatus;
     private String shipStatus;
+    private String shippingDiscountCode;
+    OrderSummeryDetailModel orderSummeryDetailModel;
     // Getters and Setters
     public Integer getOrderId() {
         return orderId;
@@ -48,6 +50,22 @@ public class OrderSummaryRepositoryDTO {
 
     public void setShipStatus(String shipStatus) {
         this.shipStatus = shipStatus;
+    }
+
+    public String getShippingDiscountCode() {
+        return shippingDiscountCode;
+    }
+
+    public void setShippingDiscountCode(String shippingDiscountCode) {
+        this.shippingDiscountCode = shippingDiscountCode;
+    }
+
+    public OrderSummeryDetailModel getOrderSummeryDetailModel() {
+        return orderSummeryDetailModel;
+    }
+
+    public void setOrderSummeryDetailModel(OrderSummeryDetailModel orderSummeryDetailModel) {
+        this.orderSummeryDetailModel = orderSummeryDetailModel;
     }
 
 }
