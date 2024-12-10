@@ -31,4 +31,13 @@ public class JwtService {
                 .get("userId", Integer.class); // 提取 userId
     }
 
+    public String extractRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class); // 提取 role
+    }
+
 }

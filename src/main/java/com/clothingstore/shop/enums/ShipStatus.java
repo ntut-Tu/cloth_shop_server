@@ -5,6 +5,7 @@ public enum ShipStatus {
     SHIPPED("Shipped"),
     DELIVERED("Delivered"),
     CANCELLED("Cancelled"),
+    REFUND_REQUESTED("Refund Requested"),
     COMPLETED("Completed");
 
     private final String status;

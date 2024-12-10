@@ -6,6 +6,7 @@ import com.clothingstore.shop.dto.repository.orders.OrderSummeryDetailModel;
 import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryDTO;
 import com.clothingstore.shop.enums.RoleType;
 import com.clothingstore.shop.enums.ShipStatus;
+import com.clothingstore.shop.exceptions.SharedException;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -26,48 +27,53 @@ public class OrderRepository {
     }
 
     // 1. 查詢訂單簡介
-    public List<OrderSummaryRepositoryDTO> findOrderSummariesByCustomerId(Integer userId, int limit, int offset) {
-        return dsl.select(
-        ORDER.ORDER_ID,
-        ORDER.ORDER_DATE,
-        ORDER.TOTAL_AMOUNT,
-        ORDER.PAY_STATUS,
-        ORDER.SHIP_STATUS,
-        COUPON.CODE,
-        ORDER.CREDIT_CARD_LAST_FOUR,
-        ORDER.PAYMENT_METHOD,
-        ORDER.SHIPPING_ADDRESS,
-        ORDER.DELIVER_TYPE)
-    .from(ORDER)
-    .join(CUSTOMER).on(ORDER.FK_CUSTOMER_ID.eq(CUSTOMER.CUSTOMER_ID))
-    .join(COUPON).on(ORDER.FK_SHIPPING_DISCOUNT_ID.eq(COUPON.COUPON_ID))
-    .where(CUSTOMER.FK_USER_ID.eq(userId))
-    .limit(limit)
-    .offset(offset)
-    .fetch()
-    .map(record -> {
-        OrderSummaryRepositoryDTO orderSummary = record.into(OrderSummaryRepositoryDTO.class);
-        OrderSummeryDetailModel detailModel = new OrderSummeryDetailModel();
-        detailModel.setCreditCardLastFour(record.get(ORDER.CREDIT_CARD_LAST_FOUR));
-        detailModel.setPaymentMethod(record.get(ORDER.PAYMENT_METHOD));
-        detailModel.setShippingAddress(record.get(ORDER.SHIPPING_ADDRESS));
-        detailModel.setShippingMethod(record.get(ORDER.DELIVER_TYPE));
-        orderSummary.setOrderSummeryDetailModel(detailModel);
-        return orderSummary;
-    });
+    public List<OrderSummaryRepositoryDTO> findOrderSummariesByCustomerId(Integer userId, int limit, int offset) throws SharedException {
+        try {
+            return dsl.select(
+                            ORDER.ORDER_ID,
+                            ORDER.ORDER_DATE,
+                            ORDER.TOTAL_AMOUNT,
+                            ORDER.PAY_STATUS,
+                            ORDER.SHIP_STATUS,
+                            COUPON.CODE,
+                            ORDER.CREDIT_CARD_LAST_FOUR,
+                            ORDER.PAYMENT_METHOD,
+                            ORDER.SHIPPING_ADDRESS,
+                            ORDER.DELIVER_TYPE)
+                    .from(ORDER)
+                    .join(CUSTOMER).on(ORDER.FK_CUSTOMER_ID.eq(CUSTOMER.CUSTOMER_ID))
+                    .leftOuterJoin(COUPON).on(ORDER.FK_SHIPPING_DISCOUNT_ID.eq(COUPON.COUPON_ID))
+                    .where(CUSTOMER.FK_USER_ID.eq(userId))
+                    .limit(limit)
+                    .offset(offset)
+                    .fetch()
+                    .map(record -> {
+                        OrderSummaryRepositoryDTO orderSummary = record.into(OrderSummaryRepositoryDTO.class);
+                        OrderSummeryDetailModel detailModel = new OrderSummeryDetailModel();
+                        detailModel.setCreditCardLastFour(record.get(ORDER.CREDIT_CARD_LAST_FOUR));
+                        detailModel.setPaymentMethod(record.get(ORDER.PAYMENT_METHOD));
+                        detailModel.setShippingAddress(record.get(ORDER.SHIPPING_ADDRESS));
+                        detailModel.setShippingMethod(record.get(ORDER.DELIVER_TYPE));
+                        orderSummary.setOrderSummeryDetailModel(detailModel);
+                        return orderSummary;});
+        }catch (Exception e){
+            throw e;
+        }
+
     }
 
     // 2. 查詢商家訂單簡介（延遲加載）
-    public List<StoreOrderSummaryRepositoryDTO> findStoreOrdersByOrderId(Integer orderId) {
+    public List<StoreOrderSummaryRepositoryDTO> findStoreOrdersByOrderId(Integer storeOrderId) {
         return dsl.select(
                         STORE_ORDER.STORE_ORDER_ID,
                         USERS.ACCOUNT,
+                        USERS.PROFILE_PIC_URL,
                         COUPON.CODE)
                 .from(STORE_ORDER)
                 .join(VENDOR).on(STORE_ORDER.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
                 .join(USERS).on(VENDOR.FK_USER_ID.eq(USERS.USER_ID))
-                .join(COUPON).on(STORE_ORDER.SEASONAL_DISCOUNT_ID.eq(COUPON.COUPON_ID).or(STORE_ORDER.SPECIAL_DISCOUNT_ID.eq(COUPON.COUPON_ID)))
-                .where(STORE_ORDER.FK_ORDER_ID.eq(orderId))
+                .leftOuterJoin(COUPON).on(STORE_ORDER.SEASONAL_DISCOUNT_ID.eq(COUPON.COUPON_ID).or(STORE_ORDER.SPECIAL_DISCOUNT_ID.eq(COUPON.COUPON_ID)))
+                .where(STORE_ORDER.STORE_ORDER_ID.eq(storeOrderId))
                 .fetchInto(StoreOrderSummaryRepositoryDTO.class);
     }
 

@@ -3,6 +3,7 @@ package com.clothingstore.shop.service;
 import com.clothingstore.shop.dto.repository.orders.OrderDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.OrderSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryDTO;
+import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,17 +23,17 @@ public class OrderService {
     }
 
     // 取得使用者訂單列表（訂單簡介）
-    public List<OrderSummaryRepositoryDTO> getUserOrderSummaries(String jwtToken, int page, int size) {
+    public List<OrderSummaryRepositoryDTO> getUserOrderSummaries(String jwtToken, int page, int size) throws SharedException {
         Integer userId = jwtService.extractUserId(jwtToken);
         int offset = (page - 1) * size;
         return orderRepository.findOrderSummariesByCustomerId(userId, size, offset);
     }
 
     // 取得特定訂單的商家訂單列表
-    public List<StoreOrderSummaryRepositoryDTO> getStoreOrdersByOrderId(String jwtToken, Integer orderId) {
+    public List<StoreOrderSummaryRepositoryDTO> getStoreOrdersByOrderId(String jwtToken, Integer storeOrderId) {
         Integer userId = jwtService.extractUserId(jwtToken);
         // 可以加入額外驗證以確認此訂單屬於當前使用者
-        return orderRepository.findStoreOrdersByOrderId(orderId);
+        return orderRepository.findStoreOrdersByOrderId(storeOrderId);
     }
 
     // 取得商家訂單的商品詳情
@@ -42,8 +43,9 @@ public class OrderService {
 //        return orderRepository.findOrderItemsByStoreOrderId(storeOrderId);
 //    }
 
-    public void updateOrderStatus(String token, String role, Integer orderId, String status) {
+    public void updateOrderStatus(String token, Integer orderId, String status) {
         Integer userId = jwtService.extractUserId(token);
+        String role = jwtService.extractRole(token);
         if (role.equals("customer")) {
             if(!orderRepository.isOrderBelongToCustomer(userId, orderId)) {
                 throw new IllegalArgumentException("Order does not belong to customer");
