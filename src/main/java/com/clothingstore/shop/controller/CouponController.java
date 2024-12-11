@@ -1,9 +1,8 @@
 package com.clothingstore.shop.controller;
 
-import com.clothingstore.shop.dto.others.discount.CouponSummaryDTO;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
-import com.clothingstore.shop.dto.response.Coupon.CouponDetailDTO;
-import com.clothingstore.shop.exceptions.SharedException;
+import com.clothingstore.shop.dto.response.Coupon.DiscountDetailResponseDTO;
+import com.clothingstore.shop.dto.response.Coupon.DiscountSummaryResponseDTO;
 import com.clothingstore.shop.service.CouponService;
 import com.clothingstore.shop.service.JwtService;
 import com.clothingstore.shop.utils.TokenUtils;
@@ -25,14 +24,13 @@ public class CouponController {
     @PostMapping("/create")
     public ResponseEntity<ApiResponseDTO<Integer>> createCoupon(
             HttpServletRequest request,
-            @RequestBody CouponDetailDTO couponDetailDTO) {
-
+            @RequestBody DiscountDetailResponseDTO discountDetailResponseDTO) {
         try{
             String token = TokenUtils.extractTokenFromCookies(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            Integer ret = couponService.createCoupon(couponDetailDTO, token);
+            Integer ret = couponService.createCoupon(discountDetailResponseDTO, token);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Coupon created successfully", ret));
         }catch (IllegalArgumentException e){
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
@@ -41,14 +39,14 @@ public class CouponController {
         }
     }
     @GetMapping("/list")
-    public ResponseEntity<ApiResponseDTO<List<CouponSummaryDTO>>> getCoupons(
+    public ResponseEntity<ApiResponseDTO<List<DiscountSummaryResponseDTO>>> getCoupons(
             HttpServletRequest request) {
         try {
             String token = TokenUtils.extractTokenFromCookies(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            List<CouponSummaryDTO> ret = couponService.getCouponList(token);
+            List<DiscountSummaryResponseDTO> ret = couponService.getCouponList(token);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Coupon list fetched successfully", ret));
         }catch (Exception e){
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
@@ -56,7 +54,7 @@ public class CouponController {
     }
 
     @GetMapping("/details/{couponId}")
-    public ResponseEntity<ApiResponseDTO<CouponDetailDTO>> getCouponDetails(
+    public ResponseEntity<ApiResponseDTO<DiscountDetailResponseDTO>> getCouponDetails(
             HttpServletRequest request,
             @PathVariable Integer couponId) {
         try{
@@ -64,7 +62,7 @@ public class CouponController {
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            CouponDetailDTO ret = couponService.getCouponDetails(token, couponId);
+            DiscountDetailResponseDTO ret = couponService.getCouponDetails(token, couponId);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Coupon details fetched successfully", ret));
         }catch (Exception e){
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));

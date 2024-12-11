@@ -1,52 +1,28 @@
 package com.clothingstore.shop.dto.repository.coupon;
 
-import com.clothingstore.shop.dto.repository.coupon.shared.SharedCoupon;
+import com.clothingstore.shop.dto.repository.coupon.shared.BaseDiscountDTO;
 
-public class SpecialDiscountDTO extends SharedCoupon {
-    private Integer special_discount_id;
-    private Integer buy_quantity;
-    private Integer get_quantity;
-    private Integer buy_variant_id;
-    private Integer get_variant_id;
+public class SpecialDiscountDTO extends BaseDiscountModel {
+    private int specialDiscountId;
+    private int buyQuantity;
+    private int giftQuantity;
+    private int buyVariantId;
+    private int giftVariantId;
 
-    //getters and setters
-    public Integer getSpecial_discount_id() {
-        return special_discount_id;
-    }
+    // Getters and Setters
+    public int getSpecialDiscountId() { return specialDiscountId; }
+    public void setSpecialDiscountId(int specialDiscountId) { this.specialDiscountId = specialDiscountId; }
+    public int getBuyQuantity() { return buyQuantity; }
+    public void setBuyQuantity(int buyQuantity) { this.buyQuantity = buyQuantity; }
 
-    public void setSpecial_discount_id(Integer special_discount_id) {
-        this.special_discount_id = special_discount_id;
-    }
+    public int getGiftQuantity() { return giftQuantity; }
+    public void setGiftQuantity(int giftQuantity) { this.giftQuantity = giftQuantity; }
 
-    public Integer getBuy_quantity() {
-        return buy_quantity;
-    }
+    public int getBuyVariantId() { return buyVariantId; }
+    public void setBuyVariantId(int buyVariantId) { this.buyVariantId = buyVariantId; }
 
-    public void setBuy_quantity(Integer buy_quantity) {
-        this.buy_quantity = buy_quantity;
-    }
-
-    public Integer getGet_quantity() {
-        return get_quantity;
-    }
-
-    public void setGet_quantity(Integer get_quantity) {
-        this.get_quantity = get_quantity;
-    }
-
-    public Integer getBuy_variant_id() {
-        return buy_variant_id;
-    }
-
-    public void setBuy_variant_id(Integer buy_variant_id) {
-        this.buy_variant_id = buy_variant_id;
-    }
-
-    public Integer getGet_variant_id() {
-        return get_variant_id;
-    }
-
-    public void setGet_variant_id(Integer get_variant_id) {
-        this.get_variant_id = get_variant_id;
-    }
+    public int getGiftVariantId() { return giftVariantId; }
+    public void setGiftVariantId(int giftVariantId) { this.giftVariantId = giftVariantId; }
 }
+
+

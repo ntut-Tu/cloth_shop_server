@@ -1,11 +1,10 @@
 package com.clothingstore.shop.dto.repository.coupon;
 
-import com.clothingstore.shop.dto.repository.coupon.shared.SharedCoupon;
-import com.clothingstore.shop.enums.CouponType;
+import com.clothingstore.shop.dto.repository.coupon.shared.BaseDiscountDTO;
 
 import java.math.BigDecimal;
 
-public class StandardDiscountDTO extends SharedCoupon {
+public class StandardDiscountDTO extends BaseDiscountModel {
     private Integer standard_discount_id;
     private String discount_type;
     private BigDecimal ratio;
