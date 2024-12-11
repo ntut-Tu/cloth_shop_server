@@ -1,8 +1,6 @@
 package com.clothingstore.shop.dto.repository.coupon;
 
-import com.clothingstore.shop.dto.repository.coupon.shared.BaseDiscountDTO;
-
-public class SpecialDiscountDTO extends BaseDiscountModel {
+public class SpecialDiscountModel extends BaseDiscountModel {
     private int specialDiscountId;
     private int buyQuantity;
     private int giftQuantity;

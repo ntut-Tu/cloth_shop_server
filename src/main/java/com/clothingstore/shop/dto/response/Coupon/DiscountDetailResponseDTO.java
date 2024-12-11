@@ -11,7 +11,7 @@ public class DiscountDetailResponseDTO {
     private String endDate;
     private boolean isList;
     private Integer maximumUsagePerCustomer;
-    private BaseDiscountModel discount;
+    private Object discount;
 
     // Getters and Setters
     public Integer getCouponId() { return couponId; }
@@ -37,7 +37,7 @@ public class DiscountDetailResponseDTO {
         this.maximumUsagePerCustomer = maximumUsagePerCustomer;
     }
 
-    public BaseDiscountModel getDiscount() { return discount; }
-    public void setDiscount(BaseDiscountModel discount) { this.discount = discount; }
+    public Object getDiscount() { return discount; }
+    public void setDiscount(Object discount) { this.discount = discount; }
 }
 

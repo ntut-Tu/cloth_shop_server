@@ -1,5 +1,6 @@
 package com.clothingstore.shop.controller;
 
+import com.clothingstore.shop.dto.repository.coupon.BaseDiscountModel;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.response.Coupon.DiscountDetailResponseDTO;
 import com.clothingstore.shop.dto.response.Coupon.DiscountSummaryResponseDTO;
@@ -25,16 +26,18 @@ public class CouponController {
     public ResponseEntity<ApiResponseDTO<Integer>> createCoupon(
             HttpServletRequest request,
             @RequestBody DiscountDetailResponseDTO discountDetailResponseDTO) {
-        try{
+        try {
+            // 解析 token
             String token = TokenUtils.extractTokenFromCookies(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
+            // 傳遞到 Service 層
             Integer ret = couponService.createCoupon(discountDetailResponseDTO, token);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Coupon created successfully", ret));
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, "Failed to create coupon", null));
         }
     }

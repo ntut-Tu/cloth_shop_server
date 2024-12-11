@@ -1,14 +1,18 @@
 package com.clothingstore.shop.dto.repository.coupon;
 
-import com.clothingstore.shop.dto.repository.coupon.shared.BaseDiscountDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 
-public class StandardDiscountDTO extends BaseDiscountModel {
+public class StandardDiscountModel extends BaseDiscountModel {
     private Integer standard_discount_id;
+    @JsonProperty("discount_type")
     private String discount_type;
+    @JsonProperty("ratio")
     private BigDecimal ratio;
+    @JsonProperty("discount_amount")
     private Integer discount_amount;
+    @JsonProperty("minimum_spend")
     private Integer minimum_spend;
 
     //getters and setters
