@@ -7,6 +7,7 @@ public class CouponSummaryDTO {
     private String startDate;
     private String endDate;
     private int maxUsage;
+    private int couponId;
     private DiscountDetailsDTO discountDetails;
 
     // Getters and setters
@@ -56,6 +57,14 @@ public class CouponSummaryDTO {
 
     public void setMaxUsage(int maxUsage) {
         this.maxUsage = maxUsage;
+    }
+
+    public int getCouponId() {
+        return couponId;
+    }
+
+    public void setCouponId(int couponId) {
+        this.couponId = couponId;
     }
 
     public DiscountDetailsDTO getDiscountDetails() {
