@@ -68,4 +68,31 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/category/{category}")
+    public ApiResponseDTO<List<ProductSummaryRepositoryDTO>> getProductSummariesByCategory(
+            @PathVariable String category,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "30") int pageSize) {
+        try{
+            List<ProductSummaryRepositoryDTO> productSummaries = productService.getProductSummariesByCategory(category, page, pageSize);
+            return new ApiResponseDTO<>(true, "Product summaries retrieved successfully", productSummaries);
+        }catch (Exception e){
+            return new ApiResponseDTO<>(false, e.getMessage(), null);
+        }
+    }
+
+    @GetMapping("/search/{target}")
+    public ApiResponseDTO<List<ProductSummaryRepositoryDTO>> searchProductSummaries(
+            @PathVariable String target,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "30") int pageSize) {
+        try{
+            List<ProductSummaryRepositoryDTO> productSummaries = productService.searchProductSummaries(target, page, pageSize);
+            return new ApiResponseDTO<>(true, "Product summaries retrieved successfully", productSummaries);
+        }catch (Exception e){
+            return new ApiResponseDTO<>(false, e.getMessage(), null);
+        }
+    }
+
+
 }

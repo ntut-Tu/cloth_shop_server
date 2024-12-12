@@ -44,4 +44,12 @@ public class ProductService {
         // Step 2: Add the product using ProductRepository
         return productRepository.addProduct(productRequestDTO);
     }
+
+    public List<ProductSummaryRepositoryDTO> getProductSummariesByCategory(String category, int page, int pageSize) {
+        return productRepository.fetchProductSummariesByCategory(category, page, pageSize);
+    }
+
+    public List<ProductSummaryRepositoryDTO> searchProductSummaries(String target, int page, int pageSize) {
+        return productRepository.searchProductSummaries(target, page, pageSize);
+    }
 }

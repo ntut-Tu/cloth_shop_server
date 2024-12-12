@@ -4,6 +4,7 @@ import com.clothingstore.shop.dto.repository.products.ProductDetailRepositoryDTO
 import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.repository.products.ProductVariantRepositoryDTO;
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
+import com.clothingstore.shop.enums.CategorizedProduct;
 import com.clothingstore.shop.jooq.tables.Product;
 import com.clothingstore.shop.jooq.tables.ProductVariant;
 import org.jooq.DSLContext;
@@ -13,10 +14,12 @@ import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.clothingstore.shop.jooq.Tables.*;
+import static com.clothingstore.shop.utils.EnumUtils.isStringInEnum;
 
 @Repository
 public class ProductRepository {
@@ -136,5 +139,88 @@ public class ProductRepository {
             }
         }
         return productId;
+    }
+
+    public List<ProductSummaryRepositoryDTO> fetchProductSummariesByCategory(String category, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        if(category.equals(CategorizedProduct.ALL.toString()) ){
+            return dsl.select(
+                            PRODUCT.PRODUCT_ID,
+                            PRODUCT.NAME,
+                            PRODUCT.TOTAL_SALES,
+                            PRODUCT.RATE,
+                            PRODUCT.IMAGE_URL,
+                            PRODUCT.CATEGORY,
+                            VENDOR.STORE_DESCRIPTION
+                    )
+                    .from(PRODUCT)
+                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                    .where(PRODUCT.IS_LIST.isTrue())
+                    .orderBy(PRODUCT.PRODUCT_ID.asc())
+                    .limit(pageSize)
+                    .offset(offset)
+                    .fetchInto(ProductSummaryRepositoryDTO.class);
+        }else if(isStringInEnum(category, CategorizedProduct.class)) {
+            return dsl.select(
+                            PRODUCT.PRODUCT_ID,
+                            PRODUCT.NAME,
+                            PRODUCT.TOTAL_SALES,
+                            PRODUCT.RATE,
+                            PRODUCT.IMAGE_URL,
+                            PRODUCT.CATEGORY,
+                            VENDOR.STORE_DESCRIPTION
+                    )
+                    .from(PRODUCT)
+                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                    .where(PRODUCT.IS_LIST.isTrue())
+                    .and(PRODUCT.CATEGORY.equalIgnoreCase(category))
+                    .orderBy(PRODUCT.PRODUCT_ID.asc())
+                    .limit(pageSize)
+                    .offset(offset)
+                    .fetchInto(ProductSummaryRepositoryDTO.class);
+        }else{
+            return dsl.select(
+                            PRODUCT.PRODUCT_ID,
+                            PRODUCT.NAME,
+                            PRODUCT.TOTAL_SALES,
+                            PRODUCT.RATE,
+                            PRODUCT.IMAGE_URL,
+                            PRODUCT.CATEGORY,
+                            VENDOR.STORE_DESCRIPTION
+                    )
+                    .from(PRODUCT)
+                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                    .where(PRODUCT.IS_LIST.isTrue())
+                    .and(PRODUCT.CATEGORY.notIn(
+                            Arrays.stream(CategorizedProduct.values())
+                                    .map(Enum::name)
+                                    .collect(Collectors.toList())
+                    ))
+                    .orderBy(PRODUCT.PRODUCT_ID.asc())
+                    .limit(pageSize)
+                    .offset(offset)
+                    .fetchInto(ProductSummaryRepositoryDTO.class);
+        }
+    }
+
+    public List<ProductSummaryRepositoryDTO> searchProductSummaries(String target, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return dsl.select(
+                        PRODUCT.PRODUCT_ID,
+                        PRODUCT.NAME,
+                        PRODUCT.TOTAL_SALES,
+                        PRODUCT.RATE,
+                        PRODUCT.IMAGE_URL,
+                        PRODUCT.CATEGORY,
+                        VENDOR.STORE_DESCRIPTION
+                )
+                .from(PRODUCT)
+                .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                .where(PRODUCT.IS_LIST.isTrue())
+                .and(PRODUCT.NAME.containsIgnoreCase(target))
+                .orderBy(PRODUCT.PRODUCT_ID.asc())
+                .limit(pageSize)
+                .offset(offset)
+                .fetchInto(ProductSummaryRepositoryDTO.class);
     }
 }
