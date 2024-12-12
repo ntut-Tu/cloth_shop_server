@@ -35,10 +35,8 @@ public class CouponController {
             // 傳遞到 Service 層
             Integer ret = couponService.createCoupon(discountDetailResponseDTO, token);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Coupon created successfully", ret));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (Exception e) {
-            return ResponseEntity.ok(new ApiResponseDTO<>(false, "Failed to create coupon", null));
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
     }
     @GetMapping("/list")

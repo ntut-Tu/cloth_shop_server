@@ -51,7 +51,7 @@ public class CheckoutController {
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponseDTO<>(false, "Failed to confirm amount", null));
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
     }
     @PostMapping("/confirm-discount")
@@ -77,7 +77,7 @@ public class CheckoutController {
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponseDTO<>(false, "Failed to confirm discount", null));
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
     }
     @PostMapping("submit-order")
@@ -96,7 +96,7 @@ public class CheckoutController {
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponseDTO<>(false, "Failed to submit order", null));
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
     }
     @PostMapping("cancel-order")
@@ -115,7 +115,7 @@ public class CheckoutController {
                         .body(new ApiResponseDTO<>(false, e.getMessage(), null));
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new ApiResponseDTO<>(false, "Failed to cancel order", null));
+                        .body(new ApiResponseDTO<>(false, e.getMessage(), null));
             }
     }
 }

@@ -64,7 +64,7 @@ public class ProductController {
         } catch (Exception e) {
             // 處理一般錯誤
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponseDTO<>(false, "Failed to add product", null));
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
     }
 
