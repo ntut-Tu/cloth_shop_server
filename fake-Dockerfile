@@ -1,0 +1,17 @@
+FROM openjdk:17-jdk-alpine
+
+WORKDIR /app
+
+# 複製應用 JAR 和 Changelogs
+COPY target/clothing-shop.jar /app/app.jar
+COPY src/main/resources/db/changelog /app/db/changelog
+
+# 安裝必要的工具並安裝 Liquibase
+RUN apk add --no-cache wget unzip \
+    && wget https://github.com/liquibase/liquibase/releases/download/v4.23.2/liquibase-4.23.2.zip \
+    && unzip liquibase-4.23.2.zip -d /liquibase \
+    && rm liquibase-4.23.2.zip
+
+ENV PATH="/liquibase:${PATH}"
+
+CMD ["java", "-jar", "/app/app.jar"]

@@ -1,0 +1,65 @@
+databaseChangeLog:
+  - changeSet:
+      id: trigger-user-log
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            stripComments: false
+            splitStatements: false
+            sql: |
+              CREATE OR REPLACE FUNCTION log_user_insert() 
+              RETURNS trigger AS $$
+              BEGIN
+                INSERT INTO user_log (fk_user_id, action, date)
+                VALUES (NEW.user_id, 'Create user', NOW());
+                RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+              
+              CREATE TRIGGER trg_user_insert_log
+              AFTER INSERT ON "users"
+              FOR EACH ROW
+              EXECUTE FUNCTION log_user_insert();
+
+        - sql:
+            stripComments: false
+            splitStatements: false
+            sql: |
+              CREATE OR REPLACE FUNCTION log_user_update() RETURNS trigger AS $$
+              DECLARE
+              changed_columns TEXT := '';
+              BEGIN
+                -- 檢查更新的屬性
+                IF NEW.account IS DISTINCT FROM OLD.account THEN
+                  changed_columns := changed_columns || 'account,';
+                END IF;
+                IF NEW.email IS DISTINCT FROM OLD.email THEN
+                  changed_columns := changed_columns || 'email,';
+                END IF;
+                IF NEW.password IS DISTINCT FROM OLD.password THEN
+                  changed_columns := changed_columns || 'password,';
+                END IF;
+                IF NEW.phone_number IS DISTINCT FROM OLD.phone_number THEN
+                  changed_columns := changed_columns || 'phone_number,';
+                END IF;
+                
+                -- 如果有任何屬性改變，插入記錄
+                IF changed_columns != '' THEN
+                -- 去掉最後的逗號
+                  changed_columns := rtrim(changed_columns, ',');
+                  INSERT INTO user_log (fk_user_id, action, action_time, attribute)
+                  VALUES (NEW.user_id, 'Update user', NOW(), changed_columns);
+                END IF;
+                
+                RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+              
+              CREATE TRIGGER trg_user_update_log
+              AFTER UPDATE ON "users"
+              FOR EACH ROW
+              EXECUTE FUNCTION log_user_update();

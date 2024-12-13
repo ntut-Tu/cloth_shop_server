@@ -1,0 +1,55 @@
+services:
+  frontend:
+    image: frontend-image
+    ports:
+      - "80:80"
+    volumes:
+      - product-images:/usr/share/nginx/html/uploads
+
+  backend:
+    image: backend-image
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shopping_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    volumes:
+      - product-images:/app/uploads
+    depends_on:
+      - db
+      - liquibase
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: shopping_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  liquibase:
+    image: liquibase/liquibase:latest
+    depends_on:
+      - db
+    environment:
+      LIQUIBASE_URL: jdbc:postgresql://db:5432/shopping_db
+      LIQUIBASE_USERNAME: postgres
+      LIQUIBASE_PASSWORD: 123
+      LIQUIBASE_CHANGELOG_FILE: /liquibase/changelog/db.changelog-master.yaml
+    volumes:
+      - ./db/changelog:/liquibase/changelog
+    command: >
+      --defaultsFile=/liquibase/liquibase.properties
+      update
+
+volumes:
+  product-images:

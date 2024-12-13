@@ -1,0 +1,42 @@
+databaseChangeLog:
+    - changeSet:
+        id: vendor_ledger_view
+        author: your_name
+        changes:
+          - createView:
+              viewName: vendor_ledger_view
+              selectQuery: |
+                SELECT 
+                      le.ledger_entry_id,
+                      le.ledger_type,
+                      le.transaction_type,
+                      le.amount,
+                      le.total_balance,
+                      le.transaction_date,
+                      le.notes,
+                      le.coupon_id,
+                      vle.vendor_id,
+                      vle.store_order_id
+                FROM ledger_entry le
+                JOIN vendor_ledger_entry vle
+                  ON le.ledger_entry_id = vle.ledger_entry_id;
+    - changeSet:
+        id: platform_ledger_view
+        author: quinn
+        changes:
+          - createView:
+              viewName: platform_ledger_view
+              selectQuery: |
+                SELECT 
+                      le.ledger_entry_id,
+                      le.ledger_type,
+                      le.transaction_type,
+                      le.amount,
+                      le.total_balance,
+                      le.transaction_date,
+                      le.notes,
+                      le.coupon_id,
+                      ple.order_id
+                FROM ledger_entry le
+                JOIN platform_ledger_entry ple
+                  ON le.ledger_entry_id = ple.ledger_entry_id;
