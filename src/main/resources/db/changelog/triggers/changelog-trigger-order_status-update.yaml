@@ -1,29 +1,32 @@
 databaseChangeLog:
   - changeSet:
-      id: order_status_trigger
+      id: create_trigger_pgsql
       author: quinn
+      preConditions:
+        - dbms:
+            type: postgresql
       changes:
         - sql:
-            splitStatements: true
-            stripComments: true
+            splitStatements: false
             sql: |
-              DELIMITER $$
-              
-              CREATE TRIGGER trg_update_store_order_status
+              CREATE OR REPLACE FUNCTION update_order_status() RETURNS trigger AS $$
+              BEGIN
+                IF NEW.store_order_status = 'shipped' THEN
+                  UPDATE "order"
+                  SET status = 'Delivered'
+                  WHERE order_id = NEW.fk_order_id
+                    AND NOT EXISTS (
+                      SELECT 1
+                      FROM store_order
+                      WHERE fk_order_id = NEW.fk_order_id
+                        AND store_order_status != 'shipped'
+                    );
+                END IF;
+                RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+
+              CREATE TRIGGER trg_update_order_status
               AFTER UPDATE ON store_order
               FOR EACH ROW
-              BEGIN
-                  IF NEW.store_order_status = 'shipped' THEN
-                      UPDATE `order` o
-                      SET o.status = 'Delivered'
-                      WHERE o.order_id = NEW.fk_order_id
-                        AND NOT EXISTS (
-                            SELECT 1
-                            FROM store_order so
-                            WHERE so.fk_order_id = NEW.fk_order_id
-                              AND so.store_order_status != 'shipped'
-                        );
-                  END IF;
-              END$$
-              
-              DELIMITER ;
+              EXECUTE FUNCTION update_order_status();
