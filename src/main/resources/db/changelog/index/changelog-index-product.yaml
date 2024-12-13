@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: index-product-1
+      author: quinn
+      changes:
+        - createIndex:
+            tableName: product
+            indexName: idx_product_is_list
+            columns:
+              - column:
+                    name: is_list
+        - createIndex:
+            tableName: product
+            indexName: idx_product_category
+            columns:
+              - column:
+                    name: category
+        - createIndex:
+            tableName: product
+            indexName: idx_product_name
+            columns:
+              - column:
+                    name: name
+        - createIndex:
+            tableName: product
+            indexName: idx_product_fk_vendor_id
+            columns:
+              - column:
+                    name: fk_vendor_id
+        - createIndex:
+            tableName: vendor
+            indexName: idx_vendor_vendor_id
+            columns:
+              - column:
+                    name: vendor_id

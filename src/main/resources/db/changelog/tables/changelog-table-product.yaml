@@ -60,3 +60,4 @@ databaseChangeLog:
             constraintName: fk_product_vendor_id
             referencedTableName: vendor
             referencedColumnNames: vendor_id
+# 為什麼不增加產品date:因為id已經照新增順序了，不需要再加date
