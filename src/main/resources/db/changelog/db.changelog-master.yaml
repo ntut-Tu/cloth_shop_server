@@ -63,3 +63,22 @@ databaseChangeLog:
   - include:
         file: tables/changelog-table-vendor_ledger_entry.yaml
         relativeToChangelogFile: true
+#------------------INDEXES------------------
+  - include:
+        file: index/changelog-index-product.yaml
+        relativeToChangelogFile: true
+#------------------VIEW---------------------
+  - include:
+      file: views/changelog-view-ledger.yaml
+      relativeToChangelogFile: true
+#------------------TRIGGERS------------------
+  - include:
+      file: triggers/changelog-trigger-order_status-update.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: triggers/changelog-trigger-user_log.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: triggers/changelog-trigger-ledger_entry.yaml
+      relativeToChangelogFile: true
+
