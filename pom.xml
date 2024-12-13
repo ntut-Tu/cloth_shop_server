@@ -183,6 +183,14 @@
 <!--			</plugin>-->
 			<!-- /Use this if first time deploy database to docker-->
 		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>db/changelog/**</include>
+				</includes>
+			</resource>
+		</resources>
 		<finalName>clothing-shop</finalName>
 	</build>
 

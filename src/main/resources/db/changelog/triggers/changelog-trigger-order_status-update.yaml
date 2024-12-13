@@ -3,6 +3,7 @@ databaseChangeLog:
       id: create_trigger_pgsql
       author: quinn
       preConditions:
+        - onFail: CONTINUE
         - dbms:
             type: postgresql
       changes:
