@@ -52,4 +52,8 @@ public class ProductService {
     public List<ProductSummaryRepositoryDTO> searchProductSummaries(String target, int page, int pageSize) {
         return productRepository.searchProductSummaries(target, page, pageSize);
     }
+
+    public List<ProductSummaryRepositoryDTO> getProductSummariesOrderBy(String method, int page, int pageSize) {
+        return productRepository.fetchProductSummariesOrderBy(method, page, pageSize);
+    }
 }

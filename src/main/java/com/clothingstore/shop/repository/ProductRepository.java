@@ -223,4 +223,62 @@ public class ProductRepository {
                 .offset(offset)
                 .fetchInto(ProductSummaryRepositoryDTO.class);
     }
+
+    public List<ProductSummaryRepositoryDTO> fetchProductSummariesOrderBy(String method, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        if(method.equals("total_sales")){
+            return dsl.select(
+                            PRODUCT.PRODUCT_ID,
+                            PRODUCT.NAME,
+                            PRODUCT.TOTAL_SALES,
+                            PRODUCT.RATE,
+                            PRODUCT.IMAGE_URL,
+                            PRODUCT.CATEGORY,
+                            VENDOR.STORE_DESCRIPTION
+                    )
+                    .from(PRODUCT)
+                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                    .where(PRODUCT.IS_LIST.isTrue())
+                    .orderBy(PRODUCT.TOTAL_SALES.desc())
+                    .limit(pageSize)
+                    .offset(offset)
+                    .fetchInto(ProductSummaryRepositoryDTO.class);
+        }else if(method.equals("rate")){
+            return dsl.select(
+                            PRODUCT.PRODUCT_ID,
+                            PRODUCT.NAME,
+                            PRODUCT.TOTAL_SALES,
+                            PRODUCT.RATE,
+                            PRODUCT.IMAGE_URL,
+                            PRODUCT.CATEGORY,
+                            VENDOR.STORE_DESCRIPTION
+                    )
+                    .from(PRODUCT)
+                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                    .where(PRODUCT.IS_LIST.isTrue())
+                    .orderBy(PRODUCT.RATE.desc())
+                    .limit(pageSize)
+                    .offset(offset)
+                    .fetchInto(ProductSummaryRepositoryDTO.class);
+        }else if(method.equals("date")){
+
+        }else {
+            return dsl.select(
+                            PRODUCT.PRODUCT_ID,
+                            PRODUCT.NAME,
+                            PRODUCT.TOTAL_SALES,
+                            PRODUCT.RATE,
+                            PRODUCT.IMAGE_URL,
+                            PRODUCT.CATEGORY,
+                            VENDOR.STORE_DESCRIPTION
+                    )
+                    .from(PRODUCT)
+                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                    .where(PRODUCT.IS_LIST.isTrue())
+                    .orderBy(PRODUCT.PRODUCT_ID.asc())
+                    .limit(pageSize)
+                    .offset(offset)
+                    .fetchInto(ProductSummaryRepositoryDTO.class);
+        }
+    }
 }

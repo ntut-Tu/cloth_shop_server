@@ -94,5 +94,18 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/order_by/{method}")
+    public ApiResponseDTO<List<ProductSummaryRepositoryDTO>> getProductSummariesOrderBy(
+            @PathVariable String method,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "30") int pageSize) {
+        try{
+            List<ProductSummaryRepositoryDTO> productSummaries = productService.getProductSummariesOrderBy(method, page, pageSize);
+            return new ApiResponseDTO<>(true, "Product summaries retrieved successfully", productSummaries);
+        }catch (Exception e){
+            return new ApiResponseDTO<>(false, e.getMessage(), null);
+        }
+    }
+
 
 }
