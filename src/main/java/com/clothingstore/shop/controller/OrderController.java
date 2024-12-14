@@ -4,6 +4,7 @@ import com.clothingstore.shop.dto.repository.orders.OrderDetailRepositoryDTO;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.repository.orders.OrderSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryDTO;
+import com.clothingstore.shop.dto.response.vendorOrder.VendorOrderResponseDTO;
 import com.clothingstore.shop.service.OrderService;
 import com.clothingstore.shop.utils.TokenUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -111,13 +112,13 @@ public class OrderController {
     }
 
     @GetMapping("/store")
-    public ResponseEntity<ApiResponseDTO<List<StoreOrderSummaryRepositoryDTO>>> getVendorStoreOrders(
+    public ResponseEntity<ApiResponseDTO<List<VendorOrderResponseDTO>>> getVendorStoreOrders(
             HttpServletRequest request,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         String token = TokenUtils.extractTokenFromCookies(request);
         try {
-            List<StoreOrderSummaryRepositoryDTO> orderSummaries = orderService.getVendorStoreOrders(token, page, size);
+            List<VendorOrderResponseDTO> orderSummaries = orderService.getVendorStoreOrders(token, page, size);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order summaries retrieved successfully", orderSummaries));
         }catch (Exception e){
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));

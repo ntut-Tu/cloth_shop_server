@@ -3,6 +3,7 @@ package com.clothingstore.shop.service;
 import com.clothingstore.shop.dto.repository.orders.OrderDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.OrderSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryDTO;
+import com.clothingstore.shop.dto.response.vendorOrder.VendorOrderResponseDTO;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +89,7 @@ public class OrderService {
         orderRepository.updateStoreOrderStatus(storeOrderId, status);
     }
 
-    public List<StoreOrderSummaryRepositoryDTO> getVendorStoreOrders(String token, int page, int size) throws SharedException {
+    public List<VendorOrderResponseDTO> getVendorStoreOrders(String token, int page, int size) throws SharedException {
         Integer userId = jwtService.extractUserId(token);
         int offset = (page - 1) * size;
         return orderRepository.findStoreOrderSummariesByVendorId(userId, size, offset);

@@ -4,17 +4,21 @@ import com.clothingstore.shop.dto.repository.orders.OrderDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.OrderSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.OrderSummeryDetailModel;
 import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryDTO;
+import com.clothingstore.shop.dto.response.vendorOrder.VendorOrderResponseDTO;
+import com.clothingstore.shop.dto.response.vendorOrder.vendorUserOrder.VendorProductVariantDTO;
+import com.clothingstore.shop.dto.response.vendorOrder.vendorUserOrder.VendorUserOrderDTO;
 import com.clothingstore.shop.enums.RoleType;
 import com.clothingstore.shop.enums.ShipStatus;
 import com.clothingstore.shop.enums.StoreOrderStatus;
 import com.clothingstore.shop.exceptions.SharedException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.clothingstore.shop.jooq.Tables.*;
 import static org.jooq.impl.DSL.and;
@@ -154,55 +158,19 @@ public class OrderRepository {
                 .execute();
     }
 
-    public List<StoreOrderSummaryRepositoryDTO> findStoreOrderSummariesByVendorId(Integer userId, int size, int offset) throws SharedException {
-        try {
-            Integer vendorId = dsl.select(VENDOR.VENDOR_ID)
-                    .from(VENDOR)
-                    .where(VENDOR.FK_USER_ID.eq(userId))
-                    .fetchOneInto(Integer.class);
-            return dsl.select(
-                            STORE_ORDER.STORE_ORDER_ID.as("storeOrderId"),
-                            STORE_ORDER.STORE_NET_AMOUNT.as("totalNetAmount"),
-                            STORE_ORDER.STORE_DISCOUNT_AMOUNT.as("totalDiscount"),
-                            STORE_ORDER.STORE_SUBTOTAL_AMOUNT.as("totalAmount"),
-                            STORE_ORDER.STORE_ORDER_STATUS.as("storeOrderStatus"),
-                            ORDER.ORDER_DATE.as("orderDate"),
-                            ORDER.PAY_STATUS.as("orderPayStatus"),
-                            DSL.jsonArrayAgg(
-                                    DSL.jsonObject(
-                                            DSL.key("productId").value(PRODUCT.PRODUCT_ID),
-                                            DSL.key("productName").value(PRODUCT.NAME),
-                                            DSL.key("variants").value(
-                                                    DSL.jsonArrayAgg(
-                                                            DSL.jsonObject(
-                                                                    DSL.key("productVariantId").value(ORDER_ITEM.FK_PRODUCT_VARIANT_ID),
-                                                                    DSL.key("color").value(PRODUCT_VARIANT.COLOR),
-                                                                    DSL.key("size").value(PRODUCT_VARIANT.SIZE),
-                                                                    DSL.key("quantity").value(ORDER_ITEM.QUANTITY) // Replace `DSL.val(1)` with the actual quantity logic
-                                                            )
-                                                    )
-                                            )
-                                    )
-                            ).as("orders")
-                    )
-                    .from(STORE_ORDER)
-                    .join(ORDER).on(STORE_ORDER.FK_ORDER_ID.eq(ORDER.ORDER_ID))
-                    .join(PRODUCT).on(STORE_ORDER.FK_VENDOR_ID.eq(PRODUCT.FK_VENDOR_ID))
-                    .join(PRODUCT_VARIANT).on(PRODUCT.PRODUCT_ID.eq(PRODUCT_VARIANT.FK_PRODUCT_ID))
-                    .where(STORE_ORDER.FK_VENDOR_ID.eq(vendorId))
-                    .groupBy(
-                            STORE_ORDER.STORE_ORDER_ID,
-                            STORE_ORDER.STORE_NET_AMOUNT,
-                            STORE_ORDER.STORE_DISCOUNT_AMOUNT,
-                            STORE_ORDER.STORE_SUBTOTAL_AMOUNT,
-                            STORE_ORDER.STORE_ORDER_STATUS,
-                            ORDER.ORDER_DATE
-                    )
-                    .limit(size)
-                    .offset(offset)
-                    .fetchInto(StoreOrderSummaryRepositoryDTO.class);
-        }catch (Exception e){
-            throw e;
+    public List<VendorOrderResponseDTO> findStoreOrderSummariesByVendorId(Integer userId, int size, int offset) {
+        // 獲取供應商ID
+        Integer vendorId = dsl.select(VENDOR.VENDOR_ID)
+                .from(VENDOR)
+                .where(VENDOR.FK_USER_ID.eq(userId))
+                .fetchOneInto(Integer.class);
+
+        if (vendorId == null) {
+            return Collections.emptyList();
         }
+
+        // 查詢 store_order 和相關的詳細資訊
+        return null;
     }
+
 }
