@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: vendor_product_variant_view
+      author: quinn
+      changes:
+        - createView:
+            viewName: vendor_product_variant_view
+            selectQuery: |
+              SELECT
+                pv.product_variant_id,
+                pv.color,
+                pv.size,
+                oi.quantity
+              FROM
+                order_item oi
+              JOIN
+                product_variant pv ON oi.fk_product_variant_id = pv.product_variant_id;
+  - changeSet:
+        id: vendor_user_order_view
+        author: quinn
+        changes:
+          - createView:
+              viewName: vendor_user_order_view
+              selectQuery: |
+                SELECT
+                  p.product_id,
+                  p.name AS product_name,
+                  pv.product_variant_id
+                FROM
+                  product p
+                JOIN
+                  product_variant pv ON p.product_id = pv.fk_product_id;
+
+  - changeSet:
+      id: vendor_order_response_view
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - createView:
+            viewName: vendor_order_response_view
+            selectQuery: |
+              SELECT
+                so.store_order_id,
+                so.store_net_amount AS total_amount,
+                so.store_order_status,
+                o.order_date
+              FROM
+                store_order so
+              JOIN
+                "order" o ON so.fk_order_id = o.order_id;

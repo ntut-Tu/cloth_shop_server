@@ -55,21 +55,24 @@ databaseChangeLog:
       file: tables/changelog-table-order_item.yaml
       relativeToChangelogFile: true
   - include:
-        file: tables/changelog-table-ledger_entry.yaml
-        relativeToChangelogFile: true
+      file: tables/changelog-table-ledger_entry.yaml
+      relativeToChangelogFile: true
   - include:
-        file: tables/changelog-table-platform_ledger_entry.yaml
-        relativeToChangelogFile: true
+      file: tables/changelog-table-platform_ledger_entry.yaml
+      relativeToChangelogFile: true
   - include:
-        file: tables/changelog-table-vendor_ledger_entry.yaml
-        relativeToChangelogFile: true
+      file: tables/changelog-table-vendor_ledger_entry.yaml
+      relativeToChangelogFile: true
 #------------------INDEXES------------------
   - include:
-        file: index/changelog-index-product.yaml
-        relativeToChangelogFile: true
+      file: index/changelog-index-product.yaml
+      relativeToChangelogFile: true
 #------------------VIEW---------------------
   - include:
       file: views/changelog-view-ledger.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: views/changelog-view-vendor-order.yaml
       relativeToChangelogFile: true
 #------------------TRIGGERS------------------
   - include:
