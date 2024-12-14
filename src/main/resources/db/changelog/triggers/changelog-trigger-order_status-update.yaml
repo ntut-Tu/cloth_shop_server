@@ -20,7 +20,7 @@ databaseChangeLog:
                       SELECT 1
                       FROM store_order
                       WHERE fk_order_id = NEW.fk_order_id
-                        AND store_order_status != 'shipped'
+                        AND store_order_status != 'Shipped'
                     );
                 END IF;
                 RETURN NEW;
