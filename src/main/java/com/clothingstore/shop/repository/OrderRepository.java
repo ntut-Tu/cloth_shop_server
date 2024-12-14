@@ -22,12 +22,12 @@ import java.util.stream.Collectors;
 
 import static com.clothingstore.shop.jooq.Tables.*;
 import static org.jooq.impl.DSL.and;
+import static org.jooq.impl.DSL.field;
 
 @Repository
 public class OrderRepository {
 
     private final DSLContext dsl;
-
     @Autowired
     public OrderRepository(DSLContext dsl) {
         this.dsl = dsl;
@@ -166,11 +166,55 @@ public class OrderRepository {
                 .fetchOneInto(Integer.class);
 
         if (vendorId == null) {
-            return Collections.emptyList();
+            throw new IllegalArgumentException("Vendor not found");
+        }
+        System.out.println("Current SQLDialect: " + dsl.configuration().dialect());
+        List<VendorOrderResponseDTO> storeOrders = dsl.select(
+                        field("store_order_id"),
+                        field("total_amount"),
+                        field("store_order_status"),
+                        field("order_date")
+                )
+                .from("vendor_order_response_view")
+                .where(field("vendor_id").eq(vendorId))
+                .offset(offset)
+                .limit(size)
+                .fetchInto(VendorOrderResponseDTO.class);
+
+        // 查詢 vendor_user_order_view 並組裝到每個 storeOrder
+        for (VendorOrderResponseDTO storeOrder : storeOrders) {
+            Integer storeOrderId = storeOrder.getStoreOrderId();
+
+            List<VendorUserOrderDTO> userOrders = dsl.select(
+                            field("product_id"),
+                            field("product_name"),
+                            field("product_variant_id")
+                    )
+                    .from("vendor_user_order_view")
+                    .where(field("store_order_id").eq(storeOrderId))
+                    .fetchInto(VendorUserOrderDTO.class);
+
+            // 查詢 vendor_product_variant_view 並組裝到每個 userOrder
+            for (VendorUserOrderDTO userOrder : userOrders) {
+                Integer productId = userOrder.getProductId();
+
+                List<VendorProductVariantDTO> productVariants = dsl.select(
+                                field("product_variant_id"),
+                                field("color"),
+                                field("size"),
+                                field("quantity")
+                        )
+                        .from("vendor_product_variant_view")
+                        .where(field("product_id").eq(productId))
+                        .fetchInto(VendorProductVariantDTO.class);
+
+                userOrder.setProductVariants(productVariants);
+            }
+
+            storeOrder.setOrders(userOrders);
         }
 
-        // 查詢 store_order 和相關的詳細資訊
-        return null;
+        return storeOrders;
     }
 
 }
