@@ -3,7 +3,7 @@ package com.clothingstore.shop.utils;
 public class EnumUtils {
     public static boolean isStringInEnum(String value, Class<? extends Enum<?>> enumClass) {
         for (Enum<?> enumValue : enumClass.getEnumConstants()) {
-            if (enumValue.name().equalsIgnoreCase(value)) {
+            if (enumValue.toString().equalsIgnoreCase(value)) {
                 return true;
             }
         }

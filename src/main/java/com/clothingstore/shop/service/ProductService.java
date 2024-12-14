@@ -3,6 +3,7 @@ package com.clothingstore.shop.service;
 import com.clothingstore.shop.dto.repository.products.ProductDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
+import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,11 @@ public class ProductService {
         return productRepository.searchProductSummaries(target, page, pageSize);
     }
 
-    public List<ProductSummaryRepositoryDTO> getProductSummariesOrderBy(String method, int page, int pageSize) {
-        return productRepository.fetchProductSummariesOrderBy(method, page, pageSize);
+    public List<ProductSummaryRepositoryDTO> getProductSummariesOrderBy(String method, int page, int pageSize) throws SharedException {
+        try{
+            return productRepository.fetchProductSummariesOrderBy(method, page, pageSize);
+        }catch (Exception e){
+            throw e;
+        }
     }
 }

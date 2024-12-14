@@ -85,9 +85,43 @@ public class OrderController {
             HttpServletRequest request,
             @PathVariable Integer orderId,
             @RequestBody String status) {
+        try {
+            //用於顧客完成及商家、管理員回應退款(未完成)
+            String token = TokenUtils.extractTokenFromCookies(request);
+            orderService.updateOrderStatus(token, orderId, status);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order status updated successfully", null));
+        }catch (Exception e){
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/storeOrder/{storeOrderId}/status")
+    public ResponseEntity<ApiResponseDTO<String>> updateStoreOrderStatus(
+            HttpServletRequest request,
+            @PathVariable Integer storeOrderId,
+            @RequestBody String status) {
+        try {
+            //用於商家回應訂單(未完成)
+            String token = TokenUtils.extractTokenFromCookies(request);
+            orderService.updateStoreOrderStatus(token, storeOrderId, status);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Store order status updated successfully", null));
+        }catch (Exception e){
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/store")
+    public ResponseEntity<ApiResponseDTO<List<StoreOrderSummaryRepositoryDTO>>> getVendorStoreOrders(
+            HttpServletRequest request,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
         String token = TokenUtils.extractTokenFromCookies(request);
-        orderService.updateOrderStatus(token, orderId, status);
-        return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order status updated successfully", null));
+        try {
+            List<StoreOrderSummaryRepositoryDTO> orderSummaries = orderService.getVendorStoreOrders(token, page, size);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order summaries retrieved successfully", orderSummaries));
+        }catch (Exception e){
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
     }
 
 }

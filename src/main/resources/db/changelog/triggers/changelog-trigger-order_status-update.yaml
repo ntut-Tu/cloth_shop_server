@@ -12,7 +12,7 @@ databaseChangeLog:
             sql: |
               CREATE OR REPLACE FUNCTION update_order_status() RETURNS trigger AS $$
               BEGIN
-                IF NEW.store_order_status = 'shipped' THEN
+                IF NEW.store_order_status = 'Shipped' THEN
                   UPDATE "order"
                   SET status = 'Delivered'
                   WHERE order_id = NEW.fk_order_id

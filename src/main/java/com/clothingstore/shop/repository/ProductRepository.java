@@ -5,6 +5,7 @@ import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDT
 import com.clothingstore.shop.dto.repository.products.ProductVariantRepositoryDTO;
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
 import com.clothingstore.shop.enums.CategorizedProduct;
+import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.jooq.tables.Product;
 import com.clothingstore.shop.jooq.tables.ProductVariant;
 import org.jooq.DSLContext;
@@ -224,8 +225,9 @@ public class ProductRepository {
                 .fetchInto(ProductSummaryRepositoryDTO.class);
     }
 
-    public List<ProductSummaryRepositoryDTO> fetchProductSummariesOrderBy(String method, int page, int pageSize) {
+    public List<ProductSummaryRepositoryDTO> fetchProductSummariesOrderBy(String method, int page, int pageSize) throws SharedException {
         int offset = (page - 1) * pageSize;
+        try{
         if(method.equals("total_sales")){
             return dsl.select(
                             PRODUCT.PRODUCT_ID,
@@ -261,7 +263,22 @@ public class ProductRepository {
                     .offset(offset)
                     .fetchInto(ProductSummaryRepositoryDTO.class);
         }else if(method.equals("date")){
-
+            return dsl.select(
+                            PRODUCT.PRODUCT_ID,
+                            PRODUCT.NAME,
+                            PRODUCT.TOTAL_SALES,
+                            PRODUCT.RATE,
+                            PRODUCT.IMAGE_URL,
+                            PRODUCT.CATEGORY,
+                            VENDOR.STORE_DESCRIPTION
+                    )
+                    .from(PRODUCT)
+                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                    .where(PRODUCT.IS_LIST.isTrue())
+                    .orderBy(PRODUCT.PRODUCT_ID.desc())
+                    .limit(pageSize)
+                    .offset(offset)
+                    .fetchInto(ProductSummaryRepositoryDTO.class);
         }else {
             return dsl.select(
                             PRODUCT.PRODUCT_ID,
@@ -279,6 +296,9 @@ public class ProductRepository {
                     .limit(pageSize)
                     .offset(offset)
                     .fetchInto(ProductSummaryRepositoryDTO.class);
+        }
+        }catch (Exception e){
+            throw new SharedException("Invalid order method");
         }
     }
 }

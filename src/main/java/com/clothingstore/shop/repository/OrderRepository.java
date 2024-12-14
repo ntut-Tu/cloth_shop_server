@@ -6,12 +6,15 @@ import com.clothingstore.shop.dto.repository.orders.OrderSummeryDetailModel;
 import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryDTO;
 import com.clothingstore.shop.enums.RoleType;
 import com.clothingstore.shop.enums.ShipStatus;
+import com.clothingstore.shop.enums.StoreOrderStatus;
 import com.clothingstore.shop.exceptions.SharedException;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.clothingstore.shop.jooq.Tables.*;
 import static org.jooq.impl.DSL.and;
@@ -130,5 +133,76 @@ public class OrderRepository {
                 .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
                 .where(ORDER_ITEM.FK_STORE_ORDER_ID.eq(orderId))
                 .fetchInto(OrderDetailRepositoryDTO.class);
+    }
+
+    public boolean isStoreOrderBelongToVendor(Integer userId, Integer storeOrderId) {
+        return dsl.fetchExists(STORE_ORDER.join(VENDOR).on(STORE_ORDER.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                .where(VENDOR.FK_USER_ID.eq(userId).and(STORE_ORDER.STORE_ORDER_ID.eq(storeOrderId))));
+    }
+
+    public void updateStoreOrderStatus(Integer storeOrderId, String status) throws SharedException {
+        String oldStatus = dsl.select(STORE_ORDER.STORE_ORDER_STATUS)
+                .from(STORE_ORDER)
+                .where(STORE_ORDER.STORE_ORDER_ID.eq(storeOrderId))
+                .fetchOneInto(String.class);
+        if (oldStatus!=null && !oldStatus.equalsIgnoreCase(StoreOrderStatus.PENDING.toString())){
+            throw new SharedException("Store order status cannot be updated");
+        }
+        dsl.update(STORE_ORDER)
+                .set(STORE_ORDER.STORE_ORDER_STATUS, status)
+                .where(STORE_ORDER.STORE_ORDER_ID.eq(storeOrderId))
+                .execute();
+    }
+
+    public List<StoreOrderSummaryRepositoryDTO> findStoreOrderSummariesByVendorId(Integer userId, int size, int offset) throws SharedException {
+        try {
+            Integer vendorId = dsl.select(VENDOR.VENDOR_ID)
+                    .from(VENDOR)
+                    .where(VENDOR.FK_USER_ID.eq(userId))
+                    .fetchOneInto(Integer.class);
+            return dsl.select(
+                            STORE_ORDER.STORE_ORDER_ID.as("storeOrderId"),
+                            STORE_ORDER.STORE_NET_AMOUNT.as("totalNetAmount"),
+                            STORE_ORDER.STORE_DISCOUNT_AMOUNT.as("totalDiscount"),
+                            STORE_ORDER.STORE_SUBTOTAL_AMOUNT.as("totalAmount"),
+                            STORE_ORDER.STORE_ORDER_STATUS.as("storeOrderStatus"),
+                            ORDER.ORDER_DATE.as("orderDate"),
+                            ORDER.PAY_STATUS.as("orderPayStatus"),
+                            DSL.jsonArrayAgg(
+                                    DSL.jsonObject(
+                                            DSL.key("productId").value(PRODUCT.PRODUCT_ID),
+                                            DSL.key("productName").value(PRODUCT.NAME),
+                                            DSL.key("variants").value(
+                                                    DSL.jsonArrayAgg(
+                                                            DSL.jsonObject(
+                                                                    DSL.key("productVariantId").value(ORDER_ITEM.FK_PRODUCT_VARIANT_ID),
+                                                                    DSL.key("color").value(PRODUCT_VARIANT.COLOR),
+                                                                    DSL.key("size").value(PRODUCT_VARIANT.SIZE),
+                                                                    DSL.key("quantity").value(ORDER_ITEM.QUANTITY) // Replace `DSL.val(1)` with the actual quantity logic
+                                                            )
+                                                    )
+                                            )
+                                    )
+                            ).as("orders")
+                    )
+                    .from(STORE_ORDER)
+                    .join(ORDER).on(STORE_ORDER.FK_ORDER_ID.eq(ORDER.ORDER_ID))
+                    .join(PRODUCT).on(STORE_ORDER.FK_VENDOR_ID.eq(PRODUCT.FK_VENDOR_ID))
+                    .join(PRODUCT_VARIANT).on(PRODUCT.PRODUCT_ID.eq(PRODUCT_VARIANT.FK_PRODUCT_ID))
+                    .where(STORE_ORDER.FK_VENDOR_ID.eq(vendorId))
+                    .groupBy(
+                            STORE_ORDER.STORE_ORDER_ID,
+                            STORE_ORDER.STORE_NET_AMOUNT,
+                            STORE_ORDER.STORE_DISCOUNT_AMOUNT,
+                            STORE_ORDER.STORE_SUBTOTAL_AMOUNT,
+                            STORE_ORDER.STORE_ORDER_STATUS,
+                            ORDER.ORDER_DATE
+                    )
+                    .limit(size)
+                    .offset(offset)
+                    .fetchInto(StoreOrderSummaryRepositoryDTO.class);
+        }catch (Exception e){
+            throw e;
+        }
     }
 }

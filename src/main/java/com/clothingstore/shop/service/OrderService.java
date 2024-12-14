@@ -43,7 +43,8 @@ public class OrderService {
 //        return orderRepository.findOrderItemsByStoreOrderId(storeOrderId);
 //    }
 
-    public void updateOrderStatus(String token, Integer orderId, String status) {
+    public void updateOrderStatus(String token, Integer orderId, String status) throws SharedException {
+        // 顧客可以完成但管理員及商家只能退款
         Integer userId = jwtService.extractUserId(token);
         String role = jwtService.extractRole(token);
         if (role.equals("customer")) {
@@ -55,15 +56,17 @@ public class OrderService {
             }
             orderRepository.updateOrderStatus(orderId, status);
         } else if (role.equals("vendor")) {
-            if(!orderRepository.isOrderBelongToVendor(userId, orderId)) {
-                throw new IllegalArgumentException("Order does not belong to vendor");
-            }
-            if(!orderRepository.isEditOrderStatusValid(role,orderId)) {
-                throw new IllegalArgumentException("Invalid order status");
-            }
-            orderRepository.updateOrderStatus(orderId, status);
+//            if(!orderRepository.isOrderBelongToVendor(userId, orderId)) {
+//                throw new IllegalArgumentException("Order does not belong to vendor");
+//            }
+//            if(!orderRepository.isEditOrderStatusValid(role,orderId)) {
+//                throw new IllegalArgumentException("Invalid order status");
+//            }
+//            orderRepository.updateOrderStatus(orderId, status);
+            throw new SharedException("Vendor cannot update order status");
         }else if (role.equals("admin")) {
-            orderRepository.updateOrderStatus(orderId, status);
+//            orderRepository.updateOrderStatus(orderId, status);
+            throw new SharedException("Admin cannot update order status");
         }else {
             throw new IllegalArgumentException("Invalid role");
         }
@@ -75,5 +78,19 @@ public class OrderService {
             throw new IllegalArgumentException("Order does not belong to customer");
         }
         return orderRepository.findOrderDetailsByOrderId(orderId);
+    }
+
+    public void updateStoreOrderStatus(String token, Integer storeOrderId, String status) throws SharedException {
+        Integer userId = jwtService.extractUserId(token);
+        if(!orderRepository.isStoreOrderBelongToVendor(userId, storeOrderId)) {
+            throw new IllegalArgumentException("Order does not belong to vendor");
+        }
+        orderRepository.updateStoreOrderStatus(storeOrderId, status);
+    }
+
+    public List<StoreOrderSummaryRepositoryDTO> getVendorStoreOrders(String token, int page, int size) throws SharedException {
+        Integer userId = jwtService.extractUserId(token);
+        int offset = (page - 1) * size;
+        return orderRepository.findStoreOrderSummariesByVendorId(userId, size, offset);
     }
 }
