@@ -14,7 +14,7 @@ databaseChangeLog:
               BEGIN
                 IF NEW.store_order_status = 'Shipped' THEN
                   UPDATE "order"
-                  SET status = 'Delivered'
+                  SET ship_status = 'Delivered'
                   WHERE order_id = NEW.fk_order_id
                     AND NOT EXISTS (
                       SELECT 1
