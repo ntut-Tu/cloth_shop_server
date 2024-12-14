@@ -46,8 +46,11 @@ databaseChangeLog:
                 so.store_order_id,
                 so.store_net_amount AS total_amount,
                 so.store_order_status,
-                o.order_date
+                o.order_date,
+                v.vendor_id
               FROM
                 store_order so
               JOIN
-                "order" o ON so.fk_order_id = o.order_id;
+                "order" o ON so.fk_order_id = o.order_id
+              JOIN
+                vendor v ON so.fk_vendor_id = v.vendor_id;
