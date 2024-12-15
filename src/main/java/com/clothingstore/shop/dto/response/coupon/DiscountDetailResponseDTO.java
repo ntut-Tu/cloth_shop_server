@@ -1,7 +1,5 @@
-package com.clothingstore.shop.dto.response.Coupon;
+package com.clothingstore.shop.dto.response.coupon;
 
-
-import com.clothingstore.shop.dto.repository.coupon.BaseDiscountModel;
 
 public class DiscountDetailResponseDTO {
     private Integer couponId;

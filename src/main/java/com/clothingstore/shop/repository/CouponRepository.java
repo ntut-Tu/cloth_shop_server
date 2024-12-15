@@ -3,9 +3,8 @@ package com.clothingstore.shop.repository;
 import com.clothingstore.shop.dto.repository.coupon.BaseDiscountModel;
 import com.clothingstore.shop.dto.repository.coupon.SpecialDiscountModel;
 import com.clothingstore.shop.dto.repository.coupon.StandardDiscountModel;
-import com.clothingstore.shop.dto.response.Coupon.DiscountDetailResponseDTO;
-import com.clothingstore.shop.dto.response.Coupon.DiscountSummaryResponseDTO;
-import com.clothingstore.shop.enums.CouponType;
+import com.clothingstore.shop.dto.response.coupon.DiscountDetailResponseDTO;
+import com.clothingstore.shop.dto.response.coupon.DiscountSummaryResponseDTO;
 import com.clothingstore.shop.enums.RoleType;
 import com.clothingstore.shop.exceptions.SharedException;
 import org.jooq.DSLContext;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Locale;
 
 import static com.clothingstore.shop.jooq.Tables.*;
 @Repository

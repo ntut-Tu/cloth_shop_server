@@ -1,4 +1,4 @@
-package com.clothingstore.shop.dto.response.Coupon;
+package com.clothingstore.shop.dto.response.coupon;
 
 
 import com.clothingstore.shop.dto.repository.coupon.shared.SharedCoupon;

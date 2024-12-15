@@ -1,4 +1,4 @@
-package com.clothingstore.shop.dto.response.Coupon;
+package com.clothingstore.shop.dto.response.coupon;
 
 public class DiscountSummaryResponseDTO {
     private Integer discountId; // 唯一标识符

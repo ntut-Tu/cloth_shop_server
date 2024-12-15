@@ -1,9 +1,8 @@
 package com.clothingstore.shop.controller;
 
-import com.clothingstore.shop.dto.repository.coupon.BaseDiscountModel;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
-import com.clothingstore.shop.dto.response.Coupon.DiscountDetailResponseDTO;
-import com.clothingstore.shop.dto.response.Coupon.DiscountSummaryResponseDTO;
+import com.clothingstore.shop.dto.response.coupon.DiscountDetailResponseDTO;
+import com.clothingstore.shop.dto.response.coupon.DiscountSummaryResponseDTO;
 import com.clothingstore.shop.service.CouponService;
 import com.clothingstore.shop.service.JwtService;
 import com.clothingstore.shop.utils.TokenUtils;
