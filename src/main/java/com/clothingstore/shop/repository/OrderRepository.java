@@ -7,6 +7,7 @@ import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryD
 import com.clothingstore.shop.dto.response.vendorOrder.VendorOrderResponseDTO;
 import com.clothingstore.shop.dto.response.vendorOrder.vendorUserOrder.VendorProductVariantDTO;
 import com.clothingstore.shop.dto.response.vendorOrder.vendorUserOrder.VendorUserOrderDTO;
+import com.clothingstore.shop.enums.PayStatus;
 import com.clothingstore.shop.enums.RoleType;
 import com.clothingstore.shop.enums.ShipStatus;
 import com.clothingstore.shop.enums.StoreOrderStatus;
@@ -70,72 +71,69 @@ public class OrderRepository {
     }
 
     // 2. 查詢商家訂單簡介（延遲加載）
-    public List<StoreOrderSummaryRepositoryDTO> findStoreOrdersByOrderId(Integer storeOrderId) {
+    public List<StoreOrderSummaryRepositoryDTO> findStoreOrdersByOrderId(Integer orderId) {
         return dsl.select(
-                        STORE_ORDER.STORE_ORDER_ID,
-                        USERS.ACCOUNT,
-                        USERS.PROFILE_PIC_URL,
-                        COUPON.CODE)
+                        STORE_ORDER.STORE_ORDER_ID.as("storeOrderId"),
+                        USERS.ACCOUNT.as("storeName"),
+                        USERS.PROFILE_PIC_URL.as("imageUrl"),
+                        COUPON.CODE.as("vendorCouponCode"))
                 .from(STORE_ORDER)
                 .join(VENDOR).on(STORE_ORDER.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
                 .join(USERS).on(VENDOR.FK_USER_ID.eq(USERS.USER_ID))
                 .leftOuterJoin(COUPON).on(STORE_ORDER.SEASONAL_DISCOUNT_ID.eq(COUPON.COUPON_ID).or(STORE_ORDER.SPECIAL_DISCOUNT_ID.eq(COUPON.COUPON_ID)))
-                .where(STORE_ORDER.STORE_ORDER_ID.eq(storeOrderId))
+                .where(STORE_ORDER.FK_ORDER_ID.eq(orderId))
                 .fetchInto(StoreOrderSummaryRepositoryDTO.class);
     }
 
-    // 3. 查詢單個店家的商品詳情
-//    public List<OrderItemDetailRepositoryDTO> findOrderItemsByStoreOrderId(Integer storeOrderId) {
-//        return dsl.select(ORDER_ITEM.ORDER_ITEM_ID, ORDER_ITEM.UNIT_PRICE, ORDER_ITEM.QUANTITY, PRODUCT_VARIANT.COLOR, PRODUCT_VARIANT.SIZE, PRODUCT_VARIANT.PRICE)
-//                .from(ORDER_ITEM)
-//                .join(PRODUCT_VARIANT).on(ORDER_ITEM.FK_PRODUCT_VARIANT_ID.eq(PRODUCT_VARIANT.PRODUCT_VARIANT_ID))
-//                .where(ORDER_ITEM.FK_STORE_ORDER_ID.eq(storeOrderId))
-//                .fetchInto(OrderItemDetailRepositoryDTO.class);
-//    }
-
-    public boolean isOrderBelongToCustomer(Integer userId, Integer orderId) {
+    public boolean isOrderBelongToCustomer(Integer userId, Integer storeOrderId) {
         return dsl.fetchExists(ORDER.join(CUSTOMER).on(ORDER.FK_CUSTOMER_ID.eq(CUSTOMER.CUSTOMER_ID))
-                .where(CUSTOMER.FK_USER_ID.eq(userId).and(ORDER.ORDER_ID.eq(orderId))));
+                        .join(STORE_ORDER).on(STORE_ORDER.FK_ORDER_ID.eq(ORDER.ORDER_ID))
+                .where(CUSTOMER.FK_USER_ID.eq(userId).and(STORE_ORDER.STORE_ORDER_ID.eq(storeOrderId))));
     }
 
     public boolean isEditOrderStatusValid(String role, Integer orderId) {
-        ShipStatus shipStatus = dsl.select(ORDER.SHIP_STATUS)
+        String shipStatus = dsl.select(ORDER.SHIP_STATUS)
                 .from(ORDER)
                 .where(ORDER.ORDER_ID.eq(orderId))
-                .fetchOneInto(ShipStatus.class);
-        if(role == RoleType.CUSTOMER.getRole()){
-            if(shipStatus == ShipStatus.DELIVERED){
-                return true;
-            }
-            return false;
-        }else if(role == RoleType.VENDOR.getRole()){
-            if(shipStatus == ShipStatus.PENDING){
-                return true;
-            }
-            return false;
+                .fetchOneInto(String.class);
+        if(role.equals(RoleType.CUSTOMER.getRole()) && shipStatus.equalsIgnoreCase(ShipStatus.DELIVERED.toString())){
+            return true;
         }else{
             throw new IllegalArgumentException("Invalid role");
         }
     }
 
-    public boolean isOrderBelongToVendor(Integer userId, Integer orderId) {
-        return dsl.fetchExists(ORDER.join(STORE_ORDER).on(ORDER.ORDER_ID.eq(STORE_ORDER.FK_ORDER_ID))
-                .where(STORE_ORDER.FK_VENDOR_ID.eq(userId).and(ORDER.ORDER_ID.eq(orderId))));
-    }
-
     public void updateOrderStatus(Integer orderId, String status) {
+        String payStatus = dsl.select(ORDER.PAY_STATUS)
+                .from(ORDER)
+                .where(ORDER.ORDER_ID.eq(orderId))
+                .fetchOneInto(String.class);
+        if(payStatus.equalsIgnoreCase(PayStatus.PENDING.toString())){
+            dsl.update(ORDER)
+                    .set(ORDER.PAY_STATUS, PayStatus.PAID.toString())
+                    .where(ORDER.ORDER_ID.eq(orderId))
+                    .execute();
+        }
         dsl.update(ORDER)
                 .set(ORDER.SHIP_STATUS, status)
                 .where(ORDER.ORDER_ID.eq(orderId))
                 .execute();
     }
 
-    public List<OrderDetailRepositoryDTO> findOrderDetailsByOrderId(Integer orderId) {
-        return dsl.select(ORDER_ITEM.ORDER_ITEM_ID, ORDER_ITEM.QUANTITY, ORDER_ITEM.UNIT_PRICE,ORDER_ITEM.TOTAL_PRICE,PRODUCT.IMAGE_URL,PRODUCT.NAME, PRODUCT_VARIANT.SIZE, PRODUCT_VARIANT.COLOR)
+    public List<OrderDetailRepositoryDTO> findOrderDetailsByOrderId(Integer storeOrderId) {
+        return dsl.select(
+                        ORDER_ITEM.ORDER_ITEM_ID.as("order_item_id"),
+                        ORDER_ITEM.QUANTITY.as("quantity"),
+                        ORDER_ITEM.UNIT_PRICE.as("unit_price"),
+                        ORDER_ITEM.TOTAL_PRICE.as("total_price"),
+                        PRODUCT.IMAGE_URL.as("order_image_url"),
+                        PRODUCT.NAME.as("product_name"),
+                        PRODUCT_VARIANT.SIZE.as("size"),
+                        PRODUCT_VARIANT.COLOR.as("color"))
                 .from(ORDER_ITEM)
                 .join(PRODUCT_VARIANT).on(ORDER_ITEM.FK_PRODUCT_VARIANT_ID.eq(PRODUCT_VARIANT.PRODUCT_VARIANT_ID))
                 .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
-                .where(ORDER_ITEM.FK_STORE_ORDER_ID.eq(orderId))
+                .where(ORDER_ITEM.FK_STORE_ORDER_ID.eq(storeOrderId))
                 .fetchInto(OrderDetailRepositoryDTO.class);
     }
 

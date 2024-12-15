@@ -21,14 +21,10 @@ public class ReviewService {
         this.jwtService = jwtService;
         this.reviewRepository = reviewRepository;
     }
-    public AddReviewResponseDTO addReview(AddReviewRequestDTO addReviewRequestDTO, String token) throws Exception{
-        try{
+    public AddReviewResponseDTO addReview(AddReviewRequestDTO addReviewRequestDTO, String token) throws Exception {
+        try {
             Integer userId = jwtService.extractUserId(token);
-            Map<Integer, OffsetDateTime> retMap=reviewRepository.addReview(userId,addReviewRequestDTO.getProductId(),addReviewRequestDTO.getComment(), BigDecimal.valueOf(addReviewRequestDTO.getRating()) );
-            AddReviewResponseDTO ret = new AddReviewResponseDTO();
-            Object[] retArray = retMap.keySet().toArray();
-            ret.setReviewId((Integer) retArray[0]);
-            ret.setReviewDate(retArray[1].toString());
+            AddReviewResponseDTO ret = reviewRepository.addReview(userId, addReviewRequestDTO.getProductId(), addReviewRequestDTO.getComment(), BigDecimal.valueOf(addReviewRequestDTO.getRating()));
             return ret;
         }catch (Exception e){
             throw e;

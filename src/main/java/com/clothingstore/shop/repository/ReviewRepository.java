@@ -1,5 +1,6 @@
 package com.clothingstore.shop.repository;
 
+import com.clothingstore.shop.dto.response.review.AddReviewResponseDTO;
 import org.hibernate.type.descriptor.jdbc.TimestampWithTimeZoneJdbcType;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -17,7 +18,7 @@ public class ReviewRepository {
     public ReviewRepository(DSLContext dsl) {
         this.dsl = dsl;
     }
-    public Map<Integer, OffsetDateTime> addReview(Integer userId, Integer productId, String comment, BigDecimal rating) throws Exception {
+    public AddReviewResponseDTO addReview(Integer userId, Integer productId, String comment, BigDecimal rating) throws Exception {
         try {
             Record product =dsl.select(PRODUCT.PRODUCT_ID)
                     .from(PRODUCT)
@@ -29,13 +30,17 @@ public class ReviewRepository {
                     .fetchOne()
                     .into(Integer.class);
             if(product != null){
+                boolean isReviewExist = dsl.fetchExists(REVIEW, REVIEW.FK_CUSTOMER_ID.eq(customer_id).and(REVIEW.FK_PRODUCT_ID.eq(productId)));
+                if(isReviewExist){
+                    throw new IllegalArgumentException("Review already exists.");
+                }
                 return dsl.insertInto(REVIEW)
                         .set(REVIEW.FK_CUSTOMER_ID, customer_id)
                         .set(REVIEW.FK_PRODUCT_ID, productId)
                         .set(REVIEW.COMMENT, comment)
                         .set(REVIEW.RATE, rating)
                         .returning(REVIEW.REVIEW_ID, REVIEW.COMMENT)
-                        .fetchMap(REVIEW.REVIEW_ID, REVIEW.REVIEW_DATE);
+                        .fetchOneInto(AddReviewResponseDTO.class);
             }else {
                 throw new IllegalArgumentException("Product not found.");
             }

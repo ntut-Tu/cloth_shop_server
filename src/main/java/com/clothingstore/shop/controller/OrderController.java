@@ -49,16 +49,16 @@ public class OrderController {
     /**
      * 根據訂單 ID 從 cookie 中取得商家訂單列表
      * @param request - HttpServletRequest 用於從 cookie 中取得 token
-     * @param storeOrderId - 訂單的唯一標識符
+     * @param orderId - 訂單的唯一標識符
      * @return 包含商家訂單摘要的 ApiResponseDTO
      */
-    @GetMapping("/{storeOrderId}")
+    @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponseDTO<List<StoreOrderSummaryRepositoryDTO>>> getStoreOrdersByOrderId(
             HttpServletRequest request,
-            @PathVariable Integer storeOrderId) {
+            @PathVariable Integer orderId) {
         try{
         String token = TokenUtils.extractTokenFromCookies(request);
-        List<StoreOrderSummaryRepositoryDTO> storeOrders = orderService.getStoreOrdersByOrderId(token, storeOrderId);
+        List<StoreOrderSummaryRepositoryDTO> storeOrders = orderService.getStoreOrdersByOrderId(token, orderId);
         return ResponseEntity.ok(new ApiResponseDTO<>(true, "Store orders retrieved successfully", storeOrders));
         }catch (Exception e){
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
@@ -69,15 +69,15 @@ public class OrderController {
     /**
      * 根據商家訂單 ID 從 cookie 中取得商品詳情
      * @param request - HttpServletRequest 用於從 cookie 中取得 token
-     * @param orderId - 商家訂單的唯一標識符
+     * @param storeOrderId - 商家訂單的唯一標識符
      * @return 包含商品詳情的 ApiResponseDTO
      */
-    @GetMapping("/{orderId}/items")
+    @GetMapping("/{storeOrderId}/items")
     public ResponseEntity<ApiResponseDTO<List<OrderDetailRepositoryDTO>>> getOrderDetailsByStoreOrderId(
             HttpServletRequest request,
-            @PathVariable Integer orderId) {
+            @PathVariable Integer storeOrderId) {
         String token = TokenUtils.extractTokenFromCookies(request);
-        List<OrderDetailRepositoryDTO> orderDetails = orderService.getOrderDetailsByOrderId(token, orderId);
+        List<OrderDetailRepositoryDTO> orderDetails = orderService.getOrderDetailsByOrderId(token, storeOrderId);
         return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order details retrieved successfully", orderDetails));
     }
 
