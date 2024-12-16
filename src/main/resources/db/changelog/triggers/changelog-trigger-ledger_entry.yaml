@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: trigger-ledger_entry
+      id: trigger-ledger_entry-fix
       author: quinn
       preConditions:
         - onFail: CONTINUE
@@ -17,7 +17,7 @@ databaseChangeLog:
               BEGIN
                 -- 取得目前平台的 total_balance
                 SELECT COALESCE(MAX(total_balance), 0) INTO current_balance FROM ledger_entry WHERE ledger_type = 'platform';
-                
+              
                 -- 第一種平台抽成
                 INSERT INTO ledger_entry (
                   ledger_type, transaction_type, amount, total_balance, transaction_date, notes, coupon_id
@@ -27,15 +27,17 @@ databaseChangeLog:
                   (NEW.total_amount - 60) * 0.05,
                   current_balance + ((NEW.total_amount - 60) * 0.05),
                   NOW(), '平台抽成', NULL
-                )
-                RETURNING ledger_entry_id INTO current_balance;
-                
+                );
+              
+                SELECT MAX(total_balance) INTO current_balance FROM ledger_entry WHERE ledger_type = 'platform';
+              
                 INSERT INTO platform_ledger_entry (
                   ledger_entry_id, order_id
                 ) VALUES (
-                  current_balance, NEW.order_id
+                  (SELECT MAX(ledger_entry_id) FROM ledger_entry WHERE ledger_type = 'platform'),
+                  NEW.order_id
                 );
-                
+              
                 -- 第二種平台優惠費用
                 INSERT INTO ledger_entry (
                   ledger_type, transaction_type, amount, total_balance, transaction_date, notes, coupon_id
@@ -45,15 +47,17 @@ databaseChangeLog:
                   NEW.shipping_discount_amount,
                   current_balance - NEW.shipping_discount_amount,
                   NOW(), '平台優惠費用', NEW.fk_shipping_discount_id
-                )
-                RETURNING ledger_entry_id INTO current_balance;
-                
+                );
+
+                SELECT MAX(total_balance) INTO current_balance FROM ledger_entry WHERE ledger_type = 'platform';
+              
                 INSERT INTO platform_ledger_entry (
                   ledger_entry_id, order_id
                 ) VALUES (
-                  current_balance, NEW.order_id
+                  (SELECT MAX(ledger_entry_id) FROM ledger_entry WHERE ledger_type = 'platform'),
+                  NEW.order_id
                 );
-                
+              
                 RETURN NEW;
               END;
               $$ LANGUAGE plpgsql;
@@ -79,7 +83,7 @@ databaseChangeLog:
                   SELECT COALESCE(MAX(total_balance), 0) INTO current_balance FROM vendor_ledger_entry vle
                   JOIN ledger_entry le ON vle.ledger_entry_id = le.ledger_entry_id
                   WHERE vle.vendor_id = store_rec.fk_vendor_id;
-                  
+              
                   -- 第三種商家售貨收入
                   INSERT INTO ledger_entry (
                     ledger_type, transaction_type, amount, total_balance, transaction_date, notes, coupon_id
@@ -89,15 +93,21 @@ databaseChangeLog:
                     store_rec.store_net_amount * 0.95,
                     current_balance + (store_rec.store_net_amount * 0.95),
                     NOW(), '售貨收入', NULL
-                  )
-                  RETURNING ledger_entry_id INTO current_balance;
-                  
+                  );
+              
+                  SELECT MAX(total_balance) INTO current_balance FROM ledger_entry WHERE ledger_type = 'vendor' AND ledger_entry_id IN (
+                    SELECT ledger_entry_id FROM vendor_ledger_entry WHERE vendor_id = store_rec.fk_vendor_id
+                  );
+
                   INSERT INTO vendor_ledger_entry (
                     ledger_entry_id, vendor_id, store_order_id
                   ) VALUES (
-                    current_balance, store_rec.fk_vendor_id, store_rec.store_order_id
+                    (SELECT MAX(ledger_entry_id) FROM ledger_entry WHERE ledger_type = 'vendor' AND ledger_entry_id IN (
+                      SELECT ledger_entry_id FROM vendor_ledger_entry WHERE vendor_id = store_rec.fk_vendor_id
+                    )),
+                    store_rec.fk_vendor_id, store_rec.store_order_id
                   );
-                  
+              
                   -- 第四種商家優惠費用
                   INSERT INTO ledger_entry (
                     ledger_type, transaction_type, amount, total_balance, transaction_date, notes, coupon_id
@@ -108,16 +118,22 @@ databaseChangeLog:
                     current_balance - store_rec.store_discount_amount,
                     NOW(), '優惠費用',
                     COALESCE(store_rec.seasonal_discount_id, store_rec.special_discount_id)
-                  )
-                  RETURNING ledger_entry_id INTO current_balance;
-                  
+                  );
+
+                  SELECT MAX(total_balance) INTO current_balance FROM ledger_entry WHERE ledger_type = 'vendor' AND ledger_entry_id IN (
+                    SELECT ledger_entry_id FROM vendor_ledger_entry WHERE vendor_id = store_rec.fk_vendor_id
+                  );
+              
                   INSERT INTO vendor_ledger_entry (
                     ledger_entry_id, vendor_id, store_order_id
                   ) VALUES (
-                    current_balance, store_rec.fk_vendor_id, store_rec.store_order_id
+                    (SELECT MAX(ledger_entry_id) FROM ledger_entry WHERE ledger_type = 'vendor' AND ledger_entry_id IN (
+                      SELECT ledger_entry_id FROM vendor_ledger_entry WHERE vendor_id = store_rec.fk_vendor_id
+                    )),
+                    store_rec.fk_vendor_id, store_rec.store_order_id
                   );
                 END LOOP;
-                
+              
                 RETURN NEW;
               END;
               $$ LANGUAGE plpgsql;
@@ -127,4 +143,3 @@ databaseChangeLog:
               FOR EACH ROW
               WHEN (NEW.ship_status = 'Completed')
               EXECUTE FUNCTION create_vendor_ledger();
-              
