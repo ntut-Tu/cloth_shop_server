@@ -51,8 +51,8 @@ databaseChangeLog:
                 IF changed_columns != '' THEN
                 -- 去掉最後的逗號
                   changed_columns := rtrim(changed_columns, ',');
-                  INSERT INTO user_log (fk_user_id, action, action_time, attribute)
-                  VALUES (NEW.user_id, 'Update user', NOW(), changed_columns);
+                  INSERT INTO user_log (fk_user_id, action, date)
+                  VALUES (NEW.user_id, 'Update user columns:' || changed_columns, NOW());
                 END IF;
                 
                 RETURN NEW;
