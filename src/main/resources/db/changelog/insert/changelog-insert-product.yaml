@@ -1,0 +1,84 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-product
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - onError: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              -- 插入 10 個測試商家
+              DO $$
+              BEGIN
+                  FOR i IN 1..10 LOOP
+                      INSERT INTO users (account, password, email, phone_number, user_type, profile_pic_url)
+                      VALUES (
+                          'vendor' || i,
+                          'password' || i,
+                          'vendor' || i || '@test.com',
+                          '123456789' || i,
+                          'vendor',
+                          'http://example.com/profile' || i || '.png'
+                      );
+
+                      INSERT INTO vendor (fk_user_id, store_address, store_description, store_logo_url, payment_account)
+                      VALUES (
+                          (SELECT user_id FROM users WHERE account = 'vendor' || i),
+                          'Address ' || i,
+                          'Store Description ' || i,
+                          'http://example.com/logo' || i || '.png',
+                          'payment_account_' || i
+                      );
+                  END LOOP;
+              END $$;
+
+              -- 插入 100 個測試商品
+              DO $$
+              BEGIN
+                  FOR i IN 1..100 LOOP
+                      INSERT INTO product (name, description, total_sales, rate, image_url, category, fk_vendor_id)
+                      VALUES (
+                          'Product ' || i,
+                          'This is a description for product ' || i,
+                          FLOOR(RANDOM() * 1000),
+                          0.00, -- 預設評分為 0.00
+                          'http://example.com/product' || i || '.png',
+                          CASE
+                              WHEN i % 3 = 0 THEN 'Clothing'
+                              WHEN i % 3 = 1 THEN 'Accessory'
+                              ELSE 'Bag'
+                          END,
+                          (SELECT vendor_id FROM vendor WHERE vendor_id = (i % 10) + 1)
+                      );
+                  END LOOP;
+              END $$;
+
+              -- 插入每個商品的變體 (每個商品有 3 個變體)
+              DO $$
+              BEGIN
+                  FOR i IN 1..100 LOOP
+                      FOR j IN 1..3 LOOP
+                          INSERT INTO product_variant (color, stock, size, price, fk_product_id, reserved_stock)
+                          VALUES (
+                              CASE
+                                  WHEN j = 1 THEN 'Red'
+                                  WHEN j = 2 THEN 'Blue'
+                                  ELSE 'Green'
+                              END,
+                              FLOOR(RANDOM() * 100),
+                              CASE
+                                  WHEN j = 1 THEN 'S'
+                                  WHEN j = 2 THEN 'M'
+                                  ELSE 'L'
+                              END,
+                              FLOOR(RANDOM() * 500 + 100),
+                              i,
+                              0
+                          );
+                      END LOOP;
+                  END LOOP;
+              END $$;
