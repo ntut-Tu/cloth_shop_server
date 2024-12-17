@@ -22,7 +22,7 @@ databaseChangeLog:
                           'vendor' || i || '@test.com',
                           '123456789' || i,
                           'vendor',
-                          'http://example.com/profile' || i || '.png'
+                          null
                       );
 
                       INSERT INTO vendor (fk_user_id, store_address, store_description, store_logo_url, payment_account)
@@ -30,7 +30,7 @@ databaseChangeLog:
                           (SELECT user_id FROM users WHERE account = 'vendor' || i),
                           'Address ' || i,
                           'Store Description ' || i,
-                          'http://example.com/logo' || i || '.png',
+                          null,
                           'payment_account_' || i
                       );
                   END LOOP;
@@ -46,10 +46,10 @@ databaseChangeLog:
                           'This is a description for product ' || i,
                           FLOOR(RANDOM() * 1000),
                           0.00, -- 預設評分為 0.00
-                          'http://example.com/product' || i || '.png',
+                          null,
                           CASE
-                              WHEN i % 3 = 0 THEN 'Clothing'
-                              WHEN i % 3 = 1 THEN 'Accessory'
+                              WHEN i % 3 = 0 THEN 'Cloth'
+                              WHEN i % 3 = 1 THEN 'Accessories'
                               ELSE 'Bag'
                           END,
                           (SELECT vendor_id FROM vendor WHERE vendor_id = (i % 10) + 1)
@@ -77,7 +77,7 @@ databaseChangeLog:
                               END,
                               FLOOR(RANDOM() * 500 + 100),
                               i,
-                              0
+                              FLOOR(RANDOM() * 100 + 20)
                           );
                       END LOOP;
                   END LOOP;
