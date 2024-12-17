@@ -5,15 +5,14 @@ import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDT
 import com.clothingstore.shop.dto.repository.products.ProductVariantRepositoryDTO;
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
 import com.clothingstore.shop.dto.request.product.FetchProductsParams;
+import com.clothingstore.shop.dto.response.product.PaginatedResponse;
 import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.enums.CategorizedProduct;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.jooq.tables.Product;
 import com.clothingstore.shop.jooq.tables.ProductVariant;
-import org.jooq.DSLContext;
+import org.jooq.*;
 import org.jooq.Record;
-import org.jooq.Record10;
-import org.jooq.SelectQuery;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
@@ -305,75 +304,105 @@ public class ProductRepository {
         }
     }
 
-    public List<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams) {
-        // 构建动态查询
-        SelectQuery<Record10<Integer, String, Integer, BigDecimal, String, String, String, String, Integer, Integer>> query = dsl.select(
-                        PRODUCT.PRODUCT_ID,
-                        PRODUCT.NAME,
-                        PRODUCT.TOTAL_SALES,
-                        PRODUCT.RATE,
-                        PRODUCT.IMAGE_URL,
-                        PRODUCT.CATEGORY,
-                        USERS.ACCOUNT.as("storeName"),
-                        USERS.PROFILE_PIC_URL.as("storeImageUrl"),
-                        DSL.min(PRODUCT_VARIANT.PRICE).as("minPrice"),
-                        DSL.max(PRODUCT_VARIANT.PRICE).as("maxPrice")
-                )
-                .from(PRODUCT)
-                .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
-                .join(USERS).on(VENDOR.FK_USER_ID.eq(USERS.USER_ID))
-                .leftJoin(PRODUCT_VARIANT).on(PRODUCT.PRODUCT_ID.eq(PRODUCT_VARIANT.FK_PRODUCT_ID))
-                .where(PRODUCT.IS_LIST.isTrue())
-                .groupBy(
-                        PRODUCT.PRODUCT_ID,
-                        PRODUCT.NAME,
-                        PRODUCT.TOTAL_SALES,
-                        PRODUCT.RATE,
-                        PRODUCT.IMAGE_URL,
-                        PRODUCT.CATEGORY,
-                        USERS.ACCOUNT,
-                        USERS.PROFILE_PIC_URL
-                )
-                .getQuery();
+    public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams) {
+        try{
+            // 构建基础条件
+            Condition baseCondition = PRODUCT.IS_LIST.isTrue();
 
-        // 添加分类条件
-        if (fetchParams.getCategory() != null && !fetchParams.getCategory().isEmpty()) {
-            query.addConditions(PRODUCT.CATEGORY.equalIgnoreCase(fetchParams.getCategory()));
-        }
-
-        // 添加搜索条件
-        if (fetchParams.getSearch() != null && !fetchParams.getSearch().isEmpty()) {
-            query.addConditions(PRODUCT.NAME.likeIgnoreCase("%" + fetchParams.getSearch() + "%"));
-        }
-
-        // 添加排序条件
-        if (fetchParams.getSort() != null) {
-            switch (fetchParams.getSort()) {
-                case "sold":
-                    query.addOrderBy(PRODUCT.TOTAL_SALES.desc());
-                    break;
-                case "price_asc":
-                    query.addOrderBy(DSL.min(PRODUCT_VARIANT.PRICE).asc());
-                    break;
-                case "price_desc":
-                    query.addOrderBy(DSL.max(PRODUCT_VARIANT.PRICE).desc());
-                    break;
-                case "rate":
-                    query.addOrderBy(PRODUCT.RATE.desc());
-                    break;
-                default:
-                    query.addOrderBy(PRODUCT.PRODUCT_ID.asc());
+            // 添加分类条件
+            if (fetchParams.getCategory() != null && !fetchParams.getCategory().isEmpty()) {
+                if (fetchParams.getCategory().equalsIgnoreCase(CategorizedProduct.ALL.toString())) {
+                    // 不添加任何分类条件
+                } else if (isStringInEnum(fetchParams.getCategory(), CategorizedProduct.class)) {
+                    baseCondition = baseCondition.and(PRODUCT.CATEGORY.equalIgnoreCase(fetchParams.getCategory()));
+                } else {
+                    baseCondition = baseCondition.and(PRODUCT.CATEGORY.notIn(
+                            Arrays.stream(CategorizedProduct.values())
+                                    .map(Enum::name)
+                                    .collect(Collectors.toList())
+                    ));
+                }
             }
-        } else {
-            query.addOrderBy(PRODUCT.PRODUCT_ID.asc());
+
+            // 添加搜索条件
+            if (fetchParams.getSearch() != null && !fetchParams.getSearch().isEmpty()) {
+                baseCondition = baseCondition.and(PRODUCT.NAME.likeIgnoreCase("%" + fetchParams.getSearch() + "%"));
+            }
+
+            // 计算总记录数
+            int totalRecords = dsl.select(DSL.countDistinct(PRODUCT.PRODUCT_ID))
+                    .from(PRODUCT)
+                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                    .join(USERS).on(VENDOR.FK_USER_ID.eq(USERS.USER_ID))
+                    .leftJoin(PRODUCT_VARIANT).on(PRODUCT.PRODUCT_ID.eq(PRODUCT_VARIANT.FK_PRODUCT_ID))
+                    .where(baseCondition)
+                    .fetchOne(0, int.class);
+
+            // 构建分页数据查询
+            SelectQuery<Record10<Integer, String, Integer, BigDecimal, String, String, String, String, Integer, Integer>> query = dsl.select(
+                            PRODUCT.PRODUCT_ID,
+                            PRODUCT.NAME,
+                            PRODUCT.TOTAL_SALES,
+                            PRODUCT.RATE,
+                            PRODUCT.IMAGE_URL,
+                            PRODUCT.CATEGORY,
+                            USERS.ACCOUNT.as("storeName"),
+                            USERS.PROFILE_PIC_URL.as("storeImageUrl"),
+                            DSL.min(PRODUCT_VARIANT.PRICE).as("minPrice"),
+                            DSL.max(PRODUCT_VARIANT.PRICE).as("maxPrice")
+                    )
+                    .from(PRODUCT)
+                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                    .join(USERS).on(VENDOR.FK_USER_ID.eq(USERS.USER_ID))
+                    .leftJoin(PRODUCT_VARIANT).on(PRODUCT.PRODUCT_ID.eq(PRODUCT_VARIANT.FK_PRODUCT_ID))
+                    .where(baseCondition)
+                    .groupBy(
+                            PRODUCT.PRODUCT_ID,
+                            PRODUCT.NAME,
+                            PRODUCT.TOTAL_SALES,
+                            PRODUCT.RATE,
+                            PRODUCT.IMAGE_URL,
+                            PRODUCT.CATEGORY,
+                            USERS.ACCOUNT,
+                            USERS.PROFILE_PIC_URL
+                    )
+                    .getQuery();
+
+            // 添加排序条件
+            if (fetchParams.getSort() != null) {
+                switch (fetchParams.getSort()) {
+                    case "sold":
+                        query.addOrderBy(PRODUCT.TOTAL_SALES.desc());
+                        break;
+                    case "price_asc":
+                        query.addOrderBy(DSL.min(PRODUCT_VARIANT.PRICE).asc());
+                        break;
+                    case "price_desc":
+                        query.addOrderBy(DSL.max(PRODUCT_VARIANT.PRICE).desc());
+                        break;
+                    case "rate":
+                        query.addOrderBy(PRODUCT.RATE.desc());
+                        break;
+                    default:
+                        query.addOrderBy(PRODUCT.PRODUCT_ID.asc());
+                }
+            } else {
+                query.addOrderBy(PRODUCT.PRODUCT_ID.asc());
+            }
+
+            // 设置分页
+            int offset = (fetchParams.getPage() - 1) * fetchParams.getPageSize();
+            query.addLimit(fetchParams.getPageSize());
+            query.addOffset(offset);
+
+            // 执行分页查询
+            List<ProductSummaryV2ResponseDTO> products = query.fetchInto(ProductSummaryV2ResponseDTO.class);
+
+            // 返回分页响应
+            return new PaginatedResponse<>(products, totalRecords);
+        } catch (Exception e) {
+            throw e;
         }
-
-        // 设置分页
-        int offset = (fetchParams.getPage() - 1) * fetchParams.getPageSize();
-        query.addLimit(fetchParams.getPageSize());
-        query.addOffset(offset);
-
-        // 执行查询
-        return query.fetchInto(ProductSummaryV2ResponseDTO.class);
     }
+
 }

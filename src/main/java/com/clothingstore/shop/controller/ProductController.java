@@ -5,6 +5,7 @@ import com.clothingstore.shop.dto.request.product.FetchProductsParams;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.repository.products.ProductDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDTO;
+import com.clothingstore.shop.dto.response.product.PaginatedResponse;
 import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.service.ProductService;
 import com.clothingstore.shop.utils.TokenUtils;
@@ -119,7 +120,7 @@ public class ProductController {
      * @return 包含商品摘要的响应
      */
     @GetMapping("/v2")
-    public ResponseEntity<ApiResponseDTO<List<ProductSummaryV2ResponseDTO>>> fetchProductsV2(
+    public ResponseEntity<ApiResponseDTO<PaginatedResponse<ProductSummaryV2ResponseDTO>>> fetchProductsV2(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "30") int pageSize,
             @RequestParam(required = false) String category,
@@ -128,7 +129,7 @@ public class ProductController {
     ) {
         try {
             FetchProductsParams fetchParams = new FetchProductsParams(page, pageSize, category, sort, search);
-            List<ProductSummaryV2ResponseDTO> products = productService.fetchProductsV2(fetchParams);
+            PaginatedResponse<ProductSummaryV2ResponseDTO> products = productService.fetchProductsV2(fetchParams);
             return ResponseEntity.ok(new ApiResponseDTO<>(true,"Product v2 fetch successfully",products));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
