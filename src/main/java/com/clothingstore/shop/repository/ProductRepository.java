@@ -4,13 +4,16 @@ import com.clothingstore.shop.dto.repository.products.ProductDetailRepositoryDTO
 import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.repository.products.ProductVariantRepositoryDTO;
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
+import com.clothingstore.shop.dto.request.product.FetchProductsParams;
+import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.enums.CategorizedProduct;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.jooq.tables.Product;
 import com.clothingstore.shop.jooq.tables.ProductVariant;
 import org.jooq.DSLContext;
-import org.jooq.Result;
 import org.jooq.Record;
+import org.jooq.Record10;
+import org.jooq.SelectQuery;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
@@ -300,5 +303,74 @@ public class ProductRepository {
         }catch (Exception e){
             throw new SharedException("Invalid order method");
         }
+    }
+
+    public List<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams) {
+        // 构建动态查询
+        SelectQuery<Record10<Integer, String, Integer, BigDecimal, String, String, String, String, Integer, Integer>> query = dsl.select(
+                        PRODUCT.PRODUCT_ID,
+                        PRODUCT.NAME,
+                        PRODUCT.TOTAL_SALES,
+                        PRODUCT.RATE,
+                        PRODUCT.IMAGE_URL,
+                        PRODUCT.CATEGORY,
+                        USERS.ACCOUNT.as("storeName"),
+                        USERS.PROFILE_PIC_URL.as("storeImageUrl"),
+                        DSL.min(PRODUCT_VARIANT.PRICE).as("minPrice"),
+                        DSL.max(PRODUCT_VARIANT.PRICE).as("maxPrice")
+                )
+                .from(PRODUCT)
+                .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                .join(USERS).on(VENDOR.FK_USER_ID.eq(USERS.USER_ID))
+                .leftJoin(PRODUCT_VARIANT).on(PRODUCT.PRODUCT_ID.eq(PRODUCT_VARIANT.FK_PRODUCT_ID))
+                .where(PRODUCT.IS_LIST.isTrue())
+                .groupBy(
+                        PRODUCT.PRODUCT_ID,
+                        PRODUCT.NAME,
+                        PRODUCT.TOTAL_SALES,
+                        PRODUCT.RATE,
+                        PRODUCT.IMAGE_URL,
+                        PRODUCT.CATEGORY,
+                        USERS.ACCOUNT,
+                        USERS.PROFILE_PIC_URL
+                )
+                .getQuery();
+
+        // 添加分类条件
+        if (fetchParams.getCategory() != null && !fetchParams.getCategory().isEmpty()) {
+            query.addConditions(PRODUCT.CATEGORY.equalIgnoreCase(fetchParams.getCategory()));
+        }
+
+        // 添加搜索条件
+        if (fetchParams.getSearch() != null && !fetchParams.getSearch().isEmpty()) {
+            query.addConditions(PRODUCT.NAME.likeIgnoreCase("%" + fetchParams.getSearch() + "%"));
+        }
+
+        // 添加排序条件
+        if (fetchParams.getSort() != null) {
+            switch (fetchParams.getSort()) {
+                case "total_sales":
+                    query.addOrderBy(PRODUCT.TOTAL_SALES.desc());
+                    break;
+                case "price_asc":
+                    query.addOrderBy(DSL.min(PRODUCT_VARIANT.PRICE).asc());
+                    break;
+                case "price_desc":
+                    query.addOrderBy(DSL.max(PRODUCT_VARIANT.PRICE).desc());
+                    break;
+                default:
+                    query.addOrderBy(PRODUCT.PRODUCT_ID.asc());
+            }
+        } else {
+            query.addOrderBy(PRODUCT.PRODUCT_ID.asc());
+        }
+
+        // 设置分页
+        int offset = (fetchParams.getPage() - 1) * fetchParams.getPageSize();
+        query.addLimit(fetchParams.getPageSize());
+        query.addOffset(offset);
+
+        // 执行查询
+        return query.fetchInto(ProductSummaryV2ResponseDTO.class);
     }
 }

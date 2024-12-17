@@ -1,12 +1,13 @@
 package com.clothingstore.shop.controller;
 
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
+import com.clothingstore.shop.dto.request.product.FetchProductsParams;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.repository.products.ProductDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDTO;
+import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.service.ProductService;
 import com.clothingstore.shop.utils.TokenUtils;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -106,4 +107,32 @@ public class ProductController {
             return new ApiResponseDTO<>(false, e.getMessage(), null);
         }
     }
+
+    /**
+     * 获取商品列表，支持分类、排序和搜索
+     *
+     * @param page     页码（默认为1）
+     * @param pageSize 每页条数（默认为30）
+     * @param category 商品分类
+     * @param sort     排序条件（如price_asc, price_desc）
+     * @param search   搜索关键字
+     * @return 包含商品摘要的响应
+     */
+    @GetMapping("/v2")
+    public ResponseEntity<ApiResponseDTO<List<ProductSummaryV2ResponseDTO>>> fetchProductsV2(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "30") int pageSize,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String search
+    ) {
+        try {
+            FetchProductsParams fetchParams = new FetchProductsParams(page, pageSize, category, sort, search);
+            List<ProductSummaryV2ResponseDTO> products = productService.fetchProductsV2(fetchParams);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true,"Product v2 fetch successfully",products));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
 }

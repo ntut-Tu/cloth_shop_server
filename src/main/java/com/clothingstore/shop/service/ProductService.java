@@ -3,6 +3,8 @@ package com.clothingstore.shop.service;
 import com.clothingstore.shop.dto.repository.products.ProductDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
+import com.clothingstore.shop.dto.request.product.FetchProductsParams;
+import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,5 +62,9 @@ public class ProductService {
         }catch (Exception e){
             throw e;
         }
+    }
+
+    public List<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams) {
+        return productRepository.fetchProductsV2(fetchParams);
     }
 }
