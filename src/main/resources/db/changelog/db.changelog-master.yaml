@@ -84,4 +84,7 @@ databaseChangeLog:
   - include:
       file: triggers/changelog-trigger-ledger_entry.yaml
       relativeToChangelogFile: true
-
+#------------------INSERT------------------
+  - include:
+      file: insert/changelog-insert-product.yaml
+      relativeToChangelogFile: true
