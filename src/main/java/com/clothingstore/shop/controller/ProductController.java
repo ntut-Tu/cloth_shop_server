@@ -81,13 +81,13 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/search/{target}")
+    @GetMapping("/search")
     public ApiResponseDTO<List<ProductSummaryRepositoryDTO>> searchProductSummaries(
-            @PathVariable String target,
+            @RequestParam String searchKeyword,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "30") int pageSize) {
         try{
-            List<ProductSummaryRepositoryDTO> productSummaries = productService.searchProductSummaries(target, page, pageSize);
+            List<ProductSummaryRepositoryDTO> productSummaries = productService.searchProductSummaries(searchKeyword, page, pageSize);
             return new ApiResponseDTO<>(true, "Product summaries retrieved successfully", productSummaries);
         }catch (Exception e){
             return new ApiResponseDTO<>(false, e.getMessage(), null);
@@ -106,6 +106,4 @@ public class ProductController {
             return new ApiResponseDTO<>(false, e.getMessage(), null);
         }
     }
-
-
 }

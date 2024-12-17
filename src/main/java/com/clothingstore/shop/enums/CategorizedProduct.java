@@ -2,7 +2,7 @@ package com.clothingstore.shop.enums;
 
 public enum CategorizedProduct {
     ALL("All"),
-    SHIRT("Cloth"),
+    CLOTH("Cloth"),
     PANTS("Pants"),
     SHOES("Shoes"),
     ACCESSORIES("Accessories");

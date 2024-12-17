@@ -144,7 +144,7 @@ public class ProductRepository {
 
     public List<ProductSummaryRepositoryDTO> fetchProductSummariesByCategory(String category, int page, int pageSize) {
         int offset = (page - 1) * pageSize;
-        if(category.equals(CategorizedProduct.ALL.toString()) ){
+        if(category.equalsIgnoreCase(CategorizedProduct.ALL.toString()) ){
             return dsl.select(
                             PRODUCT.PRODUCT_ID,
                             PRODUCT.NAME,
