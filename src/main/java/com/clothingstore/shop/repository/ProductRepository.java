@@ -349,7 +349,7 @@ public class ProductRepository {
         // 添加排序条件
         if (fetchParams.getSort() != null) {
             switch (fetchParams.getSort()) {
-                case "total_sales":
+                case "sold":
                     query.addOrderBy(PRODUCT.TOTAL_SALES.desc());
                     break;
                 case "price_asc":
@@ -357,6 +357,9 @@ public class ProductRepository {
                     break;
                 case "price_desc":
                     query.addOrderBy(DSL.max(PRODUCT_VARIANT.PRICE).desc());
+                    break;
+                case "rate":
+                    query.addOrderBy(PRODUCT.RATE.desc());
                     break;
                 default:
                     query.addOrderBy(PRODUCT.PRODUCT_ID.asc());
