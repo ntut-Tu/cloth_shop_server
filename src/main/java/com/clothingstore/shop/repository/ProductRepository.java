@@ -316,11 +316,15 @@ public class ProductRepository {
                 } else if (isStringInEnum(fetchParams.getCategory(), CategorizedProduct.class)) {
                     baseCondition = baseCondition.and(PRODUCT.CATEGORY.equalIgnoreCase(fetchParams.getCategory()));
                 } else {
-                    baseCondition = baseCondition.and(PRODUCT.CATEGORY.notIn(
-                            Arrays.stream(CategorizedProduct.values())
-                                    .map(Enum::name)
-                                    .collect(Collectors.toList())
-                    ));
+                    // TODO: Not working as expected
+                    baseCondition = baseCondition.and(
+                            PRODUCT.CATEGORY.notIn(
+                                    Arrays.stream(CategorizedProduct.values())
+                                            .map(Enum::name)
+                                            .map(String::toLowerCase)
+                                            .collect(Collectors.toList())
+                            )
+                    );
                 }
             }
 
