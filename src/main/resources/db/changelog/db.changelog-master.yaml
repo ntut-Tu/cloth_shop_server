@@ -84,6 +84,12 @@ databaseChangeLog:
   - include:
       file: triggers/changelog-trigger-ledger_entry.yaml
       relativeToChangelogFile: true
+  - include:
+        file: triggers/changelog-trigger-ratting.yaml
+        relativeToChangelogFile: true
+  - include:
+        file: triggers/changelog-trigger-coupon_usage.yaml
+        relativeToChangelogFile: true
 #------------------INSERT------------------
   - include:
       file: insert/changelog-insert-product.yaml

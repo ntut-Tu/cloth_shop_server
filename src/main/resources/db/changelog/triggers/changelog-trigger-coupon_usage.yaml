@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: trigger-coupon_usage
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE OR REPLACE FUNCTION record_coupon_usage()
+              RETURNS TRIGGER AS $$
+              BEGIN
+                  IF TG_TABLE_NAME = 'order' THEN
+                      IF NEW.fk_shipping_discount_id IS NOT NULL THEN
+                          INSERT INTO coupon_usage (fk_coupon_id, fk_customer_id, usage_date)
+                          VALUES (NEW.fk_shipping_discount_id, NEW.fk_customer_id, NOW());
+                      END IF;
+
+                  ELSIF TG_TABLE_NAME = 'store_order' THEN
+                      IF NEW.seasonal_discount_id IS NOT NULL THEN
+                          INSERT INTO coupon_usage (fk_coupon_id, fk_customer_id, usage_date)
+                          VALUES (NEW.seasonal_discount_id, 
+                                  (SELECT fk_customer_id FROM "order" WHERE order_id = NEW.fk_order_id), 
+                                  NOW());
+                      END IF;
+
+                      IF NEW.special_discount_id IS NOT NULL THEN
+                          INSERT INTO coupon_usage (fk_coupon_id, fk_customer_id, usage_date)
+                          VALUES (NEW.special_discount_id, 
+                                  (SELECT fk_customer_id FROM "order" WHERE order_id = NEW.fk_order_id), 
+                                  NOW());
+                      END IF;
+                  END IF;
+
+                  RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+
+              CREATE TRIGGER record_order_coupon_usage_trigger
+              AFTER INSERT OR UPDATE ON "order"
+              FOR EACH ROW
+              EXECUTE FUNCTION record_coupon_usage();
+
+              CREATE TRIGGER record_store_order_coupon_usage_trigger
+              AFTER INSERT OR UPDATE ON store_order
+              FOR EACH ROW
+              EXECUTE FUNCTION record_coupon_usage();
