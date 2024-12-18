@@ -6,13 +6,15 @@ public class FetchProductsParams {
     private String category;
     private String sort;
     private String search;
+    private String role;
 
-    public FetchProductsParams(int page, int pageSize, String category, String sort, String search) {
+    public FetchProductsParams(int page, int pageSize, String category, String sort, String search, String role) {
         this.page = page;
         this.pageSize = pageSize;
         this.category = category;
         this.sort = sort;
         this.search = search;
+        this.role = role;
     }
 
     // Getters and Setters
@@ -54,6 +56,14 @@ public class FetchProductsParams {
 
     public void setSearch(String search) {
         this.search = search;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
 

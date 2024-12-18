@@ -5,6 +5,7 @@ import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDT
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
 import com.clothingstore.shop.dto.request.product.FetchProductsParams;
 import com.clothingstore.shop.dto.response.product.PaginatedResponse;
+import com.clothingstore.shop.dto.response.product.ProductInfoResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.ProductRepository;
@@ -28,10 +29,6 @@ public class ProductService {
         this.authService = authService;
     }
 
-    public List<ProductSummaryRepositoryDTO> getProductSummaries(int page, int pageSize) {
-        return productRepository.fetchProductSummaries(page, pageSize);
-    }
-
     public ProductDetailRepositoryDTO getProductDetails(int productId) {
         return productRepository.fetchProductDetails(productId);
     }
@@ -49,23 +46,31 @@ public class ProductService {
         return productRepository.addProduct(productRequestDTO);
     }
 
-    public List<ProductSummaryRepositoryDTO> getProductSummariesByCategory(String category, int page, int pageSize) {
-        return productRepository.fetchProductSummariesByCategory(category, page, pageSize);
-    }
-
-    public List<ProductSummaryRepositoryDTO> searchProductSummaries(String target, int page, int pageSize) {
-        return productRepository.searchProductSummaries(target, page, pageSize);
-    }
-
-    public List<ProductSummaryRepositoryDTO> getProductSummariesOrderBy(String method, int page, int pageSize) throws SharedException {
-        try{
-            return productRepository.fetchProductSummariesOrderBy(method, page, pageSize);
-        }catch (Exception e){
-            throw e;
-        }
-    }
-
     public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams) {
-        return productRepository.fetchProductsV2(fetchParams);
+        return productRepository.fetchProductsV2(fetchParams,null);
+    }
+
+    public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchAdminProductsV2(String token,FetchProductsParams fetchParams) {
+        Integer userId = jwtService.extractUserId(token);
+        if (!authService.checkUserExists(userId,"admin")) {
+            throw new IllegalArgumentException("User is not authorized to search products.");
+        }
+        return productRepository.fetchProductsV2(fetchParams,userId);
+    }
+
+    public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchVendorProductsV2(String token,FetchProductsParams fetchParams) {
+        Integer userId = jwtService.extractUserId(token);
+        if (!authService.checkUserExists(userId,"vendor")) {
+            throw new IllegalArgumentException("User is not authorized to search products.");
+        }
+        return productRepository.fetchProductsV2(fetchParams,userId);
+    }
+
+    public List<ProductInfoResponseDTO> getProductListForCoupon(String token) {
+        Integer userId = jwtService.extractUserId(token);
+        if (!authService.checkUserExists(userId,"vendor")) {
+            throw new IllegalArgumentException("User is not authorized to search products.");
+        }
+        return productRepository.getProductListForCoupon(authService.getVendorId(userId));
     }
 }

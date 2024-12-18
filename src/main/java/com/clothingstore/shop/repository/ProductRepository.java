@@ -6,6 +6,7 @@ import com.clothingstore.shop.dto.repository.products.ProductVariantRepositoryDT
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
 import com.clothingstore.shop.dto.request.product.FetchProductsParams;
 import com.clothingstore.shop.dto.response.product.PaginatedResponse;
+import com.clothingstore.shop.dto.response.product.ProductInfoResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.enums.CategorizedProduct;
 import com.clothingstore.shop.exceptions.SharedException;
@@ -33,33 +34,7 @@ public class ProductRepository {
         this.dsl = dsl;
     }
 
-    /**
-     * 取得產品摘要的分頁列表。
-     *
-     * @param page 當前頁碼
-     * @param pageSize 每頁顯示的項目數量
-     * @return 產品摘要列表
-     */
-    public List<ProductSummaryRepositoryDTO> fetchProductSummaries(int page, int pageSize) {
-        int offset = (page - 1) * pageSize;
 
-        return dsl.select(
-                        PRODUCT.PRODUCT_ID,
-                        PRODUCT.NAME,
-                        PRODUCT.TOTAL_SALES,
-                        PRODUCT.RATE,
-                        PRODUCT.IMAGE_URL,
-                        PRODUCT.CATEGORY,
-                        VENDOR.STORE_DESCRIPTION
-                )
-                .from(PRODUCT)
-                .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
-                .where(PRODUCT.IS_LIST.isTrue())
-                .orderBy(PRODUCT.PRODUCT_ID.asc())
-                .limit(pageSize)
-                .offset(offset)
-                .fetchInto(ProductSummaryRepositoryDTO.class);
-    }
     /**
      * 取得特定產品的詳細資訊。
      *
@@ -144,167 +119,7 @@ public class ProductRepository {
         return productId;
     }
 
-    public List<ProductSummaryRepositoryDTO> fetchProductSummariesByCategory(String category, int page, int pageSize) {
-        int offset = (page - 1) * pageSize;
-        if(category.equalsIgnoreCase(CategorizedProduct.ALL.toString()) ){
-            return dsl.select(
-                            PRODUCT.PRODUCT_ID,
-                            PRODUCT.NAME,
-                            PRODUCT.TOTAL_SALES,
-                            PRODUCT.RATE,
-                            PRODUCT.IMAGE_URL,
-                            PRODUCT.CATEGORY,
-                            VENDOR.STORE_DESCRIPTION
-                    )
-                    .from(PRODUCT)
-                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
-                    .where(PRODUCT.IS_LIST.isTrue())
-                    .orderBy(PRODUCT.PRODUCT_ID.asc())
-                    .limit(pageSize)
-                    .offset(offset)
-                    .fetchInto(ProductSummaryRepositoryDTO.class);
-        }else if(isStringInEnum(category, CategorizedProduct.class)) {
-            return dsl.select(
-                            PRODUCT.PRODUCT_ID,
-                            PRODUCT.NAME,
-                            PRODUCT.TOTAL_SALES,
-                            PRODUCT.RATE,
-                            PRODUCT.IMAGE_URL,
-                            PRODUCT.CATEGORY,
-                            VENDOR.STORE_DESCRIPTION
-                    )
-                    .from(PRODUCT)
-                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
-                    .where(PRODUCT.IS_LIST.isTrue())
-                    .and(PRODUCT.CATEGORY.equalIgnoreCase(category))
-                    .orderBy(PRODUCT.PRODUCT_ID.asc())
-                    .limit(pageSize)
-                    .offset(offset)
-                    .fetchInto(ProductSummaryRepositoryDTO.class);
-        }else{
-            return dsl.select(
-                            PRODUCT.PRODUCT_ID,
-                            PRODUCT.NAME,
-                            PRODUCT.TOTAL_SALES,
-                            PRODUCT.RATE,
-                            PRODUCT.IMAGE_URL,
-                            PRODUCT.CATEGORY,
-                            VENDOR.STORE_DESCRIPTION
-                    )
-                    .from(PRODUCT)
-                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
-                    .where(PRODUCT.IS_LIST.isTrue())
-                    .and(PRODUCT.CATEGORY.notIn(
-                            Arrays.stream(CategorizedProduct.values())
-                                    .map(Enum::name)
-                                    .collect(Collectors.toList())
-                    ))
-                    .orderBy(PRODUCT.PRODUCT_ID.asc())
-                    .limit(pageSize)
-                    .offset(offset)
-                    .fetchInto(ProductSummaryRepositoryDTO.class);
-        }
-    }
-
-    public List<ProductSummaryRepositoryDTO> searchProductSummaries(String target, int page, int pageSize) {
-        int offset = (page - 1) * pageSize;
-        return dsl.select(
-                        PRODUCT.PRODUCT_ID,
-                        PRODUCT.NAME,
-                        PRODUCT.TOTAL_SALES,
-                        PRODUCT.RATE,
-                        PRODUCT.IMAGE_URL,
-                        PRODUCT.CATEGORY,
-                        VENDOR.STORE_DESCRIPTION
-                )
-                .from(PRODUCT)
-                .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
-                .where(PRODUCT.IS_LIST.isTrue())
-                .and(PRODUCT.NAME.containsIgnoreCase(target))
-                .orderBy(PRODUCT.PRODUCT_ID.asc())
-                .limit(pageSize)
-                .offset(offset)
-                .fetchInto(ProductSummaryRepositoryDTO.class);
-    }
-
-    public List<ProductSummaryRepositoryDTO> fetchProductSummariesOrderBy(String method, int page, int pageSize) throws SharedException {
-        int offset = (page - 1) * pageSize;
-        try{
-        if(method.equals("total_sales")){
-            return dsl.select(
-                            PRODUCT.PRODUCT_ID,
-                            PRODUCT.NAME,
-                            PRODUCT.TOTAL_SALES,
-                            PRODUCT.RATE,
-                            PRODUCT.IMAGE_URL,
-                            PRODUCT.CATEGORY,
-                            VENDOR.STORE_DESCRIPTION
-                    )
-                    .from(PRODUCT)
-                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
-                    .where(PRODUCT.IS_LIST.isTrue())
-                    .orderBy(PRODUCT.TOTAL_SALES.desc())
-                    .limit(pageSize)
-                    .offset(offset)
-                    .fetchInto(ProductSummaryRepositoryDTO.class);
-        }else if(method.equals("rate")){
-            return dsl.select(
-                            PRODUCT.PRODUCT_ID,
-                            PRODUCT.NAME,
-                            PRODUCT.TOTAL_SALES,
-                            PRODUCT.RATE,
-                            PRODUCT.IMAGE_URL,
-                            PRODUCT.CATEGORY,
-                            VENDOR.STORE_DESCRIPTION
-                    )
-                    .from(PRODUCT)
-                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
-                    .where(PRODUCT.IS_LIST.isTrue())
-                    .orderBy(PRODUCT.RATE.desc())
-                    .limit(pageSize)
-                    .offset(offset)
-                    .fetchInto(ProductSummaryRepositoryDTO.class);
-        }else if(method.equals("date")){
-            return dsl.select(
-                            PRODUCT.PRODUCT_ID,
-                            PRODUCT.NAME,
-                            PRODUCT.TOTAL_SALES,
-                            PRODUCT.RATE,
-                            PRODUCT.IMAGE_URL,
-                            PRODUCT.CATEGORY,
-                            VENDOR.STORE_DESCRIPTION
-                    )
-                    .from(PRODUCT)
-                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
-                    .where(PRODUCT.IS_LIST.isTrue())
-                    .orderBy(PRODUCT.PRODUCT_ID.desc())
-                    .limit(pageSize)
-                    .offset(offset)
-                    .fetchInto(ProductSummaryRepositoryDTO.class);
-        }else {
-            return dsl.select(
-                            PRODUCT.PRODUCT_ID,
-                            PRODUCT.NAME,
-                            PRODUCT.TOTAL_SALES,
-                            PRODUCT.RATE,
-                            PRODUCT.IMAGE_URL,
-                            PRODUCT.CATEGORY,
-                            VENDOR.STORE_DESCRIPTION
-                    )
-                    .from(PRODUCT)
-                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
-                    .where(PRODUCT.IS_LIST.isTrue())
-                    .orderBy(PRODUCT.PRODUCT_ID.asc())
-                    .limit(pageSize)
-                    .offset(offset)
-                    .fetchInto(ProductSummaryRepositoryDTO.class);
-        }
-        }catch (Exception e){
-            throw new SharedException("Invalid order method");
-        }
-    }
-
-    public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams) {
+    public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams, Integer userId) {
         try{
             // 构建基础条件
             Condition baseCondition = PRODUCT.IS_LIST.isTrue();
@@ -332,7 +147,20 @@ public class ProductRepository {
             if (fetchParams.getSearch() != null && !fetchParams.getSearch().isEmpty()) {
                 baseCondition = baseCondition.and(PRODUCT.NAME.likeIgnoreCase("%" + fetchParams.getSearch() + "%"));
             }
-
+            switch (fetchParams.getRole()){
+                case "admin":
+                    break;
+                case "vendor":
+                    Integer vendorId = dsl.select(VENDOR.VENDOR_ID)
+                            .from(VENDOR)
+                            .where(VENDOR.FK_USER_ID.eq(userId))
+                            .fetchOneInto(Integer.class);
+                    baseCondition=baseCondition.and(PRODUCT.FK_VENDOR_ID.eq(vendorId));
+                    break;
+                default:
+                    baseCondition=baseCondition.and(PRODUCT.IS_LIST.isTrue());
+                    break;
+            }
             // 计算总记录数
             int totalRecords = dsl.select(DSL.countDistinct(PRODUCT.PRODUCT_ID))
                     .from(PRODUCT)
@@ -409,4 +237,14 @@ public class ProductRepository {
         }
     }
 
+    public List<ProductInfoResponseDTO> getProductListForCoupon(Integer vendorId) {
+        return dsl.select(
+                        PRODUCT.PRODUCT_ID,
+                        PRODUCT.NAME
+                )
+                .from(PRODUCT)
+                .leftJoin(PRODUCT_VARIANT).on(PRODUCT.PRODUCT_ID.eq(PRODUCT_VARIANT.FK_PRODUCT_ID))
+                .where(PRODUCT.FK_VENDOR_ID.eq(vendorId))
+                .fetchInto(ProductInfoResponseDTO.class);
+    }
 }

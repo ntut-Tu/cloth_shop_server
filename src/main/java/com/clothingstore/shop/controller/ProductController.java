@@ -6,6 +6,7 @@ import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.repository.products.ProductDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.response.product.PaginatedResponse;
+import com.clothingstore.shop.dto.response.product.ProductInfoResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.service.ProductService;
 import com.clothingstore.shop.utils.TokenUtils;
@@ -26,15 +27,6 @@ public class ProductController {
     @Autowired
     public ProductController(ProductService productService) {
         this.productService = productService;
-    }
-
-    @GetMapping("/summaries")
-    public ApiResponseDTO<List<ProductSummaryRepositoryDTO>> getProductSummaries(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "30") int pageSize) {
-
-        List<ProductSummaryRepositoryDTO> productSummaries = productService.getProductSummaries(page, pageSize);
-        return new ApiResponseDTO<>(true, "Product summaries retrieved successfully", productSummaries);
     }
 
     @GetMapping("/details/{productId}")
@@ -70,45 +62,6 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/category/{category}")
-    public ApiResponseDTO<List<ProductSummaryRepositoryDTO>> getProductSummariesByCategory(
-            @PathVariable String category,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "30") int pageSize) {
-        try{
-            List<ProductSummaryRepositoryDTO> productSummaries = productService.getProductSummariesByCategory(category, page, pageSize);
-            return new ApiResponseDTO<>(true, "Product summaries retrieved successfully", productSummaries);
-        }catch (Exception e){
-            return new ApiResponseDTO<>(false, e.getMessage(), null);
-        }
-    }
-
-    @GetMapping("/search")
-    public ApiResponseDTO<List<ProductSummaryRepositoryDTO>> searchProductSummaries(
-            @RequestParam String searchKeyword,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "30") int pageSize) {
-        try{
-            List<ProductSummaryRepositoryDTO> productSummaries = productService.searchProductSummaries(searchKeyword, page, pageSize);
-            return new ApiResponseDTO<>(true, "Product summaries retrieved successfully", productSummaries);
-        }catch (Exception e){
-            return new ApiResponseDTO<>(false, e.getMessage(), null);
-        }
-    }
-
-    @GetMapping("/order_by/{method}")
-    public ApiResponseDTO<List<ProductSummaryRepositoryDTO>> getProductSummariesOrderBy(
-            @PathVariable String method,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "30") int pageSize) {
-        try{
-            List<ProductSummaryRepositoryDTO> productSummaries = productService.getProductSummariesOrderBy(method, page, pageSize);
-            return new ApiResponseDTO<>(true, "Product summaries retrieved successfully", productSummaries);
-        }catch (Exception e){
-            return new ApiResponseDTO<>(false, e.getMessage(), null);
-        }
-    }
-
     /**
      * 获取商品列表，支持分类、排序和搜索
      *
@@ -121,19 +74,54 @@ public class ProductController {
      */
     @GetMapping("/v2")
     public ResponseEntity<ApiResponseDTO<PaginatedResponse<ProductSummaryV2ResponseDTO>>> fetchProductsV2(
+            HttpServletRequest request,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "30") int pageSize,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String sort,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam String role
     ) {
         try {
-            FetchProductsParams fetchParams = new FetchProductsParams(page, pageSize, category, sort, search);
-            PaginatedResponse<ProductSummaryV2ResponseDTO> products = productService.fetchProductsV2(fetchParams);
+            FetchProductsParams fetchParams = new FetchProductsParams(page, pageSize, category, sort, search,role);
+            String token = TokenUtils.extractTokenFromCookies(request);
+            PaginatedResponse<ProductSummaryV2ResponseDTO> products;
+            switch (fetchParams.getRole()){
+                case "admin":
+                    if (token == null) {
+                        throw new IllegalArgumentException("Token not found");
+                    }
+                    products = productService.fetchAdminProductsV2(token,fetchParams);
+                    break;
+                case "vendor":
+                    if (token == null) {
+                        throw new IllegalArgumentException("Token not found");
+                    }
+                    products = productService.fetchVendorProductsV2(token,fetchParams);
+                    break;
+                default:
+                    products = productService.fetchProductsV2(fetchParams);
+                    break;
+            }
             return ResponseEntity.ok(new ApiResponseDTO<>(true,"Product v2 fetch successfully",products));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
     }
 
+    @GetMapping("/product-list-for-coupon")
+    public ResponseEntity<ApiResponseDTO<List<ProductInfoResponseDTO>>> getProductListForCoupon(
+            HttpServletRequest request
+    ) {
+        try {
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+            List<ProductInfoResponseDTO> productList = productService.getProductListForCoupon(token);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Product list for coupon retrieved successfully", productList));
+        }catch (Exception e){
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
 }
