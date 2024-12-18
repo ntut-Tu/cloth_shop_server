@@ -104,7 +104,7 @@ public class CouponRepository {
                     .from(VENDOR)
                     .where(VENDOR.FK_USER_ID.eq(userId))
                     .fetchOneInto(Integer.class) : userId;
-            return dsl.select(COUPON.COUPON_ID, COUPON.CODE, COUPON.TYPE, COUPON.START_DATE, COUPON.END_DATE, COUPON.IS_LIST, COUPON.MAXIMUM_USAGE_PER_CUSTOMER)
+            return dsl.select(COUPON.COUPON_ID.as("discountId"), COUPON.CODE, COUPON.TYPE.as("discountType"), COUPON.START_DATE, COUPON.END_DATE, COUPON.IS_LIST, COUPON.MAXIMUM_USAGE_PER_CUSTOMER)
                     .from(COUPON)
                     .where(role == RoleType.VENDOR ? COUPON.FK_VENDOR_ID.eq(fetchId) : COUPON.FK_ADMIN_ID.eq(fetchId))
                     .fetchInto(DiscountSummaryResponseDTO.class);
@@ -124,7 +124,7 @@ public class CouponRepository {
         }
     }
 
-    public Boolean updateCouponStatus(Integer couponId, Integer userId, RoleType role, String status)throws SharedException {
+    public Boolean updateCouponStatus(Integer couponId, Integer userId, RoleType role, Boolean isActive)throws SharedException {
         try{
             Integer fetchId = role == RoleType.VENDOR ? dsl.select(VENDOR.VENDOR_ID)
                     .from(VENDOR)
@@ -132,12 +132,12 @@ public class CouponRepository {
                     .fetchOneInto(Integer.class) : userId;
             if(role == RoleType.VENDOR) {
                 return dsl.update(COUPON)
-                        .set(COUPON.IS_LIST, status.equals("active"))
+                        .set(COUPON.IS_LIST, isActive)
                         .where(COUPON.COUPON_ID.eq(couponId).and(COUPON.FK_VENDOR_ID.eq(fetchId)))
                         .execute() == 1;
             } else if (role == RoleType.ADMIN) {
                 return dsl.update(COUPON)
-                        .set(COUPON.IS_LIST, status.equals("active"))
+                        .set(COUPON.IS_LIST, isActive)
                         .where(COUPON.COUPON_ID.eq(couponId).and(COUPON.FK_ADMIN_ID.eq(fetchId)))
                         .execute() == 1;
             } else {

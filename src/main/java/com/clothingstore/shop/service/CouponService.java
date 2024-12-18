@@ -57,11 +57,11 @@ public class CouponService {
         }
 
     }
-    public Boolean updateCoupon(String token,Integer couponId, String status) throws SharedException {
+    public Boolean updateCoupon(String token,Integer couponId, Boolean isActive) throws SharedException {
         try {
             Integer userId = jwtService.extractUserId(token);
             RoleType role = RoleType.valueOf(jwtService.extractRole(token).toUpperCase(Locale.ROOT));
-            return couponRepository.updateCouponStatus(couponId, userId, role, status);
+            return couponRepository.updateCouponStatus(couponId, userId, role, isActive);
         }catch (Exception e){
             throw e;
         }

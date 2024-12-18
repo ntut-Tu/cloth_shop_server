@@ -70,6 +70,34 @@ public class OrderRepository {
 
     }
 
+    public List<OrderSummaryRepositoryDTO> findAllOrderSummaries(int size, int offset) {
+        return dsl.select(
+                        ORDER.ORDER_ID,
+                        ORDER.ORDER_DATE,
+                        ORDER.TOTAL_AMOUNT,
+                        ORDER.PAY_STATUS,
+                        ORDER.SHIP_STATUS,
+                        COUPON.CODE,
+                        ORDER.CREDIT_CARD_LAST_FOUR,
+                        ORDER.PAYMENT_METHOD,
+                        ORDER.SHIPPING_ADDRESS,
+                        ORDER.DELIVER_TYPE)
+                .from(ORDER)
+                .leftOuterJoin(COUPON).on(ORDER.FK_SHIPPING_DISCOUNT_ID.eq(COUPON.COUPON_ID))
+                .limit(size)
+                .offset(offset)
+                .fetch()
+                .map(record -> {
+                    OrderSummaryRepositoryDTO orderSummary = record.into(OrderSummaryRepositoryDTO.class);
+                    OrderSummeryDetailModel detailModel = new OrderSummeryDetailModel();
+                    detailModel.setCreditCardLastFour(record.get(ORDER.CREDIT_CARD_LAST_FOUR));
+                    detailModel.setPaymentMethod(record.get(ORDER.PAYMENT_METHOD));
+                    detailModel.setShippingAddress(record.get(ORDER.SHIPPING_ADDRESS));
+                    detailModel.setShippingMethod(record.get(ORDER.DELIVER_TYPE));
+                    orderSummary.setOrderSummeryDetailModel(detailModel);
+                    return orderSummary;});
+    }
+
     // 2. 查詢商家訂單簡介（延遲加載）
     public List<StoreOrderSummaryRepositoryDTO> findStoreOrdersByOrderId(Integer orderId) {
         return dsl.select(
@@ -214,5 +242,6 @@ public class OrderRepository {
 
         return storeOrders;
     }
+
 
 }

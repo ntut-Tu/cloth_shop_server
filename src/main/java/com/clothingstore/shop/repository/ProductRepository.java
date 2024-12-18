@@ -239,8 +239,10 @@ public class ProductRepository {
 
     public List<ProductInfoResponseDTO> getProductListForCoupon(Integer vendorId) {
         return dsl.select(
-                        PRODUCT.PRODUCT_ID,
-                        PRODUCT.NAME
+                        PRODUCT_VARIANT.PRODUCT_VARIANT_ID.as("productVariantId"),
+                        PRODUCT.NAME.as("productName"),
+                        PRODUCT_VARIANT.COLOR.as("color"),
+                        PRODUCT_VARIANT.SIZE.as("size")
                 )
                 .from(PRODUCT)
                 .leftJoin(PRODUCT_VARIANT).on(PRODUCT.PRODUCT_ID.eq(PRODUCT_VARIANT.FK_PRODUCT_ID))

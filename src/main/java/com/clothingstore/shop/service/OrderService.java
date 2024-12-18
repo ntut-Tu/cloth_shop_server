@@ -26,8 +26,15 @@ public class OrderService {
     // 取得使用者訂單列表（訂單簡介）
     public List<OrderSummaryRepositoryDTO> getUserOrderSummaries(String jwtToken, int page, int size) throws SharedException {
         Integer userId = jwtService.extractUserId(jwtToken);
+        String role = jwtService.extractRole(jwtToken);
         int offset = (page - 1) * size;
-        return orderRepository.findOrderSummariesByCustomerId(userId, size, offset);
+        if(role.equals("customer")) {
+            return orderRepository.findOrderSummariesByCustomerId(userId, size, offset);
+        } else if(role.equals("admin")) {
+            return orderRepository.findAllOrderSummaries(size, offset);
+        }else {
+            throw new IllegalArgumentException("Invalid role cannot get order summaries");
+        }
     }
 
     // 取得特定訂單的商家訂單列表
@@ -56,9 +63,9 @@ public class OrderService {
 
     public List<OrderDetailRepositoryDTO> getOrderDetailsByOrderId(String token, Integer storeOrderId) {
         Integer userId = jwtService.extractUserId(token);
-        if(!orderRepository.isOrderBelongToCustomer(userId, storeOrderId)) {
-            throw new IllegalArgumentException("Order does not belong to customer");
-        }
+//        if(!orderRepository.isOrderBelongToCustomer(userId, storeOrderId)) {
+//            throw new IllegalArgumentException("Order does not belong to customer");
+//        }
         return orderRepository.findOrderDetailsByOrderId(storeOrderId);
     }
 

@@ -73,13 +73,13 @@ public class CouponController {
     public ResponseEntity<ApiResponseDTO<Boolean>> updateCoupon(
             HttpServletRequest request,
             @PathVariable Integer couponId,
-            @RequestBody String Status) {
+            @RequestBody Boolean isActive) {
         try{
             String token = TokenUtils.extractTokenFromCookies(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            Boolean ret = couponService.updateCoupon(token, couponId, Status);
+            Boolean ret = couponService.updateCoupon(token, couponId, isActive);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Coupon updated successfully", ret));
         }catch (Exception e){
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
