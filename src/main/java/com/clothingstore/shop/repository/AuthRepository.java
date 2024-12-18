@@ -155,4 +155,12 @@ public class AuthRepository {
                 .fetchOne()
                 .get(VENDOR.VENDOR_ID);
     }
+
+    public Integer getAdminId(Integer userId) {
+        return dsl.select(ADMIN.ADMIN_ID)
+                .from(ADMIN)
+                .where(ADMIN.FK_USER_ID.eq(userId))
+                .fetchOne()
+                .get(ADMIN.ADMIN_ID);
+    }
 }

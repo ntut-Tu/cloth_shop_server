@@ -64,4 +64,8 @@ public class AuthService {
     public Integer getVendorId(Integer userId) {
         return authRepository.getVendorId(userId);
     }
+
+    public Integer getAdminId(Integer userId) {
+        return authRepository.getAdminId(userId);
+    }
 }
