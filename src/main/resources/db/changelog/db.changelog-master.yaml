@@ -94,3 +94,7 @@ databaseChangeLog:
   - include:
       file: insert/changelog-insert-product.yaml
       relativeToChangelogFile: true
+#------------------FIX_PATCH------------------
+  - include:
+      file: triggers/changelog-trigger-user_log-fix.yaml
+      relativeToChangelogFile: true
