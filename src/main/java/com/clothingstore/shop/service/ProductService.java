@@ -73,4 +73,21 @@ public class ProductService {
         }
         return productRepository.getProductListForCoupon(authService.getVendorId(userId));
     }
+
+    public void updateProductStatus(String token, Integer productVariantId, Boolean updatedStatus) {
+        Integer userId = jwtService.extractUserId(token);
+        if (!authService.checkUserExists(userId,"vendor")) {
+            throw new IllegalArgumentException("User is not authorized to update product status.");
+        }
+        productRepository.updateProductStatus(authService.getVendorId(userId),productVariantId,updatedStatus);
+    }
+
+
+    public void updateProductStock(String token,Integer productVariantId,Integer newStock) {
+        Integer userId = jwtService.extractUserId(token);
+        if (!authService.checkUserExists(userId,"vendor")) {
+            throw new IllegalArgumentException("User is not authorized to update product stock.");
+        }
+        productRepository.updateProductStock(authService.getVendorId(userId),productVariantId,newStock);
+    }
 }

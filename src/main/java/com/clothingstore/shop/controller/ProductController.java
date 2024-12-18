@@ -124,4 +124,40 @@ public class ProductController {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
     }
+
+    @PostMapping("/update-status")
+    public ResponseEntity<ApiResponseDTO<Boolean>> updateProductStatus(
+            HttpServletRequest request,
+            @RequestBody Integer productVariantId,
+            @RequestBody boolean updatedStatus
+    ) {
+        try {
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+            productService.updateProductStatus(token, productVariantId,updatedStatus);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Product status updated successfully", true));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/update-stock")
+    public ResponseEntity<ApiResponseDTO<Boolean>> updateProductStock(
+            HttpServletRequest request,
+            @RequestBody Integer productVariantId ,
+            @RequestBody Integer newStock
+    ) {
+        try {
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+            productService.updateProductStock(token, productVariantId, newStock);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Product stock updated successfully", true));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
 }

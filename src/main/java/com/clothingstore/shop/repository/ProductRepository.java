@@ -247,4 +247,40 @@ public class ProductRepository {
                 .where(PRODUCT.FK_VENDOR_ID.eq(vendorId))
                 .fetchInto(ProductInfoResponseDTO.class);
     }
+
+    public void updateProductStock(Integer vendorId,Integer productVariantId,Integer newStock) {
+        if(dsl.select(PRODUCT_VARIANT.PRODUCT_VARIANT_ID)
+                .from(PRODUCT_VARIANT)
+                .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
+                .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
+                .and(VENDOR.FK_USER_ID.eq(vendorId))
+                .fetchOneInto(Integer.class)==null){
+            throw new IllegalArgumentException("Product variant not found");
+        }
+        dsl.update(PRODUCT_VARIANT)
+                .set(PRODUCT_VARIANT.STOCK,newStock )
+                .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
+                .execute();
+    }
+
+    public void updateProductStatus(Integer vendorId, Integer productVariantId, Boolean updatedStatus) {
+        if(dsl.select(PRODUCT_VARIANT.PRODUCT_VARIANT_ID)
+                .from(PRODUCT_VARIANT)
+                .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
+                .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
+                .and(VENDOR.FK_USER_ID.eq(vendorId))
+                .fetchOneInto(Integer.class)==null){
+            throw new IllegalArgumentException("Product variant not found");
+        }
+        dsl.update(PRODUCT)
+                .set(PRODUCT.IS_LIST, updatedStatus)
+                .where(PRODUCT.PRODUCT_ID.eq(
+                        dsl.select(PRODUCT_VARIANT.FK_PRODUCT_ID)
+                                .from(PRODUCT_VARIANT)
+                                .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
+                ))
+                .execute();
+    }
 }
