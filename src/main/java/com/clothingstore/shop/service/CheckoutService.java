@@ -124,6 +124,7 @@ public class CheckoutService {
         }
 
         // 更新临时订单总计
+        totalAmount += checkoutRepository.queryShippingFee();
         totalAmount -= shippingDiscountAmount;
         tempOrder.setTotalAmount(totalAmount);
         tempOrder.setSubtotal(subtotal);
