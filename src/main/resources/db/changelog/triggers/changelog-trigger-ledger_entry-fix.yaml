@@ -10,20 +10,18 @@ databaseChangeLog:
         - sql:
             splitStatements: false
             sql: |
-              -- 修正平台台账函数
               CREATE OR REPLACE FUNCTION create_platform_ledger()
               RETURNS TRIGGER AS $$
               DECLARE
                 current_balance NUMERIC(10, 2);
+                temp_ledger_entry_id INT;
               BEGIN
-                -- 获取平台最后一笔 total_balance，若无记录则为 0
                 SELECT COALESCE(total_balance, 0) INTO current_balance 
                 FROM ledger_entry 
                 WHERE ledger_type = 'platform'
-                ORDER BY ledger_entry_id DESC -- 假设 ID 是递增主键
+                ORDER BY ledger_entry_id DESC 
                 LIMIT 1;
 
-                -- 平台抽成
                 IF (NEW.total_amount - 60) * 0.05 != 0 THEN
                   INSERT INTO ledger_entry (
                     ledger_type, transaction_type, amount, total_balance, transaction_date, notes, coupon_id
@@ -33,28 +31,21 @@ databaseChangeLog:
                     (NEW.total_amount - 60) * 0.05,
                     current_balance + ((NEW.total_amount - 60) * 0.05),
                     NOW(), '平台抽成', NULL
-                  );
-
-                  -- 更新 current_balance
-                  SELECT COALESCE(total_balance, 0) INTO current_balance 
+                  )RETURNING ledger_entry_id INTO temp_ledger_entry_id;
+              
+                  -- 更新 current_balance 避免下一個if用舊的資料
+                  SELECT total_balance INTO current_balance
                   FROM ledger_entry 
-                  WHERE ledger_type = 'platform'
-                  ORDER BY ledger_entry_id DESC
-                  LIMIT 1;
-
+                  WHERE ledger_entry_id = temp_ledger_entry_id;
+              
                   INSERT INTO platform_ledger_entry (
                     ledger_entry_id, order_id
                   ) VALUES (
-                    (SELECT ledger_entry_id 
-                     FROM ledger_entry 
-                     WHERE ledger_type = 'platform'
-                     ORDER BY ledger_entry_id DESC
-                     LIMIT 1),
+                    temp_ledger_entry_id,
                     NEW.order_id
                   );
                 END IF;
 
-                -- 平台优惠费用
                 IF NEW.shipping_discount_amount != 0 THEN
                   INSERT INTO ledger_entry (
                     ledger_type, transaction_type, amount, total_balance, transaction_date, notes, coupon_id
@@ -63,24 +54,18 @@ databaseChangeLog:
                     'platform', 'fee',
                     NEW.shipping_discount_amount,
                     current_balance - NEW.shipping_discount_amount,
-                    NOW(), '平台优惠费用', NEW.fk_shipping_discount_id
-                  );
-
-                  -- 更新 current_balance
-                  SELECT COALESCE(total_balance, 0) INTO current_balance 
+                    NOW(), '平台優惠費用', NEW.fk_shipping_discount_id
+                  )RETURNING ledger_entry_id INTO temp_ledger_entry_id;
+              
+                  -- 更新 current_balance 避免下一個if用舊的資料  
+                  SELECT total_balance INTO current_balance
                   FROM ledger_entry 
-                  WHERE ledger_type = 'platform'
-                  ORDER BY ledger_entry_id DESC
-                  LIMIT 1;
+                  WHERE ledger_entry_id = temp_ledger_entry_id;
 
                   INSERT INTO platform_ledger_entry (
                     ledger_entry_id, order_id
                   ) VALUES (
-                    (SELECT ledger_entry_id 
-                     FROM ledger_entry 
-                     WHERE ledger_type = 'platform'
-                     ORDER BY ledger_entry_id DESC
-                     LIMIT 1),
+                    temp_ledger_entry_id,
                     NEW.order_id
                   );
                 END IF;
@@ -89,7 +74,6 @@ databaseChangeLog:
               END;
               $$ LANGUAGE plpgsql;
 
-              -- 更新触发器
               DROP TRIGGER IF EXISTS order_ship_status_trigger ON "order";
               CREATE TRIGGER order_ship_status_trigger
               AFTER UPDATE OF ship_status ON "order"
@@ -108,17 +92,16 @@ databaseChangeLog:
         - sql:
             splitStatements: false
             sql: |
-              -- 修正商家台账函数
               CREATE OR REPLACE FUNCTION create_vendor_ledger()
               RETURNS TRIGGER AS $$
               DECLARE
                 store_rec RECORD;
                 current_balance NUMERIC(10, 2);
+                temp_ledger_entry_id INT;
               BEGIN
                 FOR store_rec IN
                   SELECT * FROM store_order WHERE fk_order_id = NEW.order_id
                 LOOP
-                  -- 获取商家最后一笔 total_balance，若无记录则为 0
                   SELECT COALESCE(total_balance, 0) INTO current_balance 
                   FROM ledger_entry 
                   WHERE ledger_type = 'vendor'
@@ -128,7 +111,6 @@ databaseChangeLog:
                   ORDER BY ledger_entry_id DESC
                   LIMIT 1;
 
-                  -- 售货收入
                   IF store_rec.store_net_amount * 0.95 != 0 THEN
                     INSERT INTO ledger_entry (
                       ledger_type, transaction_type, amount, total_balance, transaction_date, notes, coupon_id
@@ -137,37 +119,23 @@ databaseChangeLog:
                       'vendor', 'income',
                       store_rec.store_net_amount * 0.95,
                       current_balance + (store_rec.store_net_amount * 0.95),
-                      NOW(), '售货收入', NULL
-                    );
-
+                      NOW(), '售貨收入', NULL
+                    )RETURNING ledger_entry_id INTO temp_ledger_entry_id;
+                    
                     -- 更新 current_balance
-                    SELECT COALESCE(total_balance, 0) INTO current_balance 
+                    SELECT total_balance INTO current_balance
                     FROM ledger_entry 
-                    WHERE ledger_type = 'vendor'
-                      AND ledger_entry_id IN (
-                        SELECT ledger_entry_id FROM vendor_ledger_entry WHERE vendor_id = store_rec.fk_vendor_id
-                      )
-                    ORDER BY ledger_entry_id DESC
-                    LIMIT 1;
-
+                    WHERE ledger_entry_id = temp_ledger_entry_id;
+                    
                     INSERT INTO vendor_ledger_entry (
                       ledger_entry_id, vendor_id, store_order_id
                     ) VALUES (
-                      (SELECT ledger_entry_id 
-                       FROM ledger_entry 
-                       WHERE ledger_type = 'vendor'
-                         AND ledger_entry_id IN (
-                           SELECT ledger_entry_id 
-                           FROM vendor_ledger_entry 
-                           WHERE vendor_id = store_rec.fk_vendor_id
-                         )
-                       ORDER BY ledger_entry_id DESC
-                       LIMIT 1),
-                      store_rec.fk_vendor_id, store_rec.store_order_id
+                      temp_ledger_entry_id,
+                      store_rec.fk_vendor_id,
+                      store_rec.store_order_id
                     );
                   END IF;
 
-                  -- 优惠费用
                   IF store_rec.store_discount_amount != 0 THEN
                     INSERT INTO ledger_entry (
                       ledger_type, transaction_type, amount, total_balance, transaction_date, notes, coupon_id
@@ -176,34 +144,21 @@ databaseChangeLog:
                       'vendor', 'fee',
                       store_rec.store_discount_amount,
                       current_balance - store_rec.store_discount_amount,
-                      NOW(), '优惠费用',
+                      NOW(), '優惠費用',
                       COALESCE(store_rec.seasonal_discount_id, store_rec.special_discount_id)
-                    );
-
+                    )RETURNING ledger_entry_id INTO temp_ledger_entry_id;
+                    
                     -- 更新 current_balance
-                    SELECT COALESCE(total_balance, 0) INTO current_balance 
+                    SELECT total_balance INTO current_balance
                     FROM ledger_entry 
-                    WHERE ledger_type = 'vendor'
-                      AND ledger_entry_id IN (
-                        SELECT ledger_entry_id FROM vendor_ledger_entry WHERE vendor_id = store_rec.fk_vendor_id
-                      )
-                    ORDER BY ledger_entry_id DESC
-                    LIMIT 1;
-
+                    WHERE ledger_entry_id = temp_ledger_entry_id;
+                    
                     INSERT INTO vendor_ledger_entry (
                       ledger_entry_id, vendor_id, store_order_id
                     ) VALUES (
-                      (SELECT ledger_entry_id 
-                       FROM ledger_entry 
-                       WHERE ledger_type = 'vendor'
-                         AND ledger_entry_id IN (
-                           SELECT ledger_entry_id 
-                           FROM vendor_ledger_entry 
-                           WHERE vendor_id = store_rec.fk_vendor_id
-                         )
-                       ORDER BY ledger_entry_id DESC
-                       LIMIT 1),
-                      store_rec.fk_vendor_id, store_rec.store_order_id
+                      temp_ledger_entry_id,
+                      store_rec.fk_vendor_id,
+                      store_rec.store_order_id
                     );
                   END IF;
                 END LOOP;
@@ -212,7 +167,6 @@ databaseChangeLog:
               END;
               $$ LANGUAGE plpgsql;
 
-              -- 更新触发器
               DROP TRIGGER IF EXISTS store_order_status_trigger ON "order";
               CREATE TRIGGER store_order_status_trigger
               AFTER UPDATE OF ship_status ON "order"
