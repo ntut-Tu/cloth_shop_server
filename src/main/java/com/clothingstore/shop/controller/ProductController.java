@@ -125,11 +125,11 @@ public class ProductController {
         }
     }
 
-    @PostMapping("/update-status")
+    @PostMapping("/update-status/{productVariantId}")
     public ResponseEntity<ApiResponseDTO<Boolean>> updateProductStatus(
             HttpServletRequest request,
-            @RequestBody Integer productVariantId,
-            @RequestBody boolean updatedStatus
+            @PathVariable  Integer productVariantId,
+            @RequestBody  boolean updatedStatus
     ) {
         try {
             String token = TokenUtils.extractTokenFromCookies(request);
@@ -143,10 +143,10 @@ public class ProductController {
         }
     }
 
-    @PostMapping("/update-stock")
+    @PostMapping("/update-stock/{productVariantId}")
     public ResponseEntity<ApiResponseDTO<Boolean>> updateProductStock(
             HttpServletRequest request,
-            @RequestBody Integer productVariantId ,
+            @PathVariable  Integer productVariantId ,
             @RequestBody Integer newStock
     ) {
         try {

@@ -47,7 +47,7 @@ public class ProductService {
     }
 
     public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams) {
-        return productRepository.fetchProductsV2(fetchParams,null);
+        return productRepository.fetchProductsV2(fetchParams,null,"customer");
     }
 
     public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchAdminProductsV2(String token,FetchProductsParams fetchParams) {
@@ -55,7 +55,7 @@ public class ProductService {
         if (!authService.checkUserExists(userId,"admin")) {
             throw new IllegalArgumentException("User is not authorized to search products.");
         }
-        return productRepository.fetchProductsV2(fetchParams,userId);
+        return productRepository.fetchProductsV2(fetchParams,userId,"admin");
     }
 
     public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchVendorProductsV2(String token,FetchProductsParams fetchParams) {
@@ -63,7 +63,7 @@ public class ProductService {
         if (!authService.checkUserExists(userId,"vendor")) {
             throw new IllegalArgumentException("User is not authorized to search products.");
         }
-        return productRepository.fetchProductsV2(fetchParams,userId);
+        return productRepository.fetchProductsV2(fetchParams,userId,"vendor");
     }
 
     public List<ProductInfoResponseDTO> getProductListForCoupon(String token) {

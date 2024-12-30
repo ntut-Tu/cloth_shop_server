@@ -119,10 +119,13 @@ public class ProductRepository {
         return productId;
     }
 
-    public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams, Integer userId) {
+    public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams, Integer userId, String role) {
         try{
             // 构建基础条件
-            Condition baseCondition = PRODUCT.IS_LIST.isTrue();
+            Condition baseCondition = DSL.trueCondition();
+            if(role.equalsIgnoreCase("customer")){
+                baseCondition = PRODUCT.IS_LIST.isTrue();
+            }
 
             // 添加分类条件
             if (fetchParams.getCategory() != null && !fetchParams.getCategory().isEmpty()) {
@@ -171,7 +174,7 @@ public class ProductRepository {
                     .fetchOne(0, int.class);
 
             // 构建分页数据查询
-            SelectQuery<Record10<Integer, String, Integer, BigDecimal, String, String, String, String, Integer, Integer>> query = dsl.select(
+            SelectQuery<Record11<Integer, String, Integer, BigDecimal, String, String, String, String, Integer, Integer, Boolean>> query = dsl.select(
                             PRODUCT.PRODUCT_ID,
                             PRODUCT.NAME,
                             PRODUCT.TOTAL_SALES,
@@ -181,7 +184,8 @@ public class ProductRepository {
                             USERS.ACCOUNT.as("storeName"),
                             USERS.PROFILE_PIC_URL.as("storeImageUrl"),
                             DSL.min(PRODUCT_VARIANT.PRICE).as("minPrice"),
-                            DSL.max(PRODUCT_VARIANT.PRICE).as("maxPrice")
+                            DSL.max(PRODUCT_VARIANT.PRICE).as("maxPrice"),
+                            PRODUCT.IS_LIST.as("isActive")
                     )
                     .from(PRODUCT)
                     .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
@@ -256,7 +260,7 @@ public class ProductRepository {
                 .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
                 .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
                 .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
-                .and(VENDOR.FK_USER_ID.eq(vendorId))
+                .and(VENDOR.VENDOR_ID.eq(vendorId))
                 .fetchOneInto(Integer.class)==null){
             throw new IllegalArgumentException("Product variant not found");
         }
@@ -272,7 +276,7 @@ public class ProductRepository {
                 .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
                 .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
                 .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
-                .and(VENDOR.FK_USER_ID.eq(vendorId))
+                .and(VENDOR.VENDOR_ID.eq(vendorId))
                 .fetchOneInto(Integer.class)==null){
             throw new IllegalArgumentException("Product variant not found");
         }

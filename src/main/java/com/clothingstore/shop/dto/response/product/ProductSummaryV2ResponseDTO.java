@@ -11,6 +11,7 @@ public class ProductSummaryV2ResponseDTO {
     private String storeImageUrl; //(vendor.fk_user_id -> user.id) user.profile_pic_url
     private Integer minPrice; // min(product_variant.price)
     private Integer maxPrice; // max(product_variant.price)
+    private Boolean isActive;
 
     // Getters and Setters
     public Integer getProductId() {
@@ -91,6 +92,14 @@ public class ProductSummaryV2ResponseDTO {
 
     public void setMaxPrice(Integer maxPrice) {
         this.maxPrice = maxPrice;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 }
 
