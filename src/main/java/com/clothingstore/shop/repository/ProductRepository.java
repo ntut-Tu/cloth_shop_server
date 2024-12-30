@@ -55,10 +55,12 @@ public class ProductRepository {
                         PRODUCT.FK_VENDOR_ID,
                         VENDOR.STORE_DESCRIPTION,
                         VENDOR.STORE_ADDRESS,
-                        VENDOR.STORE_LOGO_URL
+                        VENDOR.STORE_LOGO_URL,
+                        USERS.ACCOUNT.as("storeName")
                 )
                 .from(PRODUCT)
                 .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                .join(USERS).on(VENDOR.FK_USER_ID.eq(USERS.USER_ID))
                 .where(PRODUCT.PRODUCT_ID.eq(productId))
                 .fetchOneInto(ProductDetailRepositoryDTO.class);
 

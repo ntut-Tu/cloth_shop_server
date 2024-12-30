@@ -17,6 +17,7 @@ public class ProductDetailRepositoryDTO {
     private String storeDescription;
     private String storeAddress;
     private String storeLogoUrl;
+    private String storeName;
     private List<ProductVariantRepositoryDTO> productVariantRepositoryDTO;
     // Getters and Setters
     public Integer getProductId() {
@@ -121,6 +122,14 @@ public class ProductDetailRepositoryDTO {
 
     public void setStoreLogoUrl(String storeLogoUrl) {
         this.storeLogoUrl = storeLogoUrl;
+    }
+
+    public String getStoreName() {
+        return storeName;
+    }
+
+    public void setStoreName(String storeName) {
+        this.storeName = storeName;
     }
 
     public List<ProductVariantRepositoryDTO> getProductVariantRepositoryDTO() { return this.productVariantRepositoryDTO; }

@@ -24,8 +24,9 @@ public class ReviewRepository {
                     .from(PRODUCT)
                     .where(PRODUCT.PRODUCT_ID.eq(productId))
                     .fetchOne();
-            Integer customer_id = dsl.select(USERS.USER_ID)
-                    .from(USERS)
+            Integer customer_id = dsl.select(CUSTOMER.CUSTOMER_ID)
+                    .from(CUSTOMER)
+                    .join(USERS).on(USERS.USER_ID.eq(CUSTOMER.FK_USER_ID))
                     .where(USERS.USER_ID.eq(userId))
                     .fetchOne()
                     .into(Integer.class);
