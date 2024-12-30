@@ -63,6 +63,9 @@ databaseChangeLog:
   - include:
       file: tables/changelog-table-vendor_ledger_entry.yaml
       relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-refund.yaml
+      relativeToChangelogFile: true
 #------------------INDEXES------------------
   - include:
       file: index/changelog-index-product.yaml
