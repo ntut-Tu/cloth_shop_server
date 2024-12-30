@@ -1,50 +1,35 @@
-#databaseChangeLog:
-#  - changeSet:
-#      id: insert-user-1
-#      author: admin
-#      changes:
-#        - insert:
-#            tableName: users
-#            columns:
-#              - column:
-#                  name: account
-#                  value: 'admin'
-#              - column:
-#                  name: password
-#                  value: '123'
-#              - column:
-#                  name: email
-#                  value: 'fake.email@email.com'
-#              - column:
-#                  name: user_type
-#                  value: 'admin'
-#        - insert:
-#            tableName: users
-#            columns:
-#              - column:
-#                  name: account
-#                  value: 'customer'
-#              - column:
-#                  name: user_type
-#                  value: 'customer'
-#              - column:
-#                  name: password
-#                  value: '123'
-#              - column:
-#                  name: email
-#                  value: 'fake.email@email.com'
-#        - insert:
-#            tableName: users
-#            columns:
-#              - column:
-#                  name: account
-#                  value: 'vendor'
-#              - column:
-#                  name: user_type
-#                  value: 'vendor'
-#              - column:
-#                  name: password
-#                  value: '123'
-#              - column:
-#                  name: email
-#                  value: 'fake.email@email.com'
+databaseChangeLog:
+  - changeSet:
+      id: insert-random-user
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - onError: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              INSERT INTO users (account, password, email, created_at, is_active, user_type)
+              VALUES
+              ('randomUser1', '123', 'random1@example.com', NOW(), TRUE, 'customer'),
+              ('randomUser2', '123', 'random2@example.com', NOW(), TRUE, 'vendor'),
+              ('randomUser3', '123', 'random3@example.com', NOW(), TRUE, 'admin'),
+              ('randomUser4', '123', 'random4@example.com', NOW(), TRUE, 'customer'),
+              ('randomUser5', '123', 'random5@example.com', NOW(), TRUE, 'vendor');
+              
+              INSERT INTO admin (fk_user_id)
+              VALUES
+              ((SELECT user_id FROM users WHERE account = 'randomUser3'));
+              
+              INSERT INTO vendor (fk_user_id, store_address, store_description, store_logo_url, payment_account)
+              VALUES
+              ((SELECT user_id FROM users WHERE account = 'randomUser2'), '123 Vendor St', 'Vendor Description', NULL, 'vendor_account'),
+              ((SELECT user_id FROM users WHERE account = 'randomUser5'), '456 Vendor St', 'Another Vendor', NULL, 'vendor_account2');
+              
+              INSERT INTO customer (fk_user_id, default_shipping_address, billing_address)
+              VALUES
+              ((SELECT user_id FROM users WHERE account = 'randomUser1'), '123 Customer Ave', '123 Billing Ave'),
+              ((SELECT user_id FROM users WHERE account = 'randomUser4'), '456 Customer Ave', '456 Billing Ave');
+
