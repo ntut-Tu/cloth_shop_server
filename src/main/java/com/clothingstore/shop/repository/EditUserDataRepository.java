@@ -1,6 +1,6 @@
 package com.clothingstore.shop.repository;
 
-import com.clothingstore.shop.dto.response.userData.EditUserDataResponseDTO;
+import com.clothingstore.shop.dto.response.userDataOperation.EditUserDataResponseDTO;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
@@ -13,14 +13,32 @@ public class EditUserDataRepository {
     public EditUserDataRepository(DSLContext dsl) {
         this.dsl = dsl;
     }
-    public EditUserDataResponseDTO editUserData(String account, String password, String email, String phone_number) throws Exception {
+    // edit user data
+    public EditUserDataResponseDTO editUserData(Integer userID, String account, String password, String email, String phone_number, String profile_pic_url) throws Exception {
+        // try to update user data by user_id and return updated user data without user_id
         try {
-            return dsl.update(USERS)
+            dsl.update(USERS)
                     .set(USERS.ACCOUNT, account)
                     .set(USERS.PASSWORD, password)
                     .set(USERS.EMAIL, email)
                     .set(USERS.PHONE_NUMBER, phone_number)
-                    .returning(USERS.ACCOUNT, USERS.EMAIL, USERS.PHONE_NUMBER)
+                    .set(USERS.PROFILE_PIC_URL, profile_pic_url)
+                    .where(USERS.USER_ID.eq(userID))
+                    .execute();
+            return dsl.select(USERS.ACCOUNT, USERS.PASSWORD, USERS.EMAIL, USERS.PHONE_NUMBER)
+                    .from(USERS)
+                    .where(USERS.USER_ID.eq(userID))
+                    .fetchOneInto(EditUserDataResponseDTO.class);
+        }catch (Exception e){
+            throw e;
+        }
+    }
+    // get user data
+    public EditUserDataResponseDTO getUserData(Integer userId) throws Exception {
+        try {
+            return dsl.select(USERS.ACCOUNT, USERS.PASSWORD, USERS.EMAIL, USERS.PHONE_NUMBER, USERS.PROFILE_PIC_URL)
+                    .from(USERS)
+                    .where(USERS.USER_ID.eq(userId))
                     .fetchOneInto(EditUserDataResponseDTO.class);
         }catch (Exception e){
             throw e;

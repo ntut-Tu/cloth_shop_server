@@ -1,10 +1,11 @@
-package com.clothingstore.shop.dto.request.userData;
+package com.clothingstore.shop.dto.request.userDataOperation;
 
 public class EditUserDataRequestDTO {
     private String account;
     private String password;
     private String email;
     private String phoneNumber;
+    private String profilePicUrl;
 
     // Getters and Setters
     public String getAccount() {
@@ -37,5 +38,13 @@ public class EditUserDataRequestDTO {
 
     public void setPhone_number(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getProfilePicUrl() {
+        return profilePicUrl;
+    }
+
+    public void setProfilePicUrl(String profilePicUrl) {
+        this.profilePicUrl = profilePicUrl;
     }
 }

@@ -1,10 +1,11 @@
-package com.clothingstore.shop.dto.response.userData;
+package com.clothingstore.shop.dto.response.userDataOperation;
 
 public class EditUserDataResponseDTO {
     private String account;
     private String password;
     private String email;
     private String phone_number;
+    private String profilePicUrl;
 
     // Getters and Setters
     public String getAccount() {
@@ -37,5 +38,13 @@ public class EditUserDataResponseDTO {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getProfilePicUrl() {
+        return profilePicUrl;
+    }
+
+    public void setProfilePicUrl(String proFileUrl) {
+        this.profilePicUrl = proFileUrl;
     }
 }
