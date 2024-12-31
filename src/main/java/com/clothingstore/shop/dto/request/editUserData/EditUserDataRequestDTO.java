@@ -1,4 +1,4 @@
-package com.clothingstore.shop.dto.request.userDataOperation;
+package com.clothingstore.shop.dto.request.editUserData;
 
 public class EditUserDataRequestDTO {
     private String account;

@@ -1,7 +1,7 @@
 package com.clothingstore.shop.controller;
 
-import com.clothingstore.shop.dto.request.userDataOperation.EditUserDataRequestDTO;
-import com.clothingstore.shop.dto.response.userDataOperation.EditUserDataResponseDTO;
+import com.clothingstore.shop.dto.request.editUserData.EditUserDataRequestDTO;
+import com.clothingstore.shop.dto.response.editUserData.EditUserDataResponseDTO;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.service.EditUserDataService;
 import com.clothingstore.shop.utils.TokenUtils;

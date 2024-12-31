@@ -1,6 +1,6 @@
 package com.clothingstore.shop.repository;
 
-import com.clothingstore.shop.dto.response.userDataOperation.EditUserDataResponseDTO;
+import com.clothingstore.shop.dto.response.editUserData.EditUserDataResponseDTO;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
