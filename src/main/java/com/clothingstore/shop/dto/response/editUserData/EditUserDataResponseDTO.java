@@ -1,19 +1,19 @@
 package com.clothingstore.shop.dto.response.editUserData;
 
 public class EditUserDataResponseDTO {
-    private String account;
     private String password;
     private String email;
-    private String phone_number;
+    private String phoneNumber;
     private String profilePicUrl;
 
     // Getters and Setters
-    public String getAccount() {
-        return account;
+
+    public String getPassword() {
+        return password;
     }
 
-    public void setAccount(String account) {
-        this.account = account;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getEmail() {
@@ -24,27 +24,19 @@ public class EditUserDataResponseDTO {
         this.email = email;
     }
 
-    public String getPhone_number() {
-        return phone_number;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setPhone_number(String phone_number) {
-        this.phone_number = phone_number;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getProfilePicUrl() {
         return profilePicUrl;
     }
 
-    public void setProfilePicUrl(String proFileUrl) {
-        this.profilePicUrl = proFileUrl;
+    public void setProfilePicUrl(String profilePicUrl) {
+        this.profilePicUrl = profilePicUrl;
     }
 }

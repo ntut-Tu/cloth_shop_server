@@ -20,7 +20,7 @@ public class EditUserDataService {
     public EditUserDataResponseDTO editUserData(EditUserDataRequestDTO editUserDataRequestDTO, String token) throws Exception {
         try {
             Integer userId = jwtService.extractUserId(token);
-            return editUserDataRepository.editUserData(userId, editUserDataRequestDTO.getAccount(), editUserDataRequestDTO.getPassword(), editUserDataRequestDTO.getEmail(), editUserDataRequestDTO.getPhoneNumber(), editUserDataRequestDTO.getProfilePicUrl());
+            return editUserDataRepository.editUserData(userId, editUserDataRequestDTO.getPassword(), editUserDataRequestDTO.getEmail(), editUserDataRequestDTO.getPhoneNumber(), editUserDataRequestDTO.getProfilePicUrl());
         }catch (Exception e){
             throw e;
         }

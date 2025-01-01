@@ -1,20 +1,12 @@
 package com.clothingstore.shop.dto.request.editUserData;
 
 public class EditUserDataRequestDTO {
-    private String account;
     private String password;
     private String email;
     private String phoneNumber;
     private String profilePicUrl;
 
     // Getters and Setters
-    public String getAccount() {
-        return account;
-    }
-
-    public void setAccount(String account) {
-        this.account = account;
-    }
 
     public String getPassword() {
         return password;
@@ -36,7 +28,7 @@ public class EditUserDataRequestDTO {
         return phoneNumber;
     }
 
-    public void setPhone_number(String phoneNumber) {
+    public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 
