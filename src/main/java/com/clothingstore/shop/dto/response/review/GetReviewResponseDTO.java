@@ -8,6 +8,7 @@ public class GetReviewResponseDTO {
     BigDecimal rating;
     String comment;
     String reviewDate;
+    String customerName;
     // Getters and Setters
     public Integer getReviewId() {
         return reviewId;
@@ -39,5 +40,13 @@ public class GetReviewResponseDTO {
 
     public void setReviewDate(String reviewDate) {
         this.reviewDate = reviewDate;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 }

@@ -111,7 +111,6 @@ public class CouponRepository {
         }catch (Exception e){
             throw e;
         }
-
     }
 
     public DiscountDetailResponseDTO fetchCouponDetails(Integer couponId) {

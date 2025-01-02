@@ -34,7 +34,7 @@ public class OrderRepository {
         this.dsl = dsl;
     }
 
-    // 1. 查詢訂單簡介
+    // 查詢訂單簡介
     public List<OrderSummaryRepositoryDTO> findOrderSummariesByCustomerId(Integer userId, int limit, int offset) throws SharedException {
         try {
             return dsl.select(
@@ -67,7 +67,6 @@ public class OrderRepository {
         }catch (Exception e){
             throw e;
         }
-
     }
 
     public List<OrderSummaryRepositoryDTO> findAllOrderSummaries(int size, int offset) {
@@ -98,7 +97,7 @@ public class OrderRepository {
                     return orderSummary;});
     }
 
-    // 2. 查詢商家訂單簡介（延遲加載）
+    //查詢商家訂單簡介（延遲加載）
     public List<StoreOrderSummaryRepositoryDTO> findStoreOrdersByOrderId(Integer orderId) {
         return dsl.select(
                         STORE_ORDER.STORE_ORDER_ID.as("storeOrderId"),
@@ -185,7 +184,7 @@ public class OrderRepository {
     }
 
     public List<VendorOrderResponseDTO> findStoreOrderSummariesByVendorId(Integer userId, int size, int offset) {
-        // 獲取供應商ID
+        // 查詢 vendor_id
         Integer vendorId = dsl.select(VENDOR.VENDOR_ID)
                 .from(VENDOR)
                 .where(VENDOR.FK_USER_ID.eq(userId))
@@ -236,10 +235,8 @@ public class OrderRepository {
 
                 userOrder.setProductVariants(productVariants);
             }
-
             storeOrder.setOrders(userOrders);
         }
-
         return storeOrders;
     }
 

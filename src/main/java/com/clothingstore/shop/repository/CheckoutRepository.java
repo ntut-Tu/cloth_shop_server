@@ -65,7 +65,7 @@ public class CheckoutRepository {
             return dsl.transactionResult(configuration -> {
                 DSLContext temp_dsl = DSL.using(configuration);
 
-                // Step 1: 插入订单数据
+                //插入訂單
                 Integer customerId = temp_dsl.select(CUSTOMER.CUSTOMER_ID)
                         .from(CUSTOMER)
                         .where(CUSTOMER.FK_USER_ID.eq(userId))
@@ -88,7 +88,7 @@ public class CheckoutRepository {
                         .fetchOptional().orElseThrow(() -> new SharedException("Failed to insert order"))
                         .getOrderId();
 
-                // Step 2: 插入商店订单和商品数据
+                //插入商店訂單和商品數據
                 for (TemporaryStoreOrder storeOrderResult : tempOrder.getStoreOrders()) {
                     Integer storeOrderId = temp_dsl.insertInto(STORE_ORDER)
                             .set(STORE_ORDER.FK_ORDER_ID, orderId)
@@ -114,7 +114,6 @@ public class CheckoutRepository {
                                 .execute();
                     }
                 }
-
                 return orderId;
             });
         } catch (Exception e) {

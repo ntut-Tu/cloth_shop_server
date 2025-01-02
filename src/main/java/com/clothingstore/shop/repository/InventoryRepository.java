@@ -31,6 +31,7 @@ public class InventoryRepository {
     public void finalizeStock(Integer productVariantId, Integer quantity) {
         dsl.update(PRODUCT_VARIANT)
                 .set(PRODUCT_VARIANT.RESERVED_STOCK, PRODUCT_VARIANT.RESERVED_STOCK.minus(quantity))
+                .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
                 .execute();
     }
 

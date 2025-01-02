@@ -163,4 +163,12 @@ public class AuthRepository {
                 .fetchOne()
                 .get(ADMIN.ADMIN_ID);
     }
+
+    public Integer getCustomerId(Integer userId) {
+        return dsl.select(CUSTOMER.CUSTOMER_ID)
+                .from(CUSTOMER)
+                .where(CUSTOMER.FK_USER_ID.eq(userId))
+                .fetchOne()
+                .get(CUSTOMER.CUSTOMER_ID);
+    }
 }

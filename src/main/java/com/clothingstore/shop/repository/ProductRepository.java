@@ -42,7 +42,6 @@ public class ProductRepository {
      * @return 產品詳細資訊
      */
     public ProductDetailRepositoryDTO fetchProductDetails(int productId) {
-        // Step 1: Fetch the main product details and vendor info
         ProductDetailRepositoryDTO productDetail = dsl.select(
                         PRODUCT.PRODUCT_ID,
                         PRODUCT.NAME,
@@ -64,7 +63,6 @@ public class ProductRepository {
                 .where(PRODUCT.PRODUCT_ID.eq(productId))
                 .fetchOneInto(ProductDetailRepositoryDTO.class);
 
-        // Step 2: Fetch associated product variants based on PRODUCT_ID
         List<ProductVariantRepositoryDTO> variants = dsl.select(
                         PRODUCT_VARIANT.PRODUCT_VARIANT_ID,
                         PRODUCT_VARIANT.COLOR,
@@ -76,7 +74,6 @@ public class ProductRepository {
                 .where(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(productId))
                 .fetchInto(ProductVariantRepositoryDTO.class);
 
-        // Set the variants in product details
         try{
             productDetail.setProductVariantRepositoryDTO(variants);
         }catch (Exception e){
@@ -91,7 +88,6 @@ public class ProductRepository {
      * @return 新增產品的 ID
      */
     public Integer addProduct(AddProductRequestDTO productRequestDTO) {
-        // Step 1: Insert product data
         Integer productId = dsl.insertInto(Product.PRODUCT)
                 .set(Product.PRODUCT.NAME, productRequestDTO.getName())
                 .set(Product.PRODUCT.DESCRIPTION, productRequestDTO.getDescription())
@@ -105,7 +101,6 @@ public class ProductRepository {
                 .fetchOne()
                 .getProductId();
 
-        // Step 2: Insert product variants if available
         List<ProductVariantRepositoryDTO> variants = productRequestDTO.getProductVariants();
         if (variants != null && !variants.isEmpty()) {
             for (ProductVariantRepositoryDTO variant : variants) {
@@ -123,20 +118,20 @@ public class ProductRepository {
 
     public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams, Integer userId, String role) {
         try{
-            // 构建基础条件
+            // 基础條件
             Condition baseCondition = DSL.trueCondition();
             if(role.equalsIgnoreCase("customer")){
                 baseCondition = PRODUCT.IS_LIST.isTrue();
             }
 
-            // 添加分类条件
+            // 添加分類
             if (fetchParams.getCategory() != null && !fetchParams.getCategory().isEmpty()) {
                 if (fetchParams.getCategory().equalsIgnoreCase(CategorizedProduct.ALL.toString())) {
-                    // 不添加任何分类条件
+                    // Do nothing
                 } else if (isStringInEnum(fetchParams.getCategory(), CategorizedProduct.class)) {
                     baseCondition = baseCondition.and(PRODUCT.CATEGORY.equalIgnoreCase(fetchParams.getCategory()));
                 } else {
-                    // TODO: Not working as expected
+                    // TODO: Might not be working as expected
                     baseCondition = baseCondition.and(
                             PRODUCT.CATEGORY.notIn(
                                     Arrays.stream(CategorizedProduct.values())
@@ -147,8 +142,7 @@ public class ProductRepository {
                     );
                 }
             }
-
-            // 添加搜索条件
+            // 添加搜尋條件
             if (fetchParams.getSearch() != null && !fetchParams.getSearch().isEmpty()) {
                 baseCondition = baseCondition.and(PRODUCT.NAME.likeIgnoreCase("%" + fetchParams.getSearch() + "%"));
             }
@@ -166,7 +160,7 @@ public class ProductRepository {
                     baseCondition=baseCondition.and(PRODUCT.IS_LIST.isTrue());
                     break;
             }
-            // 计算总记录数
+            // 計算搜尋總數
             int totalRecords = dsl.select(DSL.countDistinct(PRODUCT.PRODUCT_ID))
                     .from(PRODUCT)
                     .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
@@ -175,7 +169,6 @@ public class ProductRepository {
                     .where(baseCondition)
                     .fetchOne(0, int.class);
 
-            // 构建分页数据查询
             SelectQuery<Record11<Integer, String, Integer, BigDecimal, String, String, String, String, Integer, Integer, Boolean>> query = dsl.select(
                             PRODUCT.PRODUCT_ID,
                             PRODUCT.NAME,
@@ -206,7 +199,7 @@ public class ProductRepository {
                     )
                     .getQuery();
 
-            // 添加排序条件
+            // 添加排序
             if (fetchParams.getSort() != null) {
                 switch (fetchParams.getSort()) {
                     case "sold":
@@ -228,15 +221,12 @@ public class ProductRepository {
                 query.addOrderBy(PRODUCT.PRODUCT_ID.asc());
             }
 
-            // 设置分页
+            // 限制分頁
             int offset = (fetchParams.getPage() - 1) * fetchParams.getPageSize();
             query.addLimit(fetchParams.getPageSize());
             query.addOffset(offset);
 
-            // 执行分页查询
             List<ProductSummaryV2ResponseDTO> products = query.fetchInto(ProductSummaryV2ResponseDTO.class);
-
-            // 返回分页响应
             return new PaginatedResponse<>(products, totalRecords);
         } catch (Exception e) {
             throw e;

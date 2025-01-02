@@ -11,11 +11,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/editUserData")
-public class EditUserDataController {
+@RequestMapping("/api/editUserProfile")
+public class EditUserProfileController {
     private final EditUserDataService editUserDataService;
     @Autowired
-    EditUserDataController(EditUserDataService editUserDataService){
+    EditUserProfileController(EditUserDataService editUserDataService){
         this.editUserDataService = editUserDataService;
     }
 

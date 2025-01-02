@@ -1,6 +1,7 @@
 package com.clothingstore.shop.repository;
 
 import com.clothingstore.shop.dto.response.review.AddReviewResponseDTO;
+import com.clothingstore.shop.dto.response.review.GetReviewResponseDTO;
 import org.hibernate.type.descriptor.jdbc.TimestampWithTimeZoneJdbcType;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 import static com.clothingstore.shop.jooq.Tables.*;
 
@@ -45,6 +47,31 @@ public class ReviewRepository {
             }else {
                 throw new IllegalArgumentException("Product not found.");
             }
+        }catch (Exception e){
+            throw e;
+        }
+    }
+
+    public List<GetReviewResponseDTO> getProductReviews(Integer productId,Integer page) {
+        try {
+            Integer offset = (page - 1) * 5;
+            return dsl.select(REVIEW.REVIEW_ID, REVIEW.COMMENT, REVIEW.RATE, REVIEW.REVIEW_DATE, USERS.ACCOUNT)
+                    .from(REVIEW)
+                    .join(CUSTOMER).on(CUSTOMER.CUSTOMER_ID.eq(REVIEW.FK_CUSTOMER_ID))
+                    .join(USERS).on(USERS.USER_ID.eq(CUSTOMER.FK_USER_ID))
+                    .where(REVIEW.FK_PRODUCT_ID.eq(productId))
+                    .orderBy(REVIEW.REVIEW_DATE.desc())
+                    .limit(5)
+                    .offset(offset)
+                    .fetchInto(GetReviewResponseDTO.class);
+        }catch (Exception e){
+            throw e;
+        }
+    }
+
+    public Boolean isReviewExist(Integer customerId, Integer productId) {
+        try {
+            return dsl.fetchExists(REVIEW, REVIEW.FK_CUSTOMER_ID.eq(customerId).and(REVIEW.FK_PRODUCT_ID.eq(productId)));
         }catch (Exception e){
             throw e;
         }
