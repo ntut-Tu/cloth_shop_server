@@ -35,7 +35,13 @@ public class EditUserDataRepository {
     // get user data
     public EditUserDataResponseDTO getUserData(Integer userId) throws Exception {
         try {
-            return dsl.select(USERS.ACCOUNT, USERS.PASSWORD, USERS.EMAIL, USERS.PHONE_NUMBER, USERS.PROFILE_PIC_URL)
+            return dsl.select(
+                            USERS.ACCOUNT.as("username"),
+                            USERS.PASSWORD,
+                            USERS.EMAIL,
+                            USERS.PHONE_NUMBER,
+                            USERS.PROFILE_PIC_URL
+                    )
                     .from(USERS)
                     .where(USERS.USER_ID.eq(userId))
                     .fetchOneInto(EditUserDataResponseDTO.class);

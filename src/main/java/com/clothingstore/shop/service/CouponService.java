@@ -18,13 +18,16 @@ import java.util.Map;
 
 @Service
 public class CouponService {
+
     private final JwtService jwtService;
     private final CouponRepository couponRepository;
+
     @Autowired
     CouponService(JwtService jwtService, CouponRepository couponRepository) {
         this.jwtService = jwtService;
         this.couponRepository = couponRepository;
     }
+
     public Integer createCoupon(DiscountDetailResponseDTO discountDetailResponseDTO, String token) throws SharedException {
         try {
             Integer userId = jwtService.extractUserId(token);

@@ -1,19 +1,19 @@
 package com.clothingstore.shop.dto.response.editUserData;
 
 public class EditUserDataResponseDTO {
-    private String account;
+    private String username;
     private String password;
     private String email;
     private String phoneNumber;
     private String profilePicUrl;
 
     // Getters and Setters
-    public String getAccount() {
-        return account;
+    public String getUsername() {
+        return username;
     }
 
-    public void setAccount(String account) {
-        this.account = account;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {

@@ -33,4 +33,21 @@ public class PhotoUploadController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponseDTO<>(false, "Failed to upload file", null));
         }
     }
+
+    @PostMapping("/upload/portrait-image")
+    public ResponseEntity<ApiResponseDTO<String>> uploadUserPortrait(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponseDTO<>(false, "File is empty", null));
+        }
+        try {
+            String fileName = java.util.UUID.randomUUID() + "_" + file.getOriginalFilename();
+            String filePath = UPLOAD_DIR + fileName;
+            File dest = new File(filePath);
+            file.transferTo(dest);
+            String fileUrl = "/uploads/" + fileName;
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "File uploaded successfully: ", fileUrl));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponseDTO<>(false, "Failed to upload file", null));
+        }
+    }
 }

@@ -16,11 +16,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/coupons")
 public class CouponController {
+
     private final CouponService couponService;
+
     @Autowired
     public CouponController(JwtService jwtService,CouponService couponService) {
         this.couponService = couponService;
     }
+
     @PostMapping("/create")
     public ResponseEntity<ApiResponseDTO<Integer>> createCoupon(
             HttpServletRequest request,

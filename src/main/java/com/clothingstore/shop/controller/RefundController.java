@@ -15,23 +15,19 @@ public class RefundController {
     private final RefundService refundService;
 
     @Autowired
-    public RefundController(RefundService refundService) {
-        this.refundService = refundService;
-    }
+    public RefundController(RefundService refundService) {this.refundService = refundService;}
 
     @PostMapping("/create")
     public ResponseEntity<ApiResponseDTO<Integer>> createRefund(
             HttpServletRequest request,
             @RequestBody RefundDetailResponseDTO refundDetailResponseDTO) {
         try {
-            // 解析 token
             String token = TokenUtils.extractTokenFromCookies(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            // 傳遞到 Service 層
             Integer ret = refundService.createRefund(refundDetailResponseDTO, token);
-            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Refund created successfully", ret));
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, ret.toString(), null));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
@@ -48,6 +44,23 @@ public class RefundController {
             }
             RefundDetailResponseDTO ret = refundService.getRefundDetails(token, refundId);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Refund details fetched successfully", ret));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/update/{refundId}")
+    public ResponseEntity<ApiResponseDTO<Integer>> updateRefund(
+            HttpServletRequest request,
+            @PathVariable Integer refundId,
+            @RequestBody RefundDetailResponseDTO refundDetailResponseDTO) {
+        try {
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+            Integer ret = refundService.updateRefund(refundDetailResponseDTO, token, refundId);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, ret.toString(), null));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
