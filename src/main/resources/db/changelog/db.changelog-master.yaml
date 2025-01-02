@@ -95,7 +95,13 @@ databaseChangeLog:
         relativeToChangelogFile: true
 #------------------INSERT------------------
   - include:
+      file: insert/changelog-insert-demo.yaml
+      relativeToChangelogFile: true
+  - include:
       file: insert/changelog-insert-product.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: insert/changelog-insert-user.yaml
       relativeToChangelogFile: true
 #------------------FIX_PATCH------------------
   - include:
