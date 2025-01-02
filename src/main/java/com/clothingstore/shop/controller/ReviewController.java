@@ -38,9 +38,9 @@ public class ReviewController {
         }
     }
 
-    @GetMapping("/getProductReviews/{page}")
+    @GetMapping("/getProductReviews/{productId}/{page}")
     public ResponseEntity<ApiResponseDTO<List<GetReviewResponseDTO>>> getProductReviews(
-            @RequestParam Integer productId,
+            @PathVariable Integer productId,
             @PathVariable Integer page
     ){
         try {
