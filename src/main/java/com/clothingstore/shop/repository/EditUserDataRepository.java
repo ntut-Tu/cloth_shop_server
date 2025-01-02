@@ -24,7 +24,7 @@ public class EditUserDataRepository {
                     .set(USERS.PROFILE_PIC_URL, profile_pic_url)
                     .where(USERS.USER_ID.eq(userID))
                     .execute();
-            return dsl.select(USERS.PASSWORD, USERS.EMAIL, USERS.PHONE_NUMBER, USERS.PROFILE_PIC_URL)
+            return dsl.select(USERS.ACCOUNT, USERS.PASSWORD, USERS.EMAIL, USERS.PHONE_NUMBER, USERS.PROFILE_PIC_URL)
                     .from(USERS)
                     .where(USERS.USER_ID.eq(userID))
                     .fetchOneInto(EditUserDataResponseDTO.class);
@@ -35,7 +35,7 @@ public class EditUserDataRepository {
     // get user data
     public EditUserDataResponseDTO getUserData(Integer userId) throws Exception {
         try {
-            return dsl.select(USERS.PASSWORD, USERS.EMAIL, USERS.PHONE_NUMBER, USERS.PROFILE_PIC_URL)
+            return dsl.select(USERS.ACCOUNT, USERS.PASSWORD, USERS.EMAIL, USERS.PHONE_NUMBER, USERS.PROFILE_PIC_URL)
                     .from(USERS)
                     .where(USERS.USER_ID.eq(userId))
                     .fetchOneInto(EditUserDataResponseDTO.class);
