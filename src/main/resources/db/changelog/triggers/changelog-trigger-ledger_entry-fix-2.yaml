@@ -29,7 +29,7 @@ databaseChangeLog:
                   VALUES (
                     'platform', 'income',
                     (NEW.total_amount - 60) * 0.05,
-                    COALESCE(total_balance, 0) + ((NEW.total_amount - 60) * 0.05),
+                    COALESCE(current_balance, 0) + ((NEW.total_amount - 60) * 0.05),
                     NOW(), '平台抽成', NULL
                   )RETURNING ledger_entry_id INTO temp_ledger_entry_id;
               
@@ -53,7 +53,7 @@ databaseChangeLog:
                   VALUES (
                     'platform', 'fee',
                     NEW.shipping_discount_amount,
-                    COALESCE(total_balance, 0) - NEW.shipping_discount_amount,
+                    COALESCE(current_balance, 0) - NEW.shipping_discount_amount,
                     NOW(), '平台優惠費用', NEW.fk_shipping_discount_id
                   )RETURNING ledger_entry_id INTO temp_ledger_entry_id;
               
@@ -118,7 +118,7 @@ databaseChangeLog:
                     VALUES (
                       'vendor', 'income',
                       store_rec.store_net_amount * 0.95,
-                      COALESCE(total_balance, 0) + (store_rec.store_net_amount * 0.95),
+                      COALESCE(current_balance, 0) + (store_rec.store_net_amount * 0.95),
                       NOW(), '售貨收入', NULL
                     )RETURNING ledger_entry_id INTO temp_ledger_entry_id;
                     
@@ -143,7 +143,7 @@ databaseChangeLog:
                     VALUES (
                       'vendor', 'fee',
                       store_rec.store_discount_amount,
-                      COALESCE(total_balance, 0) - store_rec.store_discount_amount,
+                      COALESCE(current_balance, 0) - store_rec.store_discount_amount,
                       NOW(), '優惠費用',
                       COALESCE(store_rec.seasonal_discount_id, store_rec.special_discount_id)
                     )RETURNING ledger_entry_id INTO temp_ledger_entry_id;
