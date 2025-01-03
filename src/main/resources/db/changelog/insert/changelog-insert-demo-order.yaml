@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-demo-order
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - onError: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              DECLARE
+                _order_id INTEGER;
+                _store_order_id INTEGER;
+              BEGIN
+                INSERT INTO "order" 
+                (total_amount, payment_method, credit_card_last_four, deliver_type, shipping_address, pay_status, ship_status, shipping_discount_amount, subtotal, fk_customer_id)
+                VALUES
+                (250, 'Credit Card', '1234', 'Delivery', '123 Demo St', 'Pending', 'Pending', 0, 250, 
+                 (SELECT customer_id FROM customer JOIN users ON customer.fk_user_id = users.user_id WHERE users.account = 'demo'))
+                RETURNING order_id INTO _order_id;
+
+                INSERT INTO store_order 
+                (fk_order_id, fk_vendor_id, store_subtotal_amount, store_discount_amount, store_net_amount, store_order_status)
+                VALUES
+                (_order_id, 
+                 (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'demo'),
+                 250, 0, 250, 'Shipped')
+                RETURNING store_order_id INTO _store_order_id;
+
+                INSERT INTO order_item 
+                (unit_price, quantity, total_price, fk_product_variant_id, fk_order_id, fk_store_order_id)
+                VALUES
+                (250, 1, 250, 
+                 (SELECT product_variant_id FROM product_variant WHERE color = '紅色' AND size = 'S'), 
+                 _order_id, _store_order_id);
+
+                FOR i IN 2..20 LOOP
+                  INSERT INTO "order" 
+                  (total_amount, payment_method, credit_card_last_four, deliver_type, shipping_address, pay_status, ship_status, shipping_discount_amount, subtotal, fk_customer_id)
+                  VALUES
+                  (250, 'Credit Card', '1234', 'Delivery', '123 Demo St', 'Pending', 'Pending', 0, 250, 
+                   (SELECT customer_id FROM customer JOIN users ON customer.fk_user_id = users.user_id WHERE users.account = 'demo'))
+                  RETURNING order_id INTO _order_id;
+
+                  INSERT INTO store_order 
+                  (fk_order_id, fk_vendor_id, store_subtotal_amount, store_discount_amount, store_net_amount, store_order_status)
+                  VALUES
+                  (_order_id, 
+                   (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'demo'),
+                   250, 0, 250, 'Shipped')
+                  RETURNING store_order_id INTO _store_order_id;
+
+                  INSERT INTO order_item 
+                  (unit_price, quantity, total_price, fk_product_variant_id, fk_order_id, fk_store_order_id)
+                  VALUES
+                  (250, 1, 250, 
+                   (SELECT product_variant_id FROM product_variant WHERE color = '紅色' AND size = 'S'), 
+                   _order_id, _store_order_id);
+                END LOOP;
+              END $$;

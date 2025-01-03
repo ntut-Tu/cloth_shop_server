@@ -18,13 +18,19 @@ databaseChangeLog:
               ('demo', '123', 'demo_customer@example.com', NOW(), TRUE, 'customer');
               
               INSERT INTO admin (fk_user_id)
-              VALUES
-              ((SELECT user_id FROM users WHERE account = 'demo' AND user_type = 'admin'));
-
+              SELECT user_id
+              FROM users
+              WHERE account = 'demo' AND user_type = 'admin'
+              LIMIT 1;
+              
               INSERT INTO vendor (fk_user_id, store_address, store_description, store_logo_url, payment_account)
-              VALUES
-              ((SELECT user_id FROM users WHERE account = 'demo' AND user_type = 'vendor'), '789 Demo Vendor St', 'Demo Vendor Description', NULL, 'demo_vendor_account');
-
+              SELECT user_id, '789 Demo Vendor St', 'Demo Vendor Description', NULL, 'demo_vendor_account'
+              FROM users
+              WHERE account = 'demo' AND user_type = 'vendor'
+              LIMIT 1;
+              
               INSERT INTO customer (fk_user_id, default_shipping_address, billing_address)
-              VALUES
-              ((SELECT user_id FROM users WHERE account = 'demo' AND user_type = 'customer'), '789 Demo Customer Ave', '789 Demo Billing Ave');
+              SELECT user_id, '789 Demo Customer Ave', '789 Demo Billing Ave'
+              FROM users
+              WHERE account = 'demo' AND user_type = 'customer'
+              LIMIT 1;

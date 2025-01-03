@@ -1,0 +1,91 @@
+databaseChangeLog:
+  - changeSet:
+      id: ledger_entry_init
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - onError: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE OR REPLACE FUNCTION init_ledger()
+              RETURNS TRIGGER AS $$
+              DECLARE
+                  _vendorLedgerId INT;
+              BEGIN
+                  INSERT INTO ledger_entry (
+                  ledger_type, transaction_type, amount, total_balance, transaction_date, notes, coupon_id
+                  )
+                  VALUES (
+                  'vendor', 'init',
+                  0,
+                  0,
+                  NOW(), '商家初始化', NULL
+                  )
+                  RETURNING ledger_entry_id INTO _vendorLedgerId; 
+              
+                  INSERT INTO vendor_ledger_entry (
+                  ledger_entry_id, vendor_id, store_order_id
+                  )
+                  VALUES (
+                  _vendorLedgerId,
+                  NEW.vendor_id,
+                  null
+                  );
+                  RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+              
+              DROP TRIGGER IF EXISTS init_ledger_trigger ON ledger_entry;
+              CREATE TRIGGER init_ledger_trigger
+              AFTER INSERT ON vendor
+              FOR EACH ROW
+              EXECUTE FUNCTION init_ledger();
+  - changeSet:
+      id: platform_ledger_entry_init
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - onError: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+                CREATE OR REPLACE FUNCTION init_platform_ledger()
+                RETURNS TRIGGER AS $$
+                DECLARE
+                    _platformLedgerId INT;
+                BEGIN
+                    IF (SELECT COUNT(*) FROM users) = 0 THEN
+                        INSERT INTO ledger_entry (
+                        ledger_type, transaction_type, amount, total_balance, transaction_date, notes, coupon_id
+                        )
+                        VALUES (
+                        'platform', 'init',
+                        0,
+                        0,
+                        NOW(), '平台初始化', NULL
+                        )
+                        RETURNING ledger_entry_id INTO _platformLedgerId; 
+                        INSERT INTO platform_ledger_entry (
+                        ledger_entry_id, order_id
+                        )
+                        VALUES (
+                        _platformLedgerId,
+                        null
+                        );
+                    END IF;
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+              
+                DROP TRIGGER IF EXISTS init_platform_ledger_trigger ON users;  
+                CREATE TRIGGER init_platform_ledger_trigger
+                BEFORE INSERT ON users
+                FOR EACH ROW
+                EXECUTE FUNCTION init_platform_ledger();

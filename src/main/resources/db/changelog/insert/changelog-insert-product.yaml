@@ -22,7 +22,7 @@ databaseChangeLog:
                           'vendor' || i || '@test.com',
                           '123456789' || i,
                           'vendor',
-                          null
+                          '/assets/images/demo-profile-pic.png'
                       );
 
                       INSERT INTO vendor (fk_user_id, store_address, store_description, store_logo_url, payment_account)
@@ -46,7 +46,11 @@ databaseChangeLog:
                           'This is a description for product ' || i,
                           FLOOR(RANDOM() * 1000),
                           0.00, -- 預設評分為 0.00
-                          null,
+                          CASE
+                              WHEN i % 3 = 0 THEN '/assets/images/demo-image-cloth.jpg'
+                              WHEN i % 3 = 1 THEN '/assets/images/demo-image-accessory.jpg'
+                              ELSE '/assets/images/demo-image-bag.jpg'
+                          END,
                           CASE
                               WHEN i % 3 = 0 THEN 'Cloth'
                               WHEN i % 3 = 1 THEN 'Accessories'
