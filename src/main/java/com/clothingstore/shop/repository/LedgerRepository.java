@@ -34,7 +34,7 @@ public class LedgerRepository {
                 .fetchInto(PlatformLedgerResponseDTO.class);
     }
 
-    public List<VendorLedgerResponseDTO> findAllVendorLedgerEntries() {
+    public List<VendorLedgerResponseDTO> findAllVendorLedgerEntries(Integer vendorId) {
         return dsl.select(
                         field("ledger_entry_id").as("ledgerEntryId"),
                         field("ledger_type").as("ledgerType"),
@@ -47,6 +47,7 @@ public class LedgerRepository {
                         field("vendor_id").as("vendorId"),
                         field("store_order_id").as("storeOrderId"))
                 .from("vendor_ledger_view")
+                .where(field("vendor_id").eq(vendorId))
                 .fetchInto(VendorLedgerResponseDTO.class);
     }
 }

@@ -12,11 +12,13 @@ import java.util.List;
 public class LedgerService {
     private final JwtService jwtService;
     private final LedgerRepository ledgerRepository;
+    private final AuthService authService;
 
     @Autowired
-    LedgerService(JwtService jwtService, LedgerRepository ledgerRepository){
+    LedgerService(JwtService jwtService, LedgerRepository ledgerRepository, AuthService authService){
         this.jwtService = jwtService;
         this.ledgerRepository = ledgerRepository;
+        this.authService = authService;
     }
 
     public List<PlatformLedgerResponseDTO> findAllPlatformLedgerEntries(String token) {
@@ -45,7 +47,7 @@ public class LedgerService {
             if(!role.equals("vendor")) {
                 throw new IllegalArgumentException("Invalid role");
             }
-            return ledgerRepository.findAllVendorLedgerEntries();
+            return ledgerRepository.findAllVendorLedgerEntries(authService.getVendorId(userId));
         } catch (Exception e) {
             throw e;
         }
