@@ -21,22 +21,17 @@ public class CouponService {
 
     private final JwtService jwtService;
     private final CouponRepository couponRepository;
-    private final AuthService authService;
 
     @Autowired
-    CouponService(JwtService jwtService, CouponRepository couponRepository, AuthService authService) {
+    CouponService(JwtService jwtService, CouponRepository couponRepository) {
         this.jwtService = jwtService;
         this.couponRepository = couponRepository;
-        this.authService = authService;
     }
 
     public Integer createCoupon(DiscountDetailResponseDTO discountDetailResponseDTO, String token) throws SharedException {
         try {
             Integer userId = jwtService.extractUserId(token);
             RoleType role = RoleType.valueOf(jwtService.extractRole(token).toUpperCase(Locale.ROOT));
-            userId = (role == RoleType.VENDOR)
-                    ? authService.getVendorId(userId)
-                    : authService.getAdminId(userId);
 
             // 解析 discount 字段
             BaseDiscountModel discountModel = parseDiscount(discountDetailResponseDTO);
@@ -85,9 +80,9 @@ public class CouponService {
                 Map<String, Object> discountMap = (Map<String, Object>) discount;
                 StandardDiscountModel standardDiscount = new StandardDiscountModel();
                 standardDiscount.setDiscount_type((String) discountMap.get("discount_type"));
-                standardDiscount.setRatio(discountMap.get("ratio") != null ? new BigDecimal((Integer) discountMap.get("ratio")) : null);
+                standardDiscount.setRatio(new BigDecimal((Integer) discountMap.get("ratio")));
                 standardDiscount.setDiscount_amount((Integer) discountMap.get("discount_amount"));
-                standardDiscount.setMinimum_spend((Integer) discountMap.get("minimumSpend"));
+                standardDiscount.setMinimum_spend((Integer) discountMap.get("minimum_spend"));
                 return standardDiscount;
             } else if (discount instanceof StandardDiscountModel) {
                 return (StandardDiscountModel) discount;
