@@ -30,8 +30,12 @@ public class CouponRepository {
                 DSLContext ctx = DSL.using(configuration);
                 Integer couponId;
                 if (role == RoleType.VENDOR) {
+                    Integer vendorId = dsl.select(VENDOR.VENDOR_ID)
+                            .from(VENDOR)
+                            .where(VENDOR.FK_USER_ID.eq(userId))
+                            .fetchOneInto(Integer.class);
                     couponId = ctx.insertInto(COUPON)
-                            .set(COUPON.FK_VENDOR_ID, userId)
+                            .set(COUPON.FK_VENDOR_ID, vendorId)
                             .set(COUPON.START_DATE, OffsetDateTime.parse(discountDetailResponseDTO.getStartDate()))
                             .set(COUPON.END_DATE, OffsetDateTime.parse(discountDetailResponseDTO.getEndDate()))
                             .set(COUPON.MAXIMUM_USAGE_PER_CUSTOMER, discountDetailResponseDTO.getMaximumUsagePerCustomer())
@@ -50,7 +54,7 @@ public class CouponRepository {
                             .set(COUPON.CODE, discountDetailResponseDTO.getCode())
                             .set(COUPON.TYPE, discountDetailResponseDTO.getType())
                             .set(COUPON.IS_LIST, true)
-                            .returning(COUPON.COUPON_ID)
+                            .returning(COUPON)
                             .fetchOne()
                             .get(COUPON.COUPON_ID);
                 } else {
