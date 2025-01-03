@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-demo-user
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - onError: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              INSERT INTO users (account, password, email, created_at, is_active, user_type)
+              VALUES
+              ('demo', '123', 'demo_admin@example.com', NOW(), TRUE, 'admin'),
+              ('demo', '123', 'demo_vendor@example.com', NOW(), TRUE, 'vendor'),
+              ('demo', '123', 'demo_customer@example.com', NOW(), TRUE, 'customer');
+              
+              INSERT INTO admin (fk_user_id)
+              SELECT user_id
+              FROM users
+              WHERE account = 'demo' AND user_type = 'admin'
+              LIMIT 1;
+              
+              INSERT INTO vendor (fk_user_id, store_address, store_description, store_logo_url, payment_account)
+              SELECT user_id, '789 Demo Vendor St', 'Demo Vendor Description', NULL, 'demo_vendor_account'
+              FROM users
+              WHERE account = 'demo' AND user_type = 'vendor'
+              LIMIT 1;
+              
+              INSERT INTO customer (fk_user_id, default_shipping_address, billing_address)
+              SELECT user_id, '789 Demo Customer Ave', '789 Demo Billing Ave'
+              FROM users
+              WHERE account = 'demo' AND user_type = 'customer'
+              LIMIT 1;

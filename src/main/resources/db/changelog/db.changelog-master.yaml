@@ -93,14 +93,36 @@ databaseChangeLog:
   - include:
         file: triggers/changelog-trigger-coupon_usage.yaml
         relativeToChangelogFile: true
-#------------------INSERT------------------
-  - include:
-      file: insert/changelog-insert-product.yaml
-      relativeToChangelogFile: true
-#------------------FIX_PATCH------------------
+  #------------------FIX_PATCH------------------
   - include:
       file: triggers/changelog-trigger-user_log-fix.yaml
       relativeToChangelogFile: true
   - include:
       file: triggers/changelog-trigger-ledger_entry-fix.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: triggers/changelog-trigger-ledger_entry-fix-2.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/alert/changelog-alert-ledger_entry.yaml
+      relativeToChangelogFile: true
+#------------------TRIGGER AFTER FIX------------------
+  - include:
+      file: triggers/changelog-trigger-init-ledger.yaml
+      relativeToChangelogFile: true
+#------------------INSERT------------------
+  - include:
+      file: insert/changelog-insert-demo.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: insert/changelog-insert-demo-product.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: insert/changelog-insert-demo-order.yaml
+      relativeToChangelogFile: true
+#  - include:
+#      file: insert/changelog-insert-product.yaml
+#      relativeToChangelogFile: true
+  - include:
+      file: insert/changelog-insert-user.yaml
       relativeToChangelogFile: true
