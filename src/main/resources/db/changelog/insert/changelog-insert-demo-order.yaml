@@ -71,3 +71,33 @@ databaseChangeLog:
                   pay_status = 'PAID'
                 WHERE ship_status = 'Delivered';
               END $$;
+  - changeSet:
+      id: update-demo-order-date
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - onError: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              DECLARE
+              record_id INTEGER;
+              current_date DATE := NOW(); 
+              offset_days INTEGER := 0;  
+              BEGIN
+              FOR record_id IN
+              SELECT ledger_entry_id 
+              FROM ledger_entry
+              ORDER BY transaction_date DESC 
+              LOOP
+              UPDATE ledger_entry
+              SET transaction_date = current_date - offset_days * INTERVAL '1 day'
+              WHERE ledger_entry_id = record_id;
+              
+              offset_days := offset_days + 1;
+              END LOOP;
+              END $$;
