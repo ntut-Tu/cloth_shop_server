@@ -61,7 +61,13 @@ databaseChangeLog:
                    (SELECT product_variant_id FROM product_variant WHERE color = '紅色' AND size = 'S'), 
                    _order_id, _store_order_id);
                 END LOOP;
+              
                 UPDATE store_order
                 SET store_order_status = 'Shipped'
                 WHERE store_order_status = 'Pending';
+              
+                UPDATE "order"
+                SET ship_status = 'Completed',
+                  pay_status = 'PAID'
+                WHERE ship_status = 'Delivered';
               END $$;
