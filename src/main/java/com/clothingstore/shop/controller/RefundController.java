@@ -33,6 +33,22 @@ public class RefundController {
         }
     }
 
+    @GetMapping("/checkRequestExist/{productItemId}")
+    public ResponseEntity<ApiResponseDTO<Boolean>> checkRequestExist(
+            HttpServletRequest request,
+            @PathVariable Integer productItemId
+    ){
+        try{
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+            return ResponseEntity.ok(new ApiResponseDTO<>(true,refundService.checkRequestExist(token,productItemId).toString(),null);
+        }catch(Exception e){
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
     @GetMapping("/request/{refundId}")
     public ResponseEntity<ApiResponseDTO<RefundDetailResponseDTO>> getRefundDetails(
             HttpServletRequest request,

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 
 import static com.clothingstore.shop.jooq.Tables.*;
+import static org.jooq.impl.DSL.selectOne;
 
 @Repository
 public class RefundRepository {
@@ -83,6 +84,16 @@ public class RefundRepository {
                         .execute();
             default:
                 throw new IllegalArgumentException("Invalid role");
+        }
+    }
+
+    public Boolean isRequestExist(Integer productItemId) {
+        try{
+            return dsl.fetchExists(selectOne()
+                    .from(REFUND_REQUEST)
+                    .WHERE(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(productItemId)));
+        }catch (Exception e){
+            return e;
         }
     }
 }

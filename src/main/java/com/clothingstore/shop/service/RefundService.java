@@ -59,4 +59,8 @@ public class RefundService {
                 throw new IllegalArgumentException("Refund status is not pending");
         }
     }
+
+    public Boolean checkRequestExist(String token, Integer productItemId) {
+        return refundRepository.isRequestExist(productItemId);
+    }
 }
