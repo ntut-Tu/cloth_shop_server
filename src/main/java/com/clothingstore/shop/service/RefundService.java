@@ -26,7 +26,7 @@ public class RefundService {
     }
 
     public RefundDetailResponseDTO getRefundDetails(String token, Integer refundId) {
-        return null;
+        return refundRepository.getRefundDetails(refundId);
     }
 
     public Integer updateRefund(RefundDetailResponseDTO refundDetailResponseDTO, String token, Integer refundId) {
@@ -60,7 +60,7 @@ public class RefundService {
         }
     }
 
-    public Boolean checkRequestExist(String token, Integer productItemId) {
-        return refundRepository.isRequestExist(productItemId);
+    public Boolean checkRequestExist(String token, Integer orderItemId) {
+        return refundRepository.isRequestExist(orderItemId);
     }
 }

@@ -87,13 +87,36 @@ public class RefundRepository {
         }
     }
 
-    public Boolean isRequestExist(Integer productItemId) {
+    public Boolean isRequestExist(Integer orderItemId) {
         try{
             return dsl.fetchExists(selectOne()
                     .from(REFUND_REQUEST)
-                    .WHERE(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(productItemId)));
+                    .where(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(orderItemId)));
         }catch (Exception e){
-            return e;
+            throw  e;
+        }
+    }
+
+    public RefundDetailResponseDTO getRefundDetails(Integer refundId) {
+        try {
+            return dsl.select(
+                    REFUND_REQUEST.REFUND_ID,
+                    REFUND_REQUEST.FK_ORDER_ITEM_ID,
+                    REFUND_REQUEST.REFUND_REASON,
+                    REFUND_REQUEST.REQUEST_TARGET,
+                    REFUND_REQUEST.STATUS_TYPE,
+                    REFUND_REQUEST.VENDOR_RESPONSE,
+                    REFUND_REQUEST.ADMIN_RESPONSE,
+                    REFUND_REQUEST.IS_CLOSED,
+                    REFUND_REQUEST.CREATED_AT,
+                    REFUND_REQUEST.UPDATED_AT
+            )
+                    .from(REFUND_REQUEST)
+                    .where(REFUND_REQUEST.REFUND_ID.eq(refundId))
+                    .fetchOne()
+                    .into(RefundDetailResponseDTO.class);
+        }catch (Exception e){
+            throw e;
         }
     }
 }
