@@ -2,12 +2,15 @@ package com.clothingstore.shop.controller;
 
 import com.clothingstore.shop.dto.request.refund.RefundDetailResponseDTO;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
+import com.clothingstore.shop.dto.response.refund.RefundListSumResponse;
 import com.clothingstore.shop.service.RefundService;
 import com.clothingstore.shop.utils.TokenUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/refunds")
@@ -33,8 +36,24 @@ public class RefundController {
         }
     }
 
-    @GetMapping("/request/{refundId}")
-    public ResponseEntity<ApiResponseDTO<RefundDetailResponseDTO>> getRefundDetails(
+    @GetMapping("/checkRequestExist/{orderItemId}")
+    public ResponseEntity<ApiResponseDTO<Boolean>> checkRequestExist(
+            HttpServletRequest request,
+            @PathVariable Integer orderItemId
+    ){
+        try{
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+            return ResponseEntity.ok(new ApiResponseDTO<>(true,"fetch success",refundService.checkRequestExist(token, orderItemId)));
+        }catch(Exception e){
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/request/byId/{refundId}")
+    public ResponseEntity<ApiResponseDTO<RefundDetailResponseDTO>> getRefundDetailsByRefundId(
             HttpServletRequest request,
             @PathVariable Integer refundId) {
         try {
@@ -42,7 +61,23 @@ public class RefundController {
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            RefundDetailResponseDTO ret = refundService.getRefundDetails(token, refundId);
+            RefundDetailResponseDTO ret = refundService.getRefundDetailsByRefundId(token, refundId);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Refund details fetched successfully", ret));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/request/byItem/{orderItemId}")
+    public ResponseEntity<ApiResponseDTO<RefundDetailResponseDTO>> getRefundDetailsByOrderItem(
+            HttpServletRequest request,
+            @PathVariable Integer orderItemId) {
+        try {
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+            RefundDetailResponseDTO ret = refundService.getRefundDetailsByOrderItem(token, orderItemId);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Refund details fetched successfully", ret));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
@@ -61,6 +96,21 @@ public class RefundController {
             }
             Integer ret = refundService.updateRefund(refundDetailResponseDTO, token, refundId);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, ret.toString(), null));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<ApiResponseDTO<List<RefundListSumResponse>>> getRefundList(
+            HttpServletRequest request) {
+        try {
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+            List<RefundListSumResponse> ret = refundService.getRefundList(token);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Refund list fetched successfully", ret));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }

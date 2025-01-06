@@ -42,7 +42,6 @@ public class CheckoutController {
                 throw new IllegalArgumentException("Token not found");
             }
 
-            // TODO: 處理確認金額的業務邏輯
             // 返回處理結果（此處用 null 作為示例）
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount confirmed successfully", checkoutService.saveTemporaryOrder(confirmAmountRequestDTO, token)));
 

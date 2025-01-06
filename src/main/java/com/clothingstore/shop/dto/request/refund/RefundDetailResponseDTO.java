@@ -1,6 +1,7 @@
 package com.clothingstore.shop.dto.request.refund;
 
 public class RefundDetailResponseDTO {
+    private Integer refund_id;
     private Integer order_item_id;
     private String request_target;
     private String status_type;
@@ -11,6 +12,15 @@ public class RefundDetailResponseDTO {
     private String updated_at;
 
     // getters and setters
+
+    public Integer getRefund_id() {
+        return refund_id;
+    }
+
+    public void setRefund_id(Integer refund_id) {
+        this.refund_id = refund_id;
+    }
+
     public Integer getOrder_item_id() {
         return order_item_id;
     }
