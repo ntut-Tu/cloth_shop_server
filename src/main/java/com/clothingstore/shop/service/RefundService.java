@@ -1,9 +1,12 @@
 package com.clothingstore.shop.service;
 
 import com.clothingstore.shop.dto.request.refund.RefundDetailResponseDTO;
+import com.clothingstore.shop.dto.response.refund.RefundListSumResponse;
 import com.clothingstore.shop.repository.RefundRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class RefundService {
@@ -25,8 +28,12 @@ public class RefundService {
         return refundRepository.createRefund(userId, refundDetailResponseDTO);
     }
 
-    public RefundDetailResponseDTO getRefundDetails(String token, Integer refundId) {
-        return refundRepository.getRefundDetails(refundId);
+    public RefundDetailResponseDTO getRefundDetailsByRefundId(String token, Integer refundId) {
+        return refundRepository.fetchRefundDetailsByRefundId(refundId);
+    }
+
+    public RefundDetailResponseDTO getRefundDetailsByOrderItem(String token, Integer orderItemId) {
+        return refundRepository.fetchRefundDetailsByOrderItem(orderItemId);
     }
 
     public Integer updateRefund(RefundDetailResponseDTO refundDetailResponseDTO, String token, Integer refundId) {
@@ -62,5 +69,11 @@ public class RefundService {
 
     public Boolean checkRequestExist(String token, Integer orderItemId) {
         return refundRepository.isRequestExist(orderItemId);
+    }
+
+    public List<RefundListSumResponse> getRefundList(String token) {
+        String role = jwtService.extractRole(token);
+        Integer userId = jwtService.extractUserId(token);
+        return refundRepository.getRefundList(role,userId);
     }
 }
