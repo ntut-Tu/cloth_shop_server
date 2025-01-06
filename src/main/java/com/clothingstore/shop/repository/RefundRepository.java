@@ -50,7 +50,7 @@ public class RefundRepository {
     public Integer updateRefund(RefundDetailResponseDTO refundDetailResponseDTO, Integer refundId, String role) {
         switch (role){
             case "vendor":
-                if(refundDetailResponseDTO.getVendor_response().equals("rejected")) {
+                if(refundDetailResponseDTO.getVendor_response().equals("vendor_rejected")) {
                     return dsl.update(REFUND_REQUEST)
                             .set(REFUND_REQUEST.VENDOR_RESPONSE, refundDetailResponseDTO.getVendor_response())
                             .set(REFUND_REQUEST.STATUS_TYPE, "vendor_rejected")
@@ -64,7 +64,7 @@ public class RefundRepository {
                             .execute();
                 }
             case "admin":
-                if(refundDetailResponseDTO.getAdmin_response().equals("rejected")){
+                if(refundDetailResponseDTO.getAdmin_response().equals("admin_rejected")){
                     return dsl.update(REFUND_REQUEST)
                             .set(REFUND_REQUEST.ADMIN_RESPONSE, refundDetailResponseDTO.getAdmin_response())
                             .set(REFUND_REQUEST.STATUS_TYPE, "admin_rejected")
