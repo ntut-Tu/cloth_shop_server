@@ -47,19 +47,22 @@ public class RefundRepository {
                 .getValue(REFUND_REQUEST.IS_CLOSED);
     }
 
-    public Integer updateRefund(RefundDetailResponseDTO refundDetailResponseDTO, Integer refundId, String role) {
+    public Integer updateRefund(RefundDetailResponseDTO refundDetailResponseDTO, Integer refundId, Integer userId, String role) {
         switch (role){
             case "vendor":
                 if(refundDetailResponseDTO.getVendor_response().equals("vendor_rejected")) {
                     return dsl.update(REFUND_REQUEST)
                             .set(REFUND_REQUEST.VENDOR_RESPONSE, refundDetailResponseDTO.getVendor_response())
                             .set(REFUND_REQUEST.STATUS_TYPE, "vendor_rejected")
+                            .set(REFUND_REQUEST.FK_VENDOR_ID, userId)
                             .where(REFUND_REQUEST.REFUND_ID.eq(refundId))
                             .execute();
                 }else{
                     return dsl.update(REFUND_REQUEST)
                             .set(REFUND_REQUEST.VENDOR_RESPONSE, refundDetailResponseDTO.getVendor_response())
                             .set(REFUND_REQUEST.STATUS_TYPE, "vendor_approved")
+                            .set(REFUND_REQUEST.FK_VENDOR_ID, userId)
+                            .set(REFUND_REQUEST.IS_CLOSED, true)
                             .where(REFUND_REQUEST.REFUND_ID.eq(refundId))
                             .execute();
                 }
@@ -68,12 +71,14 @@ public class RefundRepository {
                     return dsl.update(REFUND_REQUEST)
                             .set(REFUND_REQUEST.ADMIN_RESPONSE, refundDetailResponseDTO.getAdmin_response())
                             .set(REFUND_REQUEST.STATUS_TYPE, "admin_rejected")
+                            .set(REFUND_REQUEST.FK_ADMIN_ID, userId)
                             .where(REFUND_REQUEST.REFUND_ID.eq(refundId))
                             .execute();
                 }else{
                     return dsl.update(REFUND_REQUEST)
                             .set(REFUND_REQUEST.ADMIN_RESPONSE, refundDetailResponseDTO.getAdmin_response())
                             .set(REFUND_REQUEST.STATUS_TYPE, "admin_approved")
+                            .set(REFUND_REQUEST.FK_ADMIN_ID, userId)
                             .set(REFUND_REQUEST.IS_CLOSED, true)
                             .where(REFUND_REQUEST.REFUND_ID.eq(refundId))
                             .execute();

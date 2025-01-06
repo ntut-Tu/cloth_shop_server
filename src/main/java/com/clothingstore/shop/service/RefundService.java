@@ -12,11 +12,13 @@ import java.util.List;
 public class RefundService {
     private final JwtService jwtService;
     private final RefundRepository refundRepository;
+    private final AuthService authService;
 
     @Autowired
-    public RefundService(JwtService jwtService, RefundRepository refundRepository) {
+    public RefundService(JwtService jwtService, RefundRepository refundRepository, AuthService authService) {
         this.jwtService = jwtService;
         this.refundRepository = refundRepository;
+        this.authService = authService;
     }
 
     public Integer createRefund(RefundDetailResponseDTO refundDetailResponseDTO, String token) {
@@ -46,19 +48,19 @@ public class RefundService {
         switch (status) {
             case "vendor_pending":
                 if (role.equals("vendor")) {
-                    return refundRepository.updateRefund(refundDetailResponseDTO, refundId, role);
+                    return refundRepository.updateRefund(refundDetailResponseDTO, refundId, authService.getVendorId(userId), role);
                 } else {
                     throw new IllegalArgumentException("Only vendors can update pending refunds");
                 }
             case "admin_pending":
                 if (role.equals("admin")) {
-                    return refundRepository.updateRefund(refundDetailResponseDTO, refundId, role);
+                    return refundRepository.updateRefund(refundDetailResponseDTO, refundId, authService.getAdminId(userId), role);
                 } else {
                     throw new IllegalArgumentException("Only customers can update their pending refunds");
                 }
             case "vendor_rejected":
                 if (role.equals("customer")) {
-                    return refundRepository.updateRefund(refundDetailResponseDTO, refundId, role);
+                    return refundRepository.updateRefund(refundDetailResponseDTO, refundId, authService.getCustomerId(userId), role);
                 } else {
                     throw new IllegalArgumentException("Only customers can update their rejected refunds");
                 }
