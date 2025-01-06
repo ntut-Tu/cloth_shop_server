@@ -8,6 +8,7 @@ import com.clothingstore.shop.dto.others.tempOrder.TemporaryOrder;
 import com.clothingstore.shop.dto.request.checkout.ConfirmAmountRequestDTO;
 import com.clothingstore.shop.dto.request.checkout.ConfirmDiscountRequestDTO;
 import com.clothingstore.shop.dto.request.checkout.SubmitOrderRequestDTO;
+import com.clothingstore.shop.dto.response.checkout.ConfirmDiscountResponseDTO;
 import com.clothingstore.shop.enums.CouponType;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.CheckoutRepository;
@@ -123,38 +124,41 @@ public class DiscountService {
     }
 
     public DiscountDetailsDTO getStoreDiscount(CheckoutBaseStoreOrderModel storeOrder,Integer customerId) throws SharedException {
+        Integer couponId = discountRepository.queryDiscountIdByCode(storeOrder.getTempDiscountCode());
         if (storeOrder.getSpecial_discount_code() != null) {
             return discountRepository.queryDiscountDetails(
-                    discountRepository.queryDiscountIdByCode(storeOrder.getSpecial_discount_code()),
+                    couponId,
                     CouponType.SPECIAL_DISCOUNT,
                     customerId
             );
         } else if (storeOrder.getSeasonal_discount_code() != null) {
             return discountRepository.queryDiscountDetails(
-                    discountRepository.queryDiscountIdByCode(storeOrder.getSeasonal_discount_code()),
+                    couponId,
                     CouponType.SEASONAL_DISCOUNT,
                     customerId
             );
         }
         return null;
     }
-    public DiscountDetailsDTO getStoreDiscount(ConfirmDiscountRequestDTO requestDTO, Integer customerId) throws SharedException {
+    public ConfirmDiscountResponseDTO getStoreDiscount(ConfirmDiscountRequestDTO requestDTO, Integer customerId) throws SharedException {
         Integer couponId = discountRepository.queryDiscountIdByCode(requestDTO.getDiscount_code());
-        CouponType type = discountRepository.queryDiscountType(couponId);
-        if (type.equals(CouponType.SPECIAL_DISCOUNT)) {
-            return discountRepository.queryDiscountDetails(
-                    discountRepository.queryDiscountIdByCode(requestDTO.getDiscount_code()),
+        String type = discountRepository.queryDiscountType(couponId);
+        if (type.equalsIgnoreCase(CouponType.SPECIAL_DISCOUNT.toString())) {
+            return discountRepository.fetchDiscountDetails(
+                    couponId,
                     CouponType.SPECIAL_DISCOUNT,
                     customerId
             );
-        } else if (type.equals(CouponType.SEASONAL_DISCOUNT)) {
-            return discountRepository.queryDiscountDetails(
-                    discountRepository.queryDiscountIdByCode(requestDTO.getDiscount_code()),
+        } else if (type.equalsIgnoreCase(CouponType.SEASONAL_DISCOUNT.toString())) {
+            return discountRepository.fetchDiscountDetails(
+                    couponId,
                     CouponType.SEASONAL_DISCOUNT,
                     customerId
             );
         }
-        return null;
+        else {
+            throw new IllegalArgumentException("Invalid discount type");
+        }
     }
 
     public DiscountDetailsDTO getShippingDiscount(String shippingDiscountCode,Integer customerId) throws SharedException {
@@ -165,12 +169,12 @@ public class DiscountService {
         );
     }
 
-    public DiscountDetailsDTO getShippingDiscount(ConfirmDiscountRequestDTO requestDTO,Integer customerId) throws SharedException {
+    public ConfirmDiscountResponseDTO getShippingDiscount(ConfirmDiscountRequestDTO requestDTO,Integer customerId) throws SharedException {
         Integer couponId = discountRepository.queryDiscountIdByCode(requestDTO.getDiscount_code());
-        CouponType type = discountRepository.queryDiscountType(couponId);
-        if (type.equals(CouponType.SHIPPING_DISCOUNT)) {
-            return discountRepository.queryDiscountDetails(
-                    discountRepository.queryDiscountIdByCode(requestDTO.getDiscount_code()),
+        String type = discountRepository.queryDiscountType(couponId);
+        if (type.equalsIgnoreCase(CouponType.SHIPPING_DISCOUNT.toString())) {
+            return discountRepository.fetchDiscountDetails(
+                    couponId,
                     CouponType.SHIPPING_DISCOUNT,
                     customerId
             );

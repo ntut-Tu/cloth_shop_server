@@ -5,6 +5,7 @@ import com.clothingstore.shop.dto.request.checkout.ConfirmDiscountRequestDTO;
 import com.clothingstore.shop.dto.request.checkout.SubmitOrderRequestDTO;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.ConfirmAmountResponseDTO;
+import com.clothingstore.shop.dto.response.checkout.ConfirmDiscountResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.SubmitOrderResponseDTO;
 import com.clothingstore.shop.service.CheckoutService;
 import com.clothingstore.shop.service.DiscountService;
@@ -54,7 +55,7 @@ public class CheckoutController {
         }
     }
     @PostMapping("/confirm-discount")
-    public ResponseEntity<ApiResponseDTO<ConfirmDiscountRequestDTO>> confirmDiscount(
+    public ResponseEntity<ApiResponseDTO<ConfirmDiscountResponseDTO>> confirmDiscount(
             HttpServletRequest request,
             @RequestBody ConfirmDiscountRequestDTO confirmDiscountRequestDTO) {
         try {
@@ -65,12 +66,13 @@ public class CheckoutController {
             }
             Integer customerId = jwtService.extractUserId(token);
             String type = confirmDiscountRequestDTO.getType();
-            if(type.equals("order")){
-                ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount discount successfully", discountService.getStoreDiscount(confirmDiscountRequestDTO,customerId)));
-            }else if(type.equals("store_order")){
-                ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount discount successfully", discountService.getShippingDiscount(confirmDiscountRequestDTO,customerId)));
+            if(type.equals("store_order")){
+                return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order's discount confirm successfully", discountService.getStoreDiscount(confirmDiscountRequestDTO,customerId)));
+            }else if(type.equals("order")){
+                return ResponseEntity.ok(new ApiResponseDTO<>(true, "Store_order's discount confirm successfully", discountService.getShippingDiscount(confirmDiscountRequestDTO,customerId)));
+            }else {
+                throw new IllegalArgumentException("Invalid type");
             }
-            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount discount successfully", null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));

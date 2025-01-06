@@ -5,16 +5,16 @@ import com.clothingstore.shop.dto.others.discount.CouponSummaryDTO;
 public class ConfirmDiscountResponseDTO {
 
     private boolean isValid;
-    private String discountType;
+    private String discountType; // store or platform
     private String reason;
     private CouponSummaryDTO coupon;
 
     // Getters and setters
-    public boolean isValid() {
+    public boolean getIsValid() {
         return isValid;
     }
 
-    public void setValid(boolean isValid) {
+    public void setIsValid(boolean isValid) {
         this.isValid = isValid;
     }
 

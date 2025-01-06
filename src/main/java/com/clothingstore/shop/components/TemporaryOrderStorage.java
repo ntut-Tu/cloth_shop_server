@@ -46,6 +46,7 @@ public class TemporaryOrderStorage {
     }
 
     public void confirmOrder(String orderId) {
+        logger.info("Finished or timed out order : {}", tempOrders.get(orderId));
         tempOrders.remove(orderId);
         logger.info("Confirmed order with ID: {}", orderId);
     }
