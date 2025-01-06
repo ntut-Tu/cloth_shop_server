@@ -52,6 +52,7 @@ public class OrderRepository {
                     .join(CUSTOMER).on(ORDER.FK_CUSTOMER_ID.eq(CUSTOMER.CUSTOMER_ID))
                     .leftOuterJoin(COUPON).on(ORDER.FK_SHIPPING_DISCOUNT_ID.eq(COUPON.COUPON_ID))
                     .where(CUSTOMER.FK_USER_ID.eq(userId))
+                    .orderBy(ORDER.ORDER_DATE.desc())
                     .limit(limit)
                     .offset(offset)
                     .fetch()
@@ -83,6 +84,7 @@ public class OrderRepository {
                         ORDER.DELIVER_TYPE)
                 .from(ORDER)
                 .leftOuterJoin(COUPON).on(ORDER.FK_SHIPPING_DISCOUNT_ID.eq(COUPON.COUPON_ID))
+                .orderBy(ORDER.ORDER_DATE.desc())
                 .limit(size)
                 .offset(offset)
                 .fetch()
@@ -202,6 +204,7 @@ public class OrderRepository {
                 )
                 .from("vendor_order_response_view")
                 .where(field("vendor_id").eq(vendorId))
+                .orderBy(field("order_date").desc())
                 .offset(offset)
                 .limit(size)
                 .fetchInto(VendorOrderResponseDTO.class);

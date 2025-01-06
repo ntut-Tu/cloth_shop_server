@@ -262,23 +262,34 @@ public class ProductRepository {
                 .execute();
     }
 
-    public void updateProductStatus(Integer vendorId, Integer productVariantId, Boolean updatedStatus) {
-        if(dsl.select(PRODUCT_VARIANT.PRODUCT_VARIANT_ID)
-                .from(PRODUCT_VARIANT)
-                .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
-                .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
-                .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
-                .and(VENDOR.VENDOR_ID.eq(vendorId))
-                .fetchOneInto(Integer.class)==null){
-            throw new IllegalArgumentException("Product variant not found");
+    public void updateProductStatus(Integer vendorId, Integer productVariantId, Boolean updatedStatus, String role) {
+        if(role.equals("admin")){
+            dsl.update(PRODUCT)
+                    .set(PRODUCT.IS_LIST, updatedStatus)
+                    .where(PRODUCT.PRODUCT_ID.eq(
+                            dsl.select(PRODUCT_VARIANT.FK_PRODUCT_ID)
+                                    .from(PRODUCT_VARIANT)
+                                    .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
+                    ))
+                    .execute();
+        }else {
+            if(dsl.select(PRODUCT_VARIANT.PRODUCT_VARIANT_ID)
+                    .from(PRODUCT_VARIANT)
+                    .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
+                    .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                    .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
+                    .and(VENDOR.VENDOR_ID.eq(vendorId))
+                    .fetchOneInto(Integer.class)==null){
+                throw new IllegalArgumentException("Product variant not found");
+            }
+            dsl.update(PRODUCT)
+                    .set(PRODUCT.IS_LIST, updatedStatus)
+                    .where(PRODUCT.PRODUCT_ID.eq(
+                            dsl.select(PRODUCT_VARIANT.FK_PRODUCT_ID)
+                                    .from(PRODUCT_VARIANT)
+                                    .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
+                    ))
+                    .execute();
         }
-        dsl.update(PRODUCT)
-                .set(PRODUCT.IS_LIST, updatedStatus)
-                .where(PRODUCT.PRODUCT_ID.eq(
-                        dsl.select(PRODUCT_VARIANT.FK_PRODUCT_ID)
-                                .from(PRODUCT_VARIANT)
-                                .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
-                ))
-                .execute();
     }
 }
