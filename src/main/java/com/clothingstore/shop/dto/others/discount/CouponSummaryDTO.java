@@ -1,7 +1,7 @@
 package com.clothingstore.shop.dto.others.discount;
 
 public class CouponSummaryDTO {
-    private String discountType;
+    private String discountType; // coupon type
     private boolean isList;
     private String code;
     private String startDate;

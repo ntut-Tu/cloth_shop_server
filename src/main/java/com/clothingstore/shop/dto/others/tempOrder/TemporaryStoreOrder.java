@@ -1,6 +1,7 @@
 package com.clothingstore.shop.dto.others.tempOrder;
 
 import com.clothingstore.shop.dto.others.discount.DiscountDetailsDTO;
+import com.clothingstore.shop.dto.others.discount.SeasonalDiscountDTO;
 import com.clothingstore.shop.dto.others.discount.SpecialDiscountDTO;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.DiscountRepository;
@@ -78,7 +79,7 @@ public class TemporaryStoreOrder {
     }
 
     public Integer getSeasonalDiscountId() throws SharedException {
-        if(discountDetails instanceof SpecialDiscountDTO) {
+        if(discountDetails instanceof SeasonalDiscountDTO) {
             return discountRepository.queryDiscountIdByCode(discountDetails.getCode());
         } else {
             return null;
