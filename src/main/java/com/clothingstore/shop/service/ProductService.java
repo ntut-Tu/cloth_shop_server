@@ -76,10 +76,15 @@ public class ProductService {
 
     public void updateProductStatus(String token, Integer productVariantId, Boolean updatedStatus) {
         Integer userId = jwtService.extractUserId(token);
-        if (!authService.checkUserExists(userId,"vendor")) {
+        String role = jwtService.extractRole(token);
+        if (!authService.checkUserExists(userId,"vendor") && !role.equals("admin")) {
             throw new IllegalArgumentException("User is not authorized to update product status.");
         }
-        productRepository.updateProductStatus(authService.getVendorId(userId),productVariantId,updatedStatus);
+        if(role.equals("admin")) {
+            productRepository.updateProductStatus(null,productVariantId,updatedStatus,role);
+            return;
+        }
+        productRepository.updateProductStatus(authService.getVendorId(userId),productVariantId,updatedStatus,role);
     }
 
 

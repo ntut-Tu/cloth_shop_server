@@ -20,8 +20,15 @@ public class ReviewRepository {
     public ReviewRepository(DSLContext dsl) {
         this.dsl = dsl;
     }
-    public AddReviewResponseDTO addReview(Integer userId, Integer productId, String comment, BigDecimal rating) throws Exception {
+    public AddReviewResponseDTO addReview(Integer userId, Integer orderItemId, String comment, BigDecimal rating) throws Exception {
         try {
+            Integer productId = dsl.select(PRODUCT_VARIANT.FK_PRODUCT_ID)
+                    .from(ORDER_ITEM)
+                    .leftOuterJoin(PRODUCT_VARIANT).on(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(ORDER_ITEM.FK_PRODUCT_VARIANT_ID))
+                    .where(ORDER_ITEM.ORDER_ITEM_ID.eq(orderItemId))
+                    .fetchOne()
+                    .into(Integer.class);
+
             Record product =dsl.select(PRODUCT.PRODUCT_ID)
                     .from(PRODUCT)
                     .where(PRODUCT.PRODUCT_ID.eq(productId))
