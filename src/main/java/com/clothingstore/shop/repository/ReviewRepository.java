@@ -62,7 +62,13 @@ public class ReviewRepository {
     public List<GetReviewResponseDTO> getProductReviews(Integer productId,Integer page) {
         try {
             Integer offset = (page - 1) * 5;
-            return dsl.select(REVIEW.REVIEW_ID, REVIEW.COMMENT, REVIEW.RATE, REVIEW.REVIEW_DATE, USERS.ACCOUNT)
+            return dsl.select(
+                            REVIEW.REVIEW_ID,
+                            REVIEW.COMMENT,
+                            REVIEW.RATE.as("rating"),
+                            REVIEW.REVIEW_DATE,
+                            USERS.ACCOUNT.as("customerName")
+                    )
                     .from(REVIEW)
                     .join(CUSTOMER).on(CUSTOMER.CUSTOMER_ID.eq(REVIEW.FK_CUSTOMER_ID))
                     .join(USERS).on(USERS.USER_ID.eq(CUSTOMER.FK_USER_ID))
