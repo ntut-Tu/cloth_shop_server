@@ -1,5 +1,6 @@
 package com.clothingstore.shop.controller;
 
+import com.clothingstore.shop.dto.request.coupon.UpdateCouponRequestDTO;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.response.coupon.DiscountDetailResponseDTO;
 import com.clothingstore.shop.dto.response.coupon.DiscountSummaryResponseDTO;
@@ -76,13 +77,13 @@ public class CouponController {
     public ResponseEntity<ApiResponseDTO<Boolean>> updateCoupon(
             HttpServletRequest request,
             @PathVariable Integer couponId,
-            @RequestBody Boolean isActive) {
+            @RequestBody UpdateCouponRequestDTO requestDTO) {
         try{
             String token = TokenUtils.extractTokenFromCookies(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            Boolean ret = couponService.updateCoupon(token, couponId, isActive);
+            Boolean ret = couponService.updateCoupon(token, couponId, requestDTO.getIsActive());
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Coupon updated successfully", ret));
         }catch (Exception e){
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));

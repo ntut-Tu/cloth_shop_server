@@ -86,6 +86,8 @@ public class RefundRepository {
             case "customer":
                 return dsl.update(REFUND_REQUEST)
                         .set(REFUND_REQUEST.STATUS_TYPE, "admin_pending")
+                        .set(REFUND_REQUEST.REQUEST_TARGET, "admin")
+                        .set(REFUND_REQUEST.REFUND_REASON, refundDetailResponseDTO.getRefund_reason())
                         .where(REFUND_REQUEST.REFUND_ID.eq(refundId))
                         .execute();
             default:
@@ -204,7 +206,7 @@ public class RefundRepository {
                     )
                     .from(REFUND_REQUEST)
                     .join(ORDER_ITEM).on(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(ORDER_ITEM.ORDER_ITEM_ID))
-                    .join(PRODUCT_VARIANT).on(ORDER_ITEM.ORDER_ITEM_ID.eq(ORDER_ITEM.FK_PRODUCT_VARIANT_ID))
+                    .join(PRODUCT_VARIANT).on(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(ORDER_ITEM.FK_PRODUCT_VARIANT_ID))
                     .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
                     .where(REFUND_REQUEST.REQUEST_TARGET.eq("admin"))
                     .fetchInto(RefundListSumResponse.class);

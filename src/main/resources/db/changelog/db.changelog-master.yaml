@@ -112,6 +112,9 @@ databaseChangeLog:
   - include:
       file: tables/alert/changelog-alert-ledger_entry.yaml
       relativeToChangelogFile: true
+  - include:
+      file: views/changelog-fix-view-vendor-order.yaml
+      relativeToChangelogFile: true
 #------------------TRIGGER AFTER FIX------------------
   - include:
       file: triggers/changelog-trigger-init-ledger.yaml

@@ -186,7 +186,7 @@ public class OrderRepository {
     }
 
     public List<VendorOrderResponseDTO> findStoreOrderSummariesByVendorId(Integer vendorId, int size, int offset) {
-        // Reference the tables/views
+        // Reference the updated views
         Table<?> vendorOrderResponseView = table("vendor_order_response_view");
         Table<?> vendorProductVariantView = table("vendor_product_variant_view");
         Table<?> vendorUserOrderView = table("vendor_user_order_view");
@@ -209,11 +209,9 @@ public class OrderRepository {
                                                         field("vpvv.quantity").as("quantity")
                                                 )
                                                         .from(vendorProductVariantView.as("vpvv"))
-                                                        .where(field("vpvv.product_variant_id").in(
-                                                                select(field("vuov.product_variant_id"))
-                                                                        .from(vendorUserOrderView.as("vuov"))
-                                                                        .where(field("vuov.store_order_id").eq(field("vorv.store_order_id")))
-                                                        ))
+                                                        .where(
+                                                                field("vpvv.store_order_id").eq(field("vorv.store_order_id"))
+                                                        )
                                         ).as("productVariants")
                                 )
                                         .from(vendorUserOrderView.as("vuov"))
@@ -227,6 +225,5 @@ public class OrderRepository {
                 .offset(offset)
                 .fetchInto(VendorOrderResponseDTO.class);
     }
-
 
 }
