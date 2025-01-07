@@ -50,7 +50,7 @@ public class RefundRepository {
     public Integer updateRefund(RefundDetailResponseDTO refundDetailResponseDTO, Integer refundId, Integer userId, String role) {
         switch (role){
             case "vendor":
-                if(refundDetailResponseDTO.getVendor_response().equals("vendor_rejected")) {
+                if(refundDetailResponseDTO.getStatus_type().toLowerCase().matches(".*reject.*")) {
                     return dsl.update(REFUND_REQUEST)
                             .set(REFUND_REQUEST.VENDOR_RESPONSE, refundDetailResponseDTO.getVendor_response())
                             .set(REFUND_REQUEST.STATUS_TYPE, "vendor_rejected")
@@ -67,7 +67,7 @@ public class RefundRepository {
                             .execute();
                 }
             case "admin":
-                if(refundDetailResponseDTO.getAdmin_response().equals("admin_rejected")){
+                if(refundDetailResponseDTO.getStatus_type().toLowerCase().matches(".*reject.*")){
                     return dsl.update(REFUND_REQUEST)
                             .set(REFUND_REQUEST.ADMIN_RESPONSE, refundDetailResponseDTO.getAdmin_response())
                             .set(REFUND_REQUEST.STATUS_TYPE, "admin_rejected")
@@ -160,21 +160,18 @@ public class RefundRepository {
             return dsl.select(
                             REFUND_REQUEST.REFUND_ID,
                             REFUND_REQUEST.FK_ORDER_ITEM_ID.as("order_item_id"),
-                            PRODUCT.NAME.as("item_name"),
                             REFUND_REQUEST.STATUS_TYPE.as("refund_status"),
-                            REFUND_REQUEST.IS_CLOSED
+                            REFUND_REQUEST.IS_CLOSED,
+                            PRODUCT.NAME.as("item_name")
                     )
                     .from(REFUND_REQUEST)
-                    .join(PRODUCT_VARIANT).on(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(PRODUCT_VARIANT.PRODUCT_VARIANT_ID))
+                    .join(ORDER_ITEM).on(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(ORDER_ITEM.ORDER_ITEM_ID))
+                    .join(PRODUCT_VARIANT).on(ORDER_ITEM.FK_PRODUCT_VARIANT_ID.eq(PRODUCT_VARIANT.PRODUCT_VARIANT_ID))
                     .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
-                    .where(REFUND_REQUEST.FK_ORDER_ITEM_ID.in(
-                            dsl.select(ORDER_ITEM.ORDER_ITEM_ID)
-                                    .from(ORDER_ITEM)
-                                    .where(ORDER_ITEM.FK_ORDER_ID.in(
-                                            dsl.select(ORDER.ORDER_ID)
-                                                    .from(ORDER)
-                                                    .where(ORDER.FK_CUSTOMER_ID.eq(customerId))
-                                    ))
+                    .where(ORDER_ITEM.FK_ORDER_ID.in(
+                            dsl.select(ORDER.ORDER_ID)
+                                    .from(ORDER)
+                                    .where(ORDER.FK_CUSTOMER_ID.eq(customerId))
                     ))
                     .fetchInto(RefundListSumResponse.class);
         } else if (role.equals("vendor")) {
@@ -184,24 +181,18 @@ public class RefundRepository {
                     .fetchOne()
                     .getValue(VENDOR.VENDOR_ID);
             return dsl.select(
-                        REFUND_REQUEST.REFUND_ID,
-                        REFUND_REQUEST.FK_ORDER_ITEM_ID.as("order_item_id"),
-                        PRODUCT.NAME.as("item_name"),
-                        REFUND_REQUEST.STATUS_TYPE.as("refund_status"),
-                        REFUND_REQUEST.IS_CLOSED
+                            REFUND_REQUEST.REFUND_ID,
+                            REFUND_REQUEST.FK_ORDER_ITEM_ID.as("order_item_id"),
+                            PRODUCT.NAME.as("item_name"),
+                            REFUND_REQUEST.STATUS_TYPE.as("refund_status"),
+                            REFUND_REQUEST.IS_CLOSED
                     )
                     .from(REFUND_REQUEST)
-                    .join(PRODUCT_VARIANT).on(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(PRODUCT_VARIANT.PRODUCT_VARIANT_ID))
+                    .join(ORDER_ITEM).on(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(ORDER_ITEM.ORDER_ITEM_ID))
+                    .join(PRODUCT_VARIANT).on(ORDER_ITEM.FK_PRODUCT_VARIANT_ID.eq(PRODUCT_VARIANT.PRODUCT_VARIANT_ID))
                     .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
-                    .where(REFUND_REQUEST.FK_ORDER_ITEM_ID.in(
-                            dsl.select(ORDER_ITEM.ORDER_ITEM_ID)
-                                    .from(ORDER_ITEM)
-                                    .where(ORDER_ITEM.FK_STORE_ORDER_ID.in(
-                                            dsl.select(STORE_ORDER.STORE_ORDER_ID)
-                                                    .from(STORE_ORDER)
-                                                    .where(STORE_ORDER.FK_VENDOR_ID.eq(vendorId))
-                                    ))
-                    ))
+                    .join(STORE_ORDER).on(ORDER_ITEM.FK_STORE_ORDER_ID.eq(STORE_ORDER.STORE_ORDER_ID))
+                    .where(STORE_ORDER.FK_VENDOR_ID.eq(vendorId))
                     .fetchInto(RefundListSumResponse.class);
         } else if (role.equals("admin")) {
             return dsl.select(
@@ -212,7 +203,8 @@ public class RefundRepository {
                             REFUND_REQUEST.IS_CLOSED
                     )
                     .from(REFUND_REQUEST)
-                    .join(PRODUCT_VARIANT).on(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(PRODUCT_VARIANT.PRODUCT_VARIANT_ID))
+                    .join(ORDER_ITEM).on(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(ORDER_ITEM.ORDER_ITEM_ID))
+                    .join(PRODUCT_VARIANT).on(ORDER_ITEM.ORDER_ITEM_ID.eq(ORDER_ITEM.FK_PRODUCT_VARIANT_ID))
                     .join(PRODUCT).on(PRODUCT_VARIANT.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
                     .where(REFUND_REQUEST.REQUEST_TARGET.eq("admin"))
                     .fetchInto(RefundListSumResponse.class);

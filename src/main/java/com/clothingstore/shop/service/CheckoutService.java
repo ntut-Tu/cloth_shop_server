@@ -67,37 +67,35 @@ public class CheckoutService {
         tempOrder.setCustomerId(customerId);
         tempOrder.setStoreOrders(new ArrayList<>());
 
-        // 初始化总计
         Integer totalAmount = 0;
         Integer subtotal = 0;
         Integer totalStoreDiscount = 0;
-        // 计算运费折扣
+        // 計算折扣
         DiscountDetailsDTO shippingDiscount = discountService.getShippingDiscount(requestDTO.getShipping_discount_code(),customerId);
         Integer shippingDiscountAmount = discountService.calculateShippingDiscount(shippingDiscount, checkoutRepository.queryShippingFee());
-        // 遍历商店订单
+        // for 所有商家訂單
         for (CheckoutBaseStoreOrderModel storeOrder : requestDTO.getStore_orders()) {
             TemporaryStoreOrder tempStoreOrder = new TemporaryStoreOrder(discountRepository);
             tempStoreOrder.setStoreId(storeOrder.getStore_id());
             tempStoreOrder.setProductVariants(new ArrayList<>());
 
-            // 初始化商店总价
             Integer storeSubtotal = 0;
             Integer storeDiscountAmount = 0;
 
-            // 获取商店折扣
+            // 取得商店折扣
             DiscountDetailsDTO storeDiscount = discountService.getStoreDiscount(storeOrder,customerId);
             if(storeDiscount != null){
                 tempStoreOrder.setDiscountDetails(storeDiscount);
             }
-            // 遍历商品
+            // for 商家訂單內的order_item
             for (CheckoutBaseProductVariantModel productVariant : storeOrder.getProduct_variants()) {
                 Integer unitPrice = inventoryRepository.getUnitPrice(productVariant.getProduct_variant_id());
                 Integer productTotal = unitPrice * productVariant.getQuantity();
 
-                // 累加商店小计
+                // 累加商店金額
                 storeSubtotal += productTotal;
 
-                // 构建临时商品数据
+                // 建立物件
                 TemporaryProductVariant tempVariant = new TemporaryProductVariant();
                 tempVariant.setProductVariantId(productVariant.getProduct_variant_id());
                 tempVariant.setUnitPrice(unitPrice);
@@ -106,26 +104,26 @@ public class CheckoutService {
                 tempStoreOrder.getProductVariants().add(tempVariant);
             }
 
-            // 计算商店折扣金额
+            // 計算商店折扣
             if (storeDiscount != null) {
                 storeDiscountAmount = discountService.calculateStoreDiscount(storeOrder,customerId);
             }
 
-            // 设置商店总计和折扣
+            // 設定商店訂單金額
             tempStoreOrder.setSubtotal(storeSubtotal);
             tempStoreOrder.setDiscountAmount(storeDiscountAmount);
             tempStoreOrder.setTotalAmount(storeSubtotal - storeDiscountAmount);
             totalStoreDiscount+=storeDiscountAmount;
 
-            // 更新总计和小计
+            // 累加訂單總金額
             subtotal += storeSubtotal;
             totalAmount += storeSubtotal - storeDiscountAmount;
 
-            // 添加商店订单到临时订单
+            // 加入臨時訂單
             tempOrder.getStoreOrders().add(tempStoreOrder);
         }
 
-        // 更新临时订单总计
+        // 更新訂單
         totalAmount += checkoutRepository.queryShippingFee();
         totalAmount -= shippingDiscountAmount;
         tempOrder.setTotalAmount(totalAmount);

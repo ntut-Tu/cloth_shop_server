@@ -204,7 +204,7 @@ public class OrderRepository {
                 )
                 .from("vendor_order_response_view")
                 .where(field("vendor_id").eq(vendorId))
-                .orderBy(field("order_date").desc())
+                .orderBy(field("store_order_id").desc())
                 .offset(offset)
                 .limit(size)
                 .fetchInto(VendorOrderResponseDTO.class);

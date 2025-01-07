@@ -67,17 +67,17 @@ public class DiscountService {
     public Integer calculateStoreDiscount(CheckoutBaseStoreOrderModel storeOrder,Integer customerId) throws SharedException {
         Integer storeDiscountAmount = 0;
         List<CheckoutBaseProductVariantModel> productVariants = storeOrder.getProduct_variants();
-        // 获取特殊折扣
+        // 取得特殊折扣
         if (storeOrder.getSpecial_discount_code() != null) {
             DiscountDetailsDTO storeDiscount = discountRepository.queryDiscountDetails(discountRepository.queryDiscountIdByCode(storeOrder.getSpecial_discount_code()), CouponType.SPECIAL_DISCOUNT,customerId);
             if (storeDiscount instanceof SpecialDiscountDTO) {
-                // 提取特殊折扣相关信息
+                // init
                 Integer buyQuantity = ((SpecialDiscountDTO) storeDiscount).getBuyQuantity();
                 Integer buyVariantId = ((SpecialDiscountDTO) storeDiscount).getBuyVariantId();
                 Integer giftQuantity = ((SpecialDiscountDTO) storeDiscount).getGiftQuantity();
                 Integer giftVariantId = ((SpecialDiscountDTO) storeDiscount).getGiftVariantId();
 
-                // 检查是否符合买赠条件
+                // 檢查
                 boolean hasBuyItem = false;
                 boolean hasGiftItem = false;
                 for (CheckoutBaseProductVariantModel productVariant : productVariants) {
@@ -89,9 +89,13 @@ public class DiscountService {
                     }
                 }
 
-                // 如果满足购买条件但没有赠品，计算赠品价格
+                // 若沒有包含贈品
                 if (hasBuyItem && (!hasGiftItem || productVariants.stream().noneMatch(pv -> pv.getProduct_variant_id() == giftVariantId && pv.getQuantity() >= giftQuantity))) {
-
+                    Integer giftUnitPrice = inventoryRepository.getUnitPrice(giftVariantId);
+                    if (giftUnitPrice != null) {
+                        storeDiscountAmount += giftUnitPrice * giftQuantity;
+                    }
+                }else if(hasBuyItem && hasGiftItem){
                     Integer giftUnitPrice = inventoryRepository.getUnitPrice(giftVariantId);
                     if (giftUnitPrice != null) {
                         storeDiscountAmount += giftUnitPrice * giftQuantity;
@@ -100,11 +104,11 @@ public class DiscountService {
             }
         }
 
-        // 获取季节性折扣
+        // 普通折扣
         if (storeOrder.getSeasonal_discount_code() != null) {
             DiscountDetailsDTO storeDiscount = discountRepository.queryDiscountDetails(discountRepository.queryDiscountIdByCode(storeOrder.getSeasonal_discount_code()), CouponType.SEASONAL_DISCOUNT,customerId);
             if (storeDiscount != null) {
-                // 计算折扣金额（按比例或固定金额）
+                // 計算折扣金額
                 Integer storeSubtotal = productVariants.stream()
                         .mapToInt(product -> {
                             Integer unitPrice = inventoryRepository.getUnitPrice(product.getProduct_variant_id());

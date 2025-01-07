@@ -34,6 +34,12 @@ public class ProductRepository {
         this.dsl = dsl;
     }
 
+    private static String capitalize(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
+    }
 
     /**
      * 取得特定產品的詳細資訊。
@@ -137,6 +143,7 @@ public class ProductRepository {
                                     Arrays.stream(CategorizedProduct.values())
                                             .map(Enum::name)
                                             .map(String::toLowerCase)
+                                            .map(ProductRepository::capitalize)
                                             .collect(Collectors.toList())
                             )
                     );
