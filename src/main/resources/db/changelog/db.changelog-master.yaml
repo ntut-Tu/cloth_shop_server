@@ -132,3 +132,6 @@ databaseChangeLog:
   - include:
       file: insert/changelog-insert-user.yaml
       relativeToChangelogFile: true
+  - include:
+      file: insert/changelog-insert-fake-product.yaml
+      relativeToChangelogFile: true
