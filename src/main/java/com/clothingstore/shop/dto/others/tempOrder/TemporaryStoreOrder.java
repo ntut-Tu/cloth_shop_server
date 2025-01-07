@@ -16,7 +16,7 @@ public class TemporaryStoreOrder {
     private Integer subtotal;
     private Integer discountAmount;
     private Integer totalAmount;
-    private DiscountDetailsDTO discountDetails; // 折扣详情
+    private DiscountDetailsDTO discountDetails;
 
     public TemporaryStoreOrder(DiscountRepository discountRepository) {
         this.discountRepository = discountRepository;

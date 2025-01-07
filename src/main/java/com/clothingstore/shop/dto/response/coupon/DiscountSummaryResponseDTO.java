@@ -1,12 +1,12 @@
 package com.clothingstore.shop.dto.response.coupon;
 
 public class DiscountSummaryResponseDTO {
-    private Integer discountId; // 唯一标识符
-    private String discountType; // 优惠类型 (e.g., "Seasonal", "Shipping", "Special")
-    private String code; // 优惠代码
-    private String startDate; // 开始日期
-    private String endDate; // 结束日期
-    private boolean isActive; // 当前优惠是否生效
+    private Integer discountId;
+    private String discountType; //   "Seasonal", "Shipping", "Special"
+    private String code;
+    private String startDate;
+    private String endDate;
+    private boolean isActive;
 
     // Getters and Setters
     public Integer getDiscountId() {
