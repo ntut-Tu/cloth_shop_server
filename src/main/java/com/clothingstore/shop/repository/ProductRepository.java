@@ -164,7 +164,12 @@ public class ProductRepository {
                     baseCondition=baseCondition.and(PRODUCT.FK_VENDOR_ID.eq(vendorId));
                     break;
                 default:
-                    baseCondition=baseCondition.and(PRODUCT.IS_LIST.isTrue());
+                    baseCondition=baseCondition.and(PRODUCT.IS_LIST.isTrue())
+                            .and(PRODUCT.PRODUCT_ID.in(dsl.select(PRODUCT.PRODUCT_ID)
+                                    .from(PRODUCT)
+                                    .join(VENDOR).on(VENDOR.VENDOR_ID.eq(PRODUCT.FK_VENDOR_ID))
+                                    .join(USERS).on(USERS.USER_ID.eq(VENDOR.FK_USER_ID))
+                                    .where(USERS.IS_ACTIVE.isTrue())));
                     break;
             }
             // 計算搜尋總數

@@ -132,7 +132,7 @@ public class CheckoutService {
         if(shippingDiscount != null){
             tempOrder.setShippingDiscountCode(shippingDiscount.getCode());
         }
-        tempOrder.setShippingFee(checkoutRepository.queryShippingFee());
+        tempOrder.setShippingFee(checkoutRepository.queryShippingFee()-shippingDiscountAmount);
         tempOrder.setTotalStoreDiscountAmount(totalStoreDiscount);
         return tempOrder;
     }

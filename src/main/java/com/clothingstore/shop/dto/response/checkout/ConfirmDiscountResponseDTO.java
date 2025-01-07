@@ -1,13 +1,13 @@
 package com.clothingstore.shop.dto.response.checkout;
 
-import com.clothingstore.shop.dto.others.discount.CouponSummaryDTO;
+import com.clothingstore.shop.dto.others.discount.DiscountSummaryModel;
 
 public class ConfirmDiscountResponseDTO {
 
     private boolean isValid;
     private String discountType; // store or platform
     private String reason;
-    private CouponSummaryDTO coupon;
+    private DiscountSummaryModel coupon;
 
     // Getters and setters
     public boolean getIsValid() {
@@ -34,11 +34,11 @@ public class ConfirmDiscountResponseDTO {
         this.reason = reason;
     }
 
-    public CouponSummaryDTO getCoupon() {
+    public DiscountSummaryModel getCoupon() {
         return coupon;
     }
 
-    public void setCoupon(CouponSummaryDTO coupon) {
+    public void setCoupon(DiscountSummaryModel coupon) {
         this.coupon = coupon;
     }
 }

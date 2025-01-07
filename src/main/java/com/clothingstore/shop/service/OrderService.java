@@ -16,11 +16,13 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final JwtService jwtService;
+    private final AuthService authService;
 
     @Autowired
-    public OrderService(OrderRepository orderRepository, JwtService jwtService) {
+    public OrderService(OrderRepository orderRepository, JwtService jwtService, AuthService authService) {
         this.orderRepository = orderRepository;
         this.jwtService = jwtService;
+        this.authService = authService;
     }
 
     // 取得使用者訂單列表（訂單簡介）
@@ -80,6 +82,6 @@ public class OrderService {
     public List<VendorOrderResponseDTO> getVendorStoreOrders(String token, int page, int size) throws SharedException {
         Integer userId = jwtService.extractUserId(token);
         int offset = (page - 1) * size;
-        return orderRepository.findStoreOrderSummariesByVendorId(userId, size, offset);
+        return orderRepository.findStoreOrderSummariesByVendorId(authService.getVendorId(userId), size, offset);
     }
 }

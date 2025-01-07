@@ -143,7 +143,7 @@ public class DiscountRepository {
                     throw new SharedException("Invalid discount type");
             }
 
-            CouponSummaryDTO couponSummary = new CouponSummaryDTO();
+            DiscountSummaryModel couponSummary = new DiscountSummaryModel();
             couponSummary.setCouponId(discountId);
             couponSummary.setDiscountDetails(discountDetails);
             couponSummary.setCode(record.get(COUPON.CODE));

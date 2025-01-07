@@ -13,7 +13,8 @@ import com.clothingstore.shop.enums.ShipStatus;
 import com.clothingstore.shop.enums.StoreOrderStatus;
 import com.clothingstore.shop.exceptions.SharedException;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jooq.DSLContext;
+import org.jooq.*;
+import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -22,8 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.clothingstore.shop.jooq.Tables.*;
-import static org.jooq.impl.DSL.and;
-import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.*;
 
 @Repository
 public class OrderRepository {
@@ -43,7 +43,7 @@ public class OrderRepository {
                             ORDER.TOTAL_AMOUNT,
                             ORDER.PAY_STATUS,
                             ORDER.SHIP_STATUS,
-                            COUPON.CODE,
+                            COUPON.CODE.as("shippingDiscountCode"),
                             ORDER.CREDIT_CARD_LAST_FOUR,
                             ORDER.PAYMENT_METHOD,
                             ORDER.SHIPPING_ADDRESS,
@@ -185,62 +185,47 @@ public class OrderRepository {
                 .execute();
     }
 
-    public List<VendorOrderResponseDTO> findStoreOrderSummariesByVendorId(Integer userId, int size, int offset) {
-        // 查詢 vendor_id
-        Integer vendorId = dsl.select(VENDOR.VENDOR_ID)
-                .from(VENDOR)
-                .where(VENDOR.FK_USER_ID.eq(userId))
-                .fetchOneInto(Integer.class);
+    public List<VendorOrderResponseDTO> findStoreOrderSummariesByVendorId(Integer vendorId, int size, int offset) {
+        // Reference the tables/views
+        Table<?> vendorOrderResponseView = table("vendor_order_response_view");
+        Table<?> vendorProductVariantView = table("vendor_product_variant_view");
+        Table<?> vendorUserOrderView = table("vendor_user_order_view");
 
-        if (vendorId == null) {
-            throw new IllegalArgumentException("Vendor not found");
-        }
-        System.out.println("Current SQLDialect: " + dsl.configuration().dialect());
-        List<VendorOrderResponseDTO> storeOrders = dsl.select(
-                        field("store_order_id"),
-                        field("total_amount"),
-                        field("store_order_status"),
-                        field("order_date")
+        // Query for VendorOrderResponseDTO
+        return dsl.select(
+                        field("vorv.store_order_id").as("storeOrderId"),
+                        field("vorv.total_amount").as("totalAmount"),
+                        field("vorv.store_order_status").as("storeOrderStatus"),
+                        field("vorv.order_date").as("orderDate"),
+                        multiset(
+                                select(
+                                        field("vuov.product_id").as("productId"),
+                                        field("vuov.product_name").as("productName"),
+                                        multiset(
+                                                select(
+                                                        field("vpvv.product_variant_id").as("productVariantId"),
+                                                        field("vpvv.color").as("color"),
+                                                        field("vpvv.size").as("size"),
+                                                        field("vpvv.quantity").as("quantity")
+                                                )
+                                                        .from(vendorProductVariantView.as("vpvv"))
+                                                        .where(field("vpvv.product_variant_id").in(
+                                                                select(field("vuov.product_variant_id"))
+                                                                        .from(vendorUserOrderView.as("vuov"))
+                                                                        .where(field("vuov.store_order_id").eq(field("vorv.store_order_id")))
+                                                        ))
+                                        ).as("productVariants")
+                                )
+                                        .from(vendorUserOrderView.as("vuov"))
+                                        .where(field("vuov.store_order_id").eq(field("vorv.store_order_id")))
+                        ).as("orders")
                 )
-                .from("vendor_order_response_view")
-                .where(field("vendor_id").eq(vendorId))
-                .orderBy(field("store_order_id").desc())
-                .offset(offset)
+                .from(vendorOrderResponseView.as("vorv"))
+                .where(field("vorv.vendor_id").eq(vendorId))
+                .orderBy(field("vorv.store_order_id").desc())
                 .limit(size)
+                .offset(offset)
                 .fetchInto(VendorOrderResponseDTO.class);
-
-        // 查詢 vendor_user_order_view 並組裝到每個 storeOrder
-        for (VendorOrderResponseDTO storeOrder : storeOrders) {
-            Integer storeOrderId = storeOrder.getStoreOrderId();
-
-            List<VendorUserOrderDTO> userOrders = dsl.select(
-                            field("product_id"),
-                            field("product_name"),
-                            field("product_variant_id")
-                    )
-                    .from("vendor_user_order_view")
-                    .where(field("store_order_id").eq(storeOrderId))
-                    .fetchInto(VendorUserOrderDTO.class);
-
-            // 查詢 vendor_product_variant_view 並組裝到每個 userOrder
-            for (VendorUserOrderDTO userOrder : userOrders) {
-                Integer productId = userOrder.getProductId();
-
-                List<VendorProductVariantDTO> productVariants = dsl.select(
-                                field("product_variant_id"),
-                                field("color"),
-                                field("size"),
-                                field("quantity")
-                        )
-                        .from("vendor_product_variant_view")
-                        .where(field("product_id").eq(productId))
-                        .fetchInto(VendorProductVariantDTO.class);
-
-                userOrder.setProductVariants(productVariants);
-            }
-            storeOrder.setOrders(userOrders);
-        }
-        return storeOrders;
     }
 
 
