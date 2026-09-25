@@ -1,0 +1,5 @@
+**
+!target/
+target/*
+!target/clothing-shop.jar
+!Dockerfile
