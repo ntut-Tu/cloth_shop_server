@@ -1,0 +1,92 @@
+package com.clothingstore.shop.repository;
+
+import com.clothingstore.shop.dto.response.review.AddReviewResponseDTO;
+import com.clothingstore.shop.dto.response.review.GetReviewResponseDTO;
+import org.hibernate.type.descriptor.jdbc.TimestampWithTimeZoneJdbcType;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
+import static com.clothingstore.shop.jooq.Tables.*;
+
+@Repository
+public class ReviewRepository {
+    private final DSLContext dsl;
+
+    public ReviewRepository(DSLContext dsl) {
+        this.dsl = dsl;
+    }
+    public AddReviewResponseDTO addReview(Integer userId, Integer orderItemId, String comment, BigDecimal rating) throws Exception {
+        try {
+            Integer productId = dsl.select(PRODUCT_VARIANT.FK_PRODUCT_ID)
+                    .from(ORDER_ITEM)
+                    .leftOuterJoin(PRODUCT_VARIANT).on(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(ORDER_ITEM.FK_PRODUCT_VARIANT_ID))
+                    .where(ORDER_ITEM.ORDER_ITEM_ID.eq(orderItemId))
+                    .fetchOne()
+                    .into(Integer.class);
+
+            Record product =dsl.select(PRODUCT.PRODUCT_ID)
+                    .from(PRODUCT)
+                    .where(PRODUCT.PRODUCT_ID.eq(productId))
+                    .fetchOne();
+            Integer customer_id = dsl.select(CUSTOMER.CUSTOMER_ID)
+                    .from(CUSTOMER)
+                    .join(USERS).on(USERS.USER_ID.eq(CUSTOMER.FK_USER_ID))
+                    .where(USERS.USER_ID.eq(userId))
+                    .fetchOne()
+                    .into(Integer.class);
+            if(product != null){
+                boolean isReviewExist = dsl.fetchExists(REVIEW, REVIEW.FK_CUSTOMER_ID.eq(customer_id).and(REVIEW.FK_PRODUCT_ID.eq(productId)));
+                if(isReviewExist){
+                    throw new IllegalArgumentException("Review already exists.");
+                }
+                return dsl.insertInto(REVIEW)
+                        .set(REVIEW.FK_CUSTOMER_ID, customer_id)
+                        .set(REVIEW.FK_PRODUCT_ID, productId)
+                        .set(REVIEW.COMMENT, comment)
+                        .set(REVIEW.RATE, rating)
+                        .returning(REVIEW.REVIEW_ID, REVIEW.COMMENT)
+                        .fetchOneInto(AddReviewResponseDTO.class);
+            }else {
+                throw new IllegalArgumentException("Product not found.");
+            }
+        }catch (Exception e){
+            throw e;
+        }
+    }
+
+    public List<GetReviewResponseDTO> getProductReviews(Integer productId,Integer page) {
+        try {
+            Integer offset = (page - 1) * 5;
+            return dsl.select(
+                            REVIEW.REVIEW_ID,
+                            REVIEW.COMMENT,
+                            REVIEW.RATE.as("rating"),
+                            REVIEW.REVIEW_DATE,
+                            USERS.ACCOUNT.as("customerName")
+                    )
+                    .from(REVIEW)
+                    .join(CUSTOMER).on(CUSTOMER.CUSTOMER_ID.eq(REVIEW.FK_CUSTOMER_ID))
+                    .join(USERS).on(USERS.USER_ID.eq(CUSTOMER.FK_USER_ID))
+                    .where(REVIEW.FK_PRODUCT_ID.eq(productId))
+                    .orderBy(REVIEW.REVIEW_DATE.desc())
+                    .limit(5)
+                    .offset(offset)
+                    .fetchInto(GetReviewResponseDTO.class);
+        }catch (Exception e){
+            throw e;
+        }
+    }
+
+    public Boolean isReviewExist(Integer customerId, Integer productId) {
+        try {
+            return dsl.fetchExists(REVIEW, REVIEW.FK_CUSTOMER_ID.eq(customerId).and(REVIEW.FK_PRODUCT_ID.eq(productId)));
+        }catch (Exception e){
+            throw e;
+        }
+    }
+}

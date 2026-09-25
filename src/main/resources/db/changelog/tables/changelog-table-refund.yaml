@@ -1,0 +1,89 @@
+databaseChangeLog:
+  - changeSet:
+      id: refund-1
+      author: quinn
+      changes:
+        - createTable:
+            tableName: refund_request
+            columns:
+              - column:
+                  name: refund_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: fk_order_item_id
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: request_target # admin or vendor
+                  type: varchar(31)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_type  # vendor_pending, vendor_approved, vendor_rejected, admin_pending, admin_approved, admin_rejected
+                  type: varchar(255)
+                  constraints:
+                      nullable: false
+              - column:
+                  name: is_closed  # true or false
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: refund_reason  # reason for refund
+                  type: text
+                  constraints:
+                      nullable: false
+              - column:
+                  name: vendor_response
+                  type: text
+                  constraints:
+                      nullable: true
+              - column:
+                    name: admin_response
+                    type: text
+                    constraints:
+                        nullable: true
+              - column:
+                  name: created_at
+                  type: java.sql.types.timestamp_with_timezone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: java.sql.types.timestamp_with_timezone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                    name: fk_admin_id
+                    type: integer
+                    constraints:
+                        nullable: true
+              - column:
+                    name: fk_vendor_id
+                    type: integer
+                    constraints:
+                        nullable: true
+        - addForeignKeyConstraint:
+            baseTableName: refund_request
+            baseColumnNames: fk_order_item_id
+            constraintName: fk_refund_order_item_id
+            referencedTableName: order_item
+            referencedColumnNames: order_item_id
+        - addForeignKeyConstraint:
+            baseTableName: refund_request
+            baseColumnNames: fk_admin_id
+            constraintName: fk_refund_admin_id
+            referencedTableName: admin
+            referencedColumnNames: admin_id
+        - addForeignKeyConstraint:
+            baseTableName: refund_request
+            baseColumnNames: fk_vendor_id
+            constraintName: fk_refund_vendor_id
+            referencedTableName: vendor
+            referencedColumnNames: vendor_id

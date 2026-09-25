@@ -23,6 +23,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: total_price
+                  type: integer
+                  constraints:
+                      nullable: false
+              - column:
                   name: fk_product_variant_id
                   type: integer
                   constraints:

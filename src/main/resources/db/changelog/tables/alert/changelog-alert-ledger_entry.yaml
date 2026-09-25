@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: vendor_ledger_entry_fix
+      author: quinn
+      changes:
+        - dropNotNullConstraint:
+            tableName: vendor_ledger_entry
+            columnName: store_order_id
+            columnDataType: INTEGER
+        - dropNotNullConstraint:
+            tableName: platform_ledger_entry
+            columnName: order_id
+            columnDataType: INTEGER

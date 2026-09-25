@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-randomUser-products
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - onError: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              -- 添加 randomUser2 的商品
+              INSERT INTO product (name, description, total_sales, rate, image_url, category, fk_vendor_id)
+              VALUES 
+              ('Vendor2 Cloth', 'RandomUser2 Product Description 1', 0, 0, '/assets/images/new.jpg', 'Cloth', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'randomUser2')),
+              ('Vendor2 Bag', 'RandomUser2 Product Description 2', 0, 0, '/assets/images/new.jpg', 'Bag', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'randomUser2'));
+
+              -- 添加 randomUser5 的商品
+              INSERT INTO product (name, description, total_sales, rate, image_url, category, fk_vendor_id)
+              VALUES 
+              ('Fake Product1', 'RandomUser5 Product Description 1', 0, 0, '/assets/images/new.jpg', 'Cloth', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'randomUser5')),
+              ('Fake Product2', 'RandomUser5 Product Description 1', 0, 0, '/assets/images/new.jpg', 'Cloth', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'randomUser5')),
+              ('Fake Product3', 'RandomUser5 Product Description 1', 0, 0, '/assets/images/new.jpg', 'Cloth', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'randomUser5')),
+              ('Fake Product4', 'RandomUser5 Product Description 1', 0, 0, '/assets/images/new.jpg', 'Cloth', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'randomUser5')),
+              ('Fake Product5', 'RandomUser5 Product Description 1', 0, 0, '/assets/images/new.jpg', 'Cloth', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'randomUser5')),
+              ('Fake Product6', 'RandomUser5 Product Description 1', 0, 0, '/assets/images/new.jpg', 'Cloth', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'randomUser5'));
+
+              -- 添加商品變體
+              INSERT INTO product_variant (color, stock, size, price, fk_product_id, reserved_stock)
+              VALUES
+              ('紅色', 100, 'S', 300, (SELECT product_id FROM product WHERE name = 'Vendor2 Cloth'), 0),
+              ('藍色', 100, 'M', 300, (SELECT product_id FROM product WHERE name = 'Vendor2 Cloth'), 0);
+
+              INSERT INTO product_variant (color, stock, size, price, fk_product_id, reserved_stock)
+              VALUES
+              ('黑色', 80, 'XXL', 100, (SELECT product_id FROM product WHERE name = 'Fake Product1'), 0),
+              ('棕色', 80, 'XXL', 100, (SELECT product_id FROM product WHERE name = 'Fake Product2'), 0),
+              ('黑色', 80, 'XXL', 100, (SELECT product_id FROM product WHERE name = 'Fake Product3'), 0),
+              ('黑色', 80, 'XXL', 100, (SELECT product_id FROM product WHERE name = 'Fake Product4'), 0),
+              ('黑色', 80, 'XXL', 100, (SELECT product_id FROM product WHERE name = 'Fake Product5'), 0),
+              ('黑色', 80, 'XXL', 100, (SELECT product_id FROM product WHERE name = 'Fake Product6'), 0);

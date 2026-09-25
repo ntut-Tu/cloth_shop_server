@@ -55,11 +55,86 @@ databaseChangeLog:
       file: tables/changelog-table-order_item.yaml
       relativeToChangelogFile: true
   - include:
-        file: tables/changelog-table-ledger_entry.yaml
+      file: tables/changelog-table-ledger_entry.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-platform_ledger_entry.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-vendor_ledger_entry.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-refund.yaml
+      relativeToChangelogFile: true
+#------------------INDEXES------------------
+  - include:
+      file: index/changelog-index-product.yaml
+      relativeToChangelogFile: true
+#------------------VIEW---------------------
+  - include:
+      file: views/changelog-view-ledger.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: views/changelog-view-vendor-order.yaml
+      relativeToChangelogFile: true
+#------------------TRIGGERS------------------
+  - include:
+      file: triggers/changelog-trigger-order_status-update.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: triggers/changelog-trigger-user_log.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: triggers/changelog-trigger-ledger_entry.yaml
+      relativeToChangelogFile: true
+  - include:
+        file: triggers/changelog-trigger-ratting.yaml
         relativeToChangelogFile: true
   - include:
-        file: tables/changelog-table-platform_ledger_entry.yaml
+        file: triggers/changelog-trigger-coupon_usage.yaml
         relativeToChangelogFile: true
+  #------------------FIX_PATCH------------------
   - include:
-        file: tables/changelog-table-vendor_ledger_entry.yaml
-        relativeToChangelogFile: true
+      file: triggers/changelog-trigger-user_log-fix.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: triggers/changelog-trigger-ledger_entry-fix.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: triggers/changelog-trigger-ledger_entry-fix-2.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: triggers/changelog-trigger-ledger_entry-fix-3.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: triggers/changelog-trigger-ledger_entry-fix-4.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: tables/alert/changelog-alert-ledger_entry.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: views/changelog-fix-view-vendor-order.yaml
+      relativeToChangelogFile: true
+#------------------TRIGGER AFTER FIX------------------
+  - include:
+      file: triggers/changelog-trigger-init-ledger.yaml
+      relativeToChangelogFile: true
+#------------------INSERT------------------
+  - include:
+      file: insert/changelog-insert-demo.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: insert/changelog-insert-demo-product.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: insert/changelog-insert-demo-order.yaml
+      relativeToChangelogFile: true
+#  - include:
+#      file: insert/changelog-insert-product.yaml
+#      relativeToChangelogFile: true
+  - include:
+      file: insert/changelog-insert-user.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: insert/changelog-insert-fake-product.yaml
+      relativeToChangelogFile: true

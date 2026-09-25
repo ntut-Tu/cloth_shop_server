@@ -1,0 +1,63 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-demo-product
+      author: quinn
+      preConditions:
+        - onFail: CONTINUE
+        - onError: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              INSERT INTO product (name, description, total_sales, rate, image_url, category, fk_vendor_id)
+              VALUES 
+              ('Demo Cloth', 'Demo Product Description 1', 0, 0, '/assets/images/demo-image-cloth.jpg', 'Cloth', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'demo')),
+              ('Demo Pants', 'Demo Product Description 2', 0, 0, '/assets/images/demo-image-pant.jpg', 'Pants', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'demo')),
+              ('Demo Bag', 'Demo Product Description 3', 0, 0, '/assets/images/demo-image-bag.jpg', 'Bag', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'demo')),
+              ('Demo Accessory', 'Demo Product Description 4', 0, 0, '/assets/images/demo-image-accessory.jpg', 'Accessories', 
+              (SELECT vendor_id FROM vendor JOIN users ON vendor.fk_user_id = users.user_id WHERE users.account = 'demo'));
+            
+              INSERT INTO product_variant (color, stock, size, price, fk_product_id, reserved_stock)
+              VALUES
+              ('紅色', 100, 'S', 250,
+              (SELECT product_id FROM product WHERE name = 'Demo Cloth'), 0),
+              ('紅色', 100, 'M', 250, 
+              (SELECT product_id FROM product WHERE name = 'Demo Cloth'), 0),
+              ('紅色', 100, 'L', 250, 
+              (SELECT product_id FROM product WHERE name = 'Demo Cloth'), 0),
+              ('藍色', 100, 'M', 250, 
+              (SELECT product_id FROM product WHERE name = 'Demo Cloth'), 0);
+              
+              INSERT INTO product_variant (color, stock, size, price, fk_product_id, reserved_stock)
+              VALUES
+              ('藍色', 70, 'S', 150,
+              (SELECT product_id FROM product WHERE name = 'Demo Pants'), 0),
+              ('藍色', 70, 'M', 150,
+              (SELECT product_id FROM product WHERE name = 'Demo Pants'), 0),
+              ('藍色', 70, 'L', 150,
+              (SELECT product_id FROM product WHERE name = 'Demo Pants'), 0),
+              ('綠色', 70, 'M', 150,
+              (SELECT product_id FROM product WHERE name = 'Demo Pants'), 0);
+              
+              INSERT INTO product_variant (color, stock, size, price, fk_product_id, reserved_stock)
+              VALUES
+              ('黑色', 80, 'S', 200,
+              (SELECT product_id FROM product WHERE name = 'Demo Bag'), 0),
+              ('黑色', 80, 'M', 200,
+              (SELECT product_id FROM product WHERE name = 'Demo Bag'), 0),
+              ('黑色', 80, 'L', 200,
+              (SELECT product_id FROM product WHERE name = 'Demo Bag'), 0),
+              ('棕色', 80, 'M', 200,
+              (SELECT product_id FROM product WHERE name = 'Demo Bag'), 0);
+              
+              INSERT INTO product_variant (color, stock, size, price, fk_product_id, reserved_stock)
+              VALUES
+              ('黑色', 150, '', 50,
+              (SELECT product_id FROM product WHERE name = 'Demo Accessory'), 0),
+              ('棕色', 150, '', 50,
+              (SELECT product_id FROM product WHERE name = 'Demo Accessory'), 0);

@@ -32,6 +32,26 @@ databaseChangeLog:
                   type: integer
                   constraints:
                     nullable: true
+              - column:
+                  name: store_subtotal_amount
+                  type: integer
+                  constraints:
+                        nullable: false
+              - column:
+                  name: store_discount_amount
+                  type: integer
+                  constraints:
+                      nullable: false
+              - column:
+                  name: store_net_amount
+                  type: integer
+                  constraints:
+                      nullable: false
+              - column:
+                  name: store_order_status
+                  type: varchar(50)
+                  constraints:
+                      nullable: false
         - addForeignKeyConstraint:
             baseTableName: store_order
             baseColumnNames: fk_order_id
