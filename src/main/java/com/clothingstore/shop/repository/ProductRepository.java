@@ -153,6 +153,19 @@ public class ProductRepository {
             if (fetchParams.getSearch() != null && !fetchParams.getSearch().isEmpty()) {
                 baseCondition = baseCondition.and(PRODUCT.NAME.likeIgnoreCase("%" + fetchParams.getSearch() + "%"));
             }
+            // 任一商品規格的價格落在指定區間內，商品即符合條件。
+            if (fetchParams.getMinPrice() != null || fetchParams.getMaxPrice() != null) {
+                ProductVariant priceVariant = PRODUCT_VARIANT.as("price_variant");
+                Condition priceCondition = priceVariant.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID);
+                if (fetchParams.getMinPrice() != null) {
+                    priceCondition = priceCondition.and(priceVariant.PRICE.ge(fetchParams.getMinPrice()));
+                }
+                if (fetchParams.getMaxPrice() != null) {
+                    priceCondition = priceCondition.and(priceVariant.PRICE.le(fetchParams.getMaxPrice()));
+                }
+                baseCondition = baseCondition.and(DSL.exists(
+                        DSL.selectOne().from(priceVariant).where(priceCondition)));
+            }
             switch (fetchParams.getRole()){
                 case "admin":
                     break;
