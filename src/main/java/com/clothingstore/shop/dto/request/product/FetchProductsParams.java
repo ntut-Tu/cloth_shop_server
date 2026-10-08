@@ -7,14 +7,19 @@ public class FetchProductsParams {
     private String sort;
     private String search;
     private String role;
+    private Integer minPrice;
+    private Integer maxPrice;
 
-    public FetchProductsParams(int page, int pageSize, String category, String sort, String search, String role) {
+    public FetchProductsParams(int page, int pageSize, String category, String sort, String search, String role,
+                               Integer minPrice, Integer maxPrice) {
         this.page = page;
         this.pageSize = pageSize;
         this.category = category;
         this.sort = sort;
         this.search = search;
         this.role = role;
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
     }
 
     // Getters and Setters
@@ -65,5 +70,20 @@ public class FetchProductsParams {
     public void setRole(String role) {
         this.role = role;
     }
-}
 
+    public Integer getMinPrice() {
+        return minPrice;
+    }
+
+    public void setMinPrice(Integer minPrice) {
+        this.minPrice = minPrice;
+    }
+
+    public Integer getMaxPrice() {
+        return maxPrice;
+    }
+
+    public void setMaxPrice(Integer maxPrice) {
+        this.maxPrice = maxPrice;
+    }
+}

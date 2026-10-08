@@ -70,6 +70,8 @@ public class ProductController {
      * @param category 商品分类
      * @param sort     排序条件（如price_asc, price_desc）
      * @param search   搜索关键字
+     * @param minPrice 規格價格下限（含）
+     * @param maxPrice 規格價格上限（含）
      * @return 包含商品摘要的响应
      */
     @GetMapping("/v2")
@@ -80,10 +82,18 @@ public class ProductController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer minPrice,
+            @RequestParam(required = false) Integer maxPrice,
             @RequestParam String role
     ) {
         try {
-            FetchProductsParams fetchParams = new FetchProductsParams(page, pageSize, category, sort, search,role);
+            if ((minPrice != null && minPrice < 0) || (maxPrice != null && maxPrice < 0)
+                    || (minPrice != null && maxPrice != null && minPrice > maxPrice)) {
+                return ResponseEntity.badRequest().body(
+                        new ApiResponseDTO<>(false, "Price range must be non-negative and minPrice cannot exceed maxPrice", null));
+            }
+            FetchProductsParams fetchParams = new FetchProductsParams(
+                    page, pageSize, category, sort, search, role, minPrice, maxPrice);
             String token = TokenUtils.extractTokenFromCookies(request);
             PaginatedResponse<ProductSummaryV2ResponseDTO> products;
             switch (fetchParams.getRole()){
