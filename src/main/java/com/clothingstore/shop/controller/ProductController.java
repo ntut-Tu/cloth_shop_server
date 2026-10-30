@@ -69,7 +69,7 @@ public class ProductController {
      * @param pageSize 每页条数（默认为30）
      * @param category 商品分类
      * @param sort     排序条件（如price_asc, price_desc）
-     * @param search   搜索关键字
+     * @param search   商品名稱或賣家帳號的搜尋關鍵字
      * @return 包含商品摘要的响应
      */
     @GetMapping("/v2")
