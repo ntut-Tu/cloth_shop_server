@@ -1,0 +1,170 @@
+databaseChangeLog:
+  - changeSet:
+      id: accounting-journal-2026-01
+      author: shop
+      dbms: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE TABLE accounting_account (
+                account_code VARCHAR(40) PRIMARY KEY,
+                account_name VARCHAR(100) NOT NULL,
+                normal_side VARCHAR(6) NOT NULL CHECK (normal_side IN ('DEBIT', 'CREDIT'))
+              );
+
+              INSERT INTO accounting_account (account_code, account_name, normal_side) VALUES
+                ('PAYMENT_CLEARING', 'Payment clearing', 'DEBIT'),
+                ('ORDER_OBLIGATION', 'Customer order obligation', 'CREDIT');
+
+              CREATE TABLE accounting_journal (
+                journal_id BIGSERIAL PRIMARY KEY,
+                order_id INTEGER NOT NULL REFERENCES "order" (order_id),
+                entry_type VARCHAR(20) NOT NULL CHECK (entry_type IN ('ORDER_PAYMENT', 'REVERSAL')),
+                event_key VARCHAR(120) NOT NULL UNIQUE CHECK (LENGTH(TRIM(event_key)) > 0),
+                occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                reverses_journal_id BIGINT UNIQUE REFERENCES accounting_journal (journal_id),
+                actor_user_id INTEGER REFERENCES users (user_id),
+                reason VARCHAR(500),
+                CONSTRAINT accounting_reversal_shape CHECK (
+                  (entry_type = 'ORDER_PAYMENT' AND reverses_journal_id IS NULL)
+                  OR (entry_type = 'REVERSAL' AND reverses_journal_id IS NOT NULL
+                      AND reason IS NOT NULL AND LENGTH(TRIM(reason)) > 0)
+                )
+              );
+              CREATE UNIQUE INDEX accounting_one_payment_per_order
+                ON accounting_journal (order_id) WHERE entry_type = 'ORDER_PAYMENT';
+              CREATE INDEX accounting_journal_order_lookup
+                ON accounting_journal (order_id, occurred_at);
+
+              CREATE TABLE accounting_posting (
+                posting_id BIGSERIAL PRIMARY KEY,
+                journal_id BIGINT NOT NULL REFERENCES accounting_journal (journal_id),
+                account_code VARCHAR(40) NOT NULL REFERENCES accounting_account (account_code),
+                debit NUMERIC(18, 2) NOT NULL DEFAULT 0 CHECK (debit >= 0),
+                credit NUMERIC(18, 2) NOT NULL DEFAULT 0 CHECK (credit >= 0),
+                CONSTRAINT accounting_one_account_per_journal UNIQUE (journal_id, account_code),
+                CONSTRAINT accounting_exactly_one_side CHECK (
+                  (debit > 0 AND credit = 0) OR (debit = 0 AND credit > 0)
+                )
+              );
+              CREATE INDEX accounting_posting_journal_lookup ON accounting_posting (journal_id);
+              CREATE INDEX accounting_posting_account_lookup ON accounting_posting (account_code);
+
+              CREATE FUNCTION accounting_validate_reversal()
+              RETURNS TRIGGER AS $$
+              DECLARE
+                original_order_id INTEGER;
+                original_type VARCHAR(20);
+              BEGIN
+                IF NEW.entry_type = 'REVERSAL' THEN
+                  SELECT order_id, entry_type INTO original_order_id, original_type
+                  FROM accounting_journal WHERE journal_id = NEW.reverses_journal_id;
+                  IF original_order_id IS DISTINCT FROM NEW.order_id
+                      OR original_type IS DISTINCT FROM 'ORDER_PAYMENT' THEN
+                    RAISE EXCEPTION 'Reversal must target a payment journal for the same order';
+                  END IF;
+                END IF;
+                RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+              CREATE TRIGGER accounting_reversal_reference
+                BEFORE INSERT ON accounting_journal
+                FOR EACH ROW EXECUTE FUNCTION accounting_validate_reversal();
+
+              CREATE FUNCTION accounting_assert_balanced()
+              RETURNS TRIGGER AS $$
+              DECLARE
+                checked_journal_id BIGINT;
+                line_count BIGINT;
+                debit_total NUMERIC(18, 2);
+                credit_total NUMERIC(18, 2);
+              BEGIN
+                checked_journal_id := NEW.journal_id;
+                SELECT COUNT(*), COALESCE(SUM(debit), 0), COALESCE(SUM(credit), 0)
+                  INTO line_count, debit_total, credit_total
+                  FROM accounting_posting WHERE journal_id = checked_journal_id;
+                IF line_count < 2 OR debit_total <= 0 OR debit_total <> credit_total THEN
+                  RAISE EXCEPTION 'Accounting journal % is not balanced', checked_journal_id;
+                END IF;
+                RETURN NULL;
+              END;
+              $$ LANGUAGE plpgsql;
+
+              CREATE CONSTRAINT TRIGGER accounting_journal_balance
+                AFTER INSERT ON accounting_journal
+                DEFERRABLE INITIALLY DEFERRED
+                FOR EACH ROW EXECUTE FUNCTION accounting_assert_balanced();
+              CREATE CONSTRAINT TRIGGER accounting_posting_balance
+                AFTER INSERT ON accounting_posting
+                DEFERRABLE INITIALLY DEFERRED
+                FOR EACH ROW EXECUTE FUNCTION accounting_assert_balanced();
+
+              CREATE FUNCTION accounting_reject_mutation()
+              RETURNS TRIGGER AS $$
+              BEGIN
+                RAISE EXCEPTION 'Accounting journals and postings are immutable';
+              END;
+              $$ LANGUAGE plpgsql;
+              CREATE TRIGGER accounting_journal_immutable
+                BEFORE UPDATE OR DELETE ON accounting_journal
+                FOR EACH ROW EXECUTE FUNCTION accounting_reject_mutation();
+              CREATE TRIGGER accounting_posting_immutable
+                BEFORE UPDATE OR DELETE ON accounting_posting
+                FOR EACH ROW EXECUTE FUNCTION accounting_reject_mutation();
+
+              CREATE FUNCTION accounting_record_order_payment()
+              RETURNS TRIGGER AS $$
+              DECLARE
+                new_journal_id BIGINT;
+              BEGIN
+                IF UPPER(NEW.pay_status) <> 'PAID' THEN
+                  RETURN NEW;
+                END IF;
+                IF NEW.total_amount IS NULL OR NEW.total_amount < 0 THEN
+                  RAISE EXCEPTION 'Paid order % has an invalid total', NEW.order_id;
+                END IF;
+                IF NEW.total_amount = 0 THEN
+                  RETURN NEW;
+                END IF;
+                INSERT INTO accounting_journal (order_id, entry_type, event_key, occurred_at)
+                VALUES (NEW.order_id, 'ORDER_PAYMENT', 'order-payment:' || NEW.order_id, NOW())
+                ON CONFLICT DO NOTHING
+                RETURNING journal_id INTO new_journal_id;
+                IF new_journal_id IS NOT NULL THEN
+                  INSERT INTO accounting_posting (journal_id, account_code, debit, credit) VALUES
+                    (new_journal_id, 'PAYMENT_CLEARING', NEW.total_amount, 0),
+                    (new_journal_id, 'ORDER_OBLIGATION', 0, NEW.total_amount);
+                END IF;
+                RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+              CREATE TRIGGER accounting_order_insert
+                AFTER INSERT ON "order"
+                FOR EACH ROW EXECUTE FUNCTION accounting_record_order_payment();
+              CREATE TRIGGER accounting_order_paid
+                AFTER UPDATE OF pay_status ON "order"
+                FOR EACH ROW EXECUTE FUNCTION accounting_record_order_payment();
+
+              DO $$
+              DECLARE
+                paid_order RECORD;
+                new_journal_id BIGINT;
+              BEGIN
+                FOR paid_order IN
+                  SELECT order_id, total_amount, order_date FROM "order"
+                  WHERE UPPER(pay_status) = 'PAID' AND total_amount > 0
+                LOOP
+                  INSERT INTO accounting_journal (order_id, entry_type, event_key, occurred_at)
+                  VALUES (paid_order.order_id, 'ORDER_PAYMENT',
+                          'order-payment:' || paid_order.order_id, paid_order.order_date)
+                  ON CONFLICT DO NOTHING
+                  RETURNING journal_id INTO new_journal_id;
+                  IF new_journal_id IS NOT NULL THEN
+                    INSERT INTO accounting_posting (journal_id, account_code, debit, credit) VALUES
+                      (new_journal_id, 'PAYMENT_CLEARING', paid_order.total_amount, 0),
+                      (new_journal_id, 'ORDER_OBLIGATION', 0, paid_order.total_amount);
+                  END IF;
+                END LOOP;
+              END;
+              $$;
