@@ -1,14 +1,17 @@
 package com.clothingstore.shop.service;
 
 import com.clothingstore.shop.dto.request.review.AddReviewRequestDTO;
+import com.clothingstore.shop.dto.repository.review.ReviewRatingStats;
 import com.clothingstore.shop.dto.response.review.AddReviewResponseDTO;
 import com.clothingstore.shop.dto.response.review.GetReviewResponseDTO;
+import com.clothingstore.shop.dto.response.review.ReviewSummaryResponseDTO;
 import com.clothingstore.shop.repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -50,5 +53,14 @@ public class ReviewService {
         }catch (Exception e){
             throw e;
         }
+    }
+
+    public ReviewSummaryResponseDTO getReviewSummary(Integer productId) {
+        if (productId == null || productId <= 0) {
+            throw new IllegalArgumentException("Product ID must be positive");
+        }
+        ReviewRatingStats stats = reviewRepository.getReviewRatingStats(productId);
+        BigDecimal average = stats.averageRating().setScale(2, RoundingMode.HALF_UP);
+        return new ReviewSummaryResponseDTO(productId, stats.count(), average);
     }
 }

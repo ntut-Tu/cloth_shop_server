@@ -2,9 +2,13 @@ package com.clothingstore.shop.repository;
 
 import com.clothingstore.shop.dto.response.review.AddReviewResponseDTO;
 import com.clothingstore.shop.dto.response.review.GetReviewResponseDTO;
+import com.clothingstore.shop.dto.repository.review.ReviewRatingStats;
 import org.hibernate.type.descriptor.jdbc.TimestampWithTimeZoneJdbcType;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record2;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -88,5 +92,16 @@ public class ReviewRepository {
         }catch (Exception e){
             throw e;
         }
+    }
+
+    public ReviewRatingStats getReviewRatingStats(Integer productId) {
+        Field<Integer> reviewCount = DSL.count(REVIEW.REVIEW_ID).as("review_count");
+        Field<BigDecimal> averageRating = DSL.avg(REVIEW.RATE).as("average_rating");
+        Record2<Integer, BigDecimal> result = dsl.select(reviewCount, averageRating)
+                .from(REVIEW)
+                .where(REVIEW.FK_PRODUCT_ID.eq(productId))
+                .fetchOne();
+        return new ReviewRatingStats(result.value1(),
+                result.value2() == null ? BigDecimal.ZERO : result.value2());
     }
 }

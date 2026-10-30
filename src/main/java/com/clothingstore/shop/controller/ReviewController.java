@@ -4,6 +4,7 @@ import com.clothingstore.shop.dto.request.review.AddReviewRequestDTO;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.response.review.AddReviewResponseDTO;
 import com.clothingstore.shop.dto.response.review.GetReviewResponseDTO;
+import com.clothingstore.shop.dto.response.review.ReviewSummaryResponseDTO;
 import com.clothingstore.shop.service.ReviewService;
 import com.clothingstore.shop.utils.TokenUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -65,6 +66,17 @@ public class ReviewController {
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Review exist", ret));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/summary/{productId}")
+    public ResponseEntity<ApiResponseDTO<ReviewSummaryResponseDTO>> getReviewSummary(
+            @PathVariable Integer productId) {
+        try {
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Review summary fetched successfully",
+                    reviewService.getReviewSummary(productId)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
     }
 }
