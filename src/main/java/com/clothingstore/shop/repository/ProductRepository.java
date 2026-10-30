@@ -149,9 +149,12 @@ public class ProductRepository {
                     );
                 }
             }
-            // 添加搜尋條件
-            if (fetchParams.getSearch() != null && !fetchParams.getSearch().isEmpty()) {
-                baseCondition = baseCondition.and(PRODUCT.NAME.likeIgnoreCase("%" + fetchParams.getSearch() + "%"));
+            // 商品名稱或賣家帳號符合關鍵字時，皆納入搜尋結果。
+            if (fetchParams.getSearch() != null && !fetchParams.getSearch().isBlank()) {
+                String searchPattern = "%" + fetchParams.getSearch().trim() + "%";
+                baseCondition = baseCondition.and(
+                        PRODUCT.NAME.likeIgnoreCase(searchPattern)
+                                .or(USERS.ACCOUNT.likeIgnoreCase(searchPattern)));
             }
             switch (fetchParams.getRole()){
                 case "admin":
