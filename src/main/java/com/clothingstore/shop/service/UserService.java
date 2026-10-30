@@ -34,6 +34,14 @@ public class UserService {
         return userRepository.banUser(banUserId);
     }
 
+    public Boolean unbanUser(Integer unbanUserId, String token) {
+        Integer userId = jwtService.extractUserId(token);
+        if (!authService.checkActiveUserExists(userId, "admin")) {
+            throw new IllegalArgumentException("User is not authorized to unban users.");
+        }
+        return userRepository.unbanUser(unbanUserId);
+    }
+
     public List<UserLogResponseDTO> getUserLogs(int page, int size, String token) {
         Integer userId = jwtService.extractUserId(token);
         if (!authService.checkUserExists(userId, "admin")) {

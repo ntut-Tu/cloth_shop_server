@@ -58,6 +58,25 @@ public class AdminController {
         }
     }
 
+    @PostMapping("/unbanUser/{userId}")
+    public ResponseEntity<ApiResponseDTO<Object>> unbanUser(
+            HttpServletRequest request,
+            @PathVariable Integer userId
+    ) {
+        try {
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null) {
+                throw new IllegalArgumentException("Token not found");
+            }
+            Boolean unbanned = userService.unbanUser(userId, token);
+            String message = unbanned ? "User unbanned successfully" : "User not found or already active";
+            return ResponseEntity.ok(new ApiResponseDTO<>(unbanned, message, unbanned));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
 
     @GetMapping("/userLogs")
     public ResponseEntity<ApiResponseDTO<List<UserLogResponseDTO>>> getUserLogs(

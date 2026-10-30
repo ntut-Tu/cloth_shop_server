@@ -38,6 +38,13 @@ public class UserRepository {
                 .execute() == 1;
     }
 
+    public Boolean unbanUser(Integer unbanUserId) {
+        return dsl.update(USERS)
+                .set(USERS.IS_ACTIVE, true)
+                .where(USERS.USER_ID.eq(unbanUserId).and(USERS.IS_ACTIVE.eq(false)))
+                .execute() == 1;
+    }
+
     public List<UserLogResponseDTO> fetchUserLogs(int page, int size) {
         return dsl.select(
                 USER_LOG.USER_LOG_ID.as("log_id"),
