@@ -31,6 +31,9 @@ databaseChangeLog:
       file: tables/changelog-table-product_variant.yaml
       relativeToChangelogFile: true
   - include:
+      file: tables/changelog-table-product-filter-attribute.yaml
+      relativeToChangelogFile: true
+  - include:
       file: tables/changelog-table-coupon.yaml
       relativeToChangelogFile: true
   - include:

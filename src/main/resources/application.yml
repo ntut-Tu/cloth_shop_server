@@ -1,0 +1,84 @@
+catalog:
+  filters:
+    common:
+      - key: name
+        control: TEXT
+        value-type: TEXT
+        source: NAME
+        operators: [CONTAINS, EQ]
+      - key: price
+        control: OPERATOR_TEXT
+        value-type: INTEGER
+        source: PRICE
+        operators: [EQ, GTE, LTE, BETWEEN]
+      - key: inStock
+        control: CHECKBOX
+        value-type: BOOLEAN
+        source: IN_STOCK
+        operators: [EQ]
+      - key: rating
+        control: OPERATOR_TEXT
+        value-type: DECIMAL
+        source: RATE
+        operators: [EQ, GTE, LTE, BETWEEN]
+    categories:
+      cloth:
+        - key: color
+          control: SELECT
+          value-type: TEXT
+          source: COLOR
+          operators: [IN]
+          options: [Black, White, Blue, Red, Green]
+        - key: size
+          control: DROPDOWN
+          value-type: TEXT
+          source: SIZE
+          operators: [EQ]
+          options: [XS, S, M, L, XL, XXL]
+        - key: material
+          control: CUSTOM_FIELD
+          value-type: TEXT
+          source: CUSTOM
+          operators: [EQ, CONTAINS]
+      pants:
+        - key: size
+          control: DROPDOWN
+          value-type: TEXT
+          source: SIZE
+          operators: [EQ]
+          options: [XS, S, M, L, XL, XXL]
+        - key: fit
+          control: CUSTOM_FIELD
+          value-type: TEXT
+          source: CUSTOM
+          operators: [EQ, CONTAINS]
+      shoes:
+        - key: color
+          control: SELECT
+          value-type: TEXT
+          source: COLOR
+          operators: [IN]
+          options: [Black, White, Blue, Red, Green]
+        - key: size
+          control: DROPDOWN
+          value-type: TEXT
+          source: SIZE
+          operators: [EQ]
+          options: ['6', '7', '8', '9', '10', '11', '12']
+        - key: closure
+          control: CUSTOM_FIELD
+          value-type: TEXT
+          source: CUSTOM
+          operators: [EQ, CONTAINS]
+      accessories:
+        - key: color
+          control: SELECT
+          value-type: TEXT
+          source: COLOR
+          operators: [IN]
+          options: [Black, White, Blue, Red, Green]
+        - key: style
+          control: CUSTOM_FIELD
+          value-type: TEXT
+          source: CUSTOM
+          operators: [EQ, CONTAINS]
