@@ -146,6 +146,10 @@ public class PromotionService {
             if (token == null || !"admin".equalsIgnoreCase(jwtService.extractRole(token))) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin role is required");
             }
+            Integer userId = jwtService.extractUserId(token);
+            if (userId == null || !repository.isActiveAdmin(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Active admin account is required");
+            }
         } catch (io.jsonwebtoken.JwtException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid token", e);
         }

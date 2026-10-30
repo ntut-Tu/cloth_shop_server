@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class PromotionRepository {
@@ -151,6 +152,13 @@ public class PromotionRepository {
         return row.get("customer_id", Integer.class);
     }
 
+    public boolean isActiveAdmin(int userId) {
+        return dsl.fetchOne("""
+                SELECT 1 FROM users
+                WHERE user_id = ? AND user_type = 'admin' AND is_active = TRUE
+                """, userId) != null;
+    }
+
     public int priorOrderCount(int customerId) {
         return dsl.fetchOne("SELECT count(*) AS total FROM \"order\" WHERE fk_customer_id = ?", customerId)
                 .get("total", Integer.class);
@@ -173,7 +181,7 @@ public class PromotionRepository {
                         JOIN product p ON p.product_id = pv.fk_product_id
                         WHERE pv.product_variant_id = ?
                         """, variant.getProductVariantId());
-                if (row == null || row.get("fk_vendor_id", Integer.class) != store.getStoreId()) {
+                if (row == null || !Objects.equals(row.get("fk_vendor_id", Integer.class), store.getStoreId())) {
                     throw new IllegalArgumentException("Product variant does not belong to store");
                 }
                 lines.add(new PromotionCart.Line(variant.getProductVariantId(),
