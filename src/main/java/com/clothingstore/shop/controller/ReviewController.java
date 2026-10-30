@@ -27,7 +27,7 @@ public class ReviewController {
             HttpServletRequest request,
             @RequestBody AddReviewRequestDTO addReviewRequestDTO){
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -57,7 +57,7 @@ public class ReviewController {
             HttpServletRequest request
     ){
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }

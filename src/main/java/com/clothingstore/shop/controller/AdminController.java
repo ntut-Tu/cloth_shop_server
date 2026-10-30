@@ -28,7 +28,7 @@ public class AdminController {
             @RequestParam(defaultValue = "20") int size
     ) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -46,7 +46,7 @@ public class AdminController {
             @PathVariable Integer userId
     ) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -66,7 +66,7 @@ public class AdminController {
             @RequestParam(defaultValue = "20") int size
     ) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }

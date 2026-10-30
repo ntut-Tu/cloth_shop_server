@@ -37,11 +37,11 @@ public class ProductController {
 
     @PostMapping("/add")
     public ResponseEntity<ApiResponseDTO<Integer>> addProduct(
-            HttpServletRequest request, // 改用 HttpServletRequest 以從 cookie 中讀取 token
+            HttpServletRequest request, // 改用 HttpServletRequest 以從請求中讀取 token
             @RequestBody AddProductRequestDTO productRequestDTO) {
         try {
-            // 從 cookie 中提取 token
-            String token = TokenUtils.extractTokenFromCookies(request);
+            // 從請求中提取 token
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -84,7 +84,7 @@ public class ProductController {
     ) {
         try {
             FetchProductsParams fetchParams = new FetchProductsParams(page, pageSize, category, sort, search,role);
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             PaginatedResponse<ProductSummaryV2ResponseDTO> products;
             switch (fetchParams.getRole()){
                 case "admin":
@@ -114,7 +114,7 @@ public class ProductController {
             HttpServletRequest request
     ) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -132,7 +132,7 @@ public class ProductController {
             @RequestBody  boolean updatedStatus
     ) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -150,7 +150,7 @@ public class ProductController {
             @RequestBody Integer newStock
     ) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
