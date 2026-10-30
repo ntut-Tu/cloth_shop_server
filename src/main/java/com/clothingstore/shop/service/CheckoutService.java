@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 @Service
 public class CheckoutService {
+    private static final Logger logger = LoggerFactory.getLogger(CheckoutService.class);
     private final JwtService jwtService;
     private final CheckoutRepository checkoutRepository;
     private final TemporaryOrderStorage temporaryOrderStorage;
@@ -66,14 +67,6 @@ public class CheckoutService {
         // 存入 RAM，返回訂單 ID
 
         String quoteId = temporaryOrderStorage.saveTemporaryOrder(tempOrder);
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCompletion(int status) {
-                if (status != STATUS_COMMITTED) {
-                    temporaryOrderStorage.confirmOrder(quoteId);
-                }
-            }
-        });
         return new ConfirmAmountResponseDTO(tempOrder.getSubtotal(), tempOrder.getShippingFee(), tempOrder.getShippingDiscountAmount()+ tempOrder.getTotalStoreDiscountAmount() + tempOrder.getPromotionDiscountAmount(),tempOrder.getTotalAmount(), quoteId);
     }
 
@@ -175,17 +168,7 @@ public class CheckoutService {
 
     @Transactional(rollbackFor = Exception.class)
     public SubmitOrderResponseDTO confirmOrder(SubmitOrderRequestDTO requestDTO, String customerId) throws SharedException {
-        // 取出暫存訂單
-        TemporaryOrder tempOrder = temporaryOrderStorage.getTemporaryOrder(requestDTO.getOrder_id());
-        if (tempOrder == null) {
-            throw new SharedException("Temporary order expired or not found");
-        }
-        if (!tempOrder.getCustomerId().equals(jwtService.extractUserId(customerId))) {
-            throw new IllegalArgumentException("Temporary order belongs to another customer");
-        }
-        if (tempOrder.getExpirationTime() <= System.currentTimeMillis()) {
-            throw new SharedException("Temporary order expired or not found");
-        }
+        TemporaryOrder tempOrder = claimOwnedOrder(requestDTO.getOrder_id(), customerId);
 
         // 確認庫存，扣減正式庫存
         for (TemporaryStoreOrder storeOrder : tempOrder.getStoreOrders()) {
@@ -197,26 +180,12 @@ public class CheckoutService {
         // 將訂單寫入數據庫
         Integer orderId = checkoutRepository.saveOrder( requestDTO, tempOrder, tempOrder.getCustomerId());
 
-        // 刪除暫存訂單
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                temporaryOrderStorage.confirmOrder(requestDTO.getOrder_id());
-            }
-        });
-
         return new SubmitOrderResponseDTO(orderId, PayStatus.PENDING.toString(), tempOrder.getTotalAmount(),tempOrder.getTotalStoreDiscountAmount()+tempOrder.getShippingDiscountAmount()+tempOrder.getPromotionDiscountAmount(),tempOrder.getTotalAmount(),"2024/12/31 23:59:59");
     }
 
     @Transactional(rollbackFor = Exception.class)
     public String cancelOrder(String tempOrderId, String token) throws SharedException {
-        TemporaryOrder tempOrder = temporaryOrderStorage.getTemporaryOrder(tempOrderId);
-        if (tempOrder == null) {
-            throw new SharedException("Temporary order expired or not found");
-        }
-        if (!tempOrder.getCustomerId().equals(jwtService.extractUserId(token))) {
-            throw new IllegalArgumentException("Temporary order belongs to another customer");
-        }
+        TemporaryOrder tempOrder = claimOwnedOrder(tempOrderId, token);
 
         // 回滾預留庫存
         for (TemporaryStoreOrder storeOrder : tempOrder.getStoreOrders()) {
@@ -225,13 +194,36 @@ public class CheckoutService {
             }
         }
 
-        // 刪除暫存訂單
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                temporaryOrderStorage.confirmOrder(tempOrderId);
-            }
-        });
         return "Order canceled successfully";
+    }
+
+    private TemporaryOrder claimOwnedOrder(String orderId, String token) throws SharedException {
+        TemporaryOrder order = temporaryOrderStorage.getTemporaryOrder(orderId);
+        if (order == null) {
+            throw new SharedException("Temporary order expired or not found");
+        }
+        if (!order.getCustomerId().equals(jwtService.extractUserId(token))) {
+            throw new IllegalArgumentException("Temporary order belongs to another customer");
+        }
+        if (!temporaryOrderStorage.claimTemporaryOrder(orderId, order)) {
+            throw new SharedException("Temporary order expired or not found");
+        }
+
+        try {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_ROLLED_BACK) {
+                        temporaryOrderStorage.restoreTemporaryOrder(orderId, order);
+                    } else if (status == STATUS_UNKNOWN) {
+                        logger.error("Transaction outcome unknown for claimed temporary order {}", orderId);
+                    }
+                }
+            });
+        } catch (RuntimeException exception) {
+            temporaryOrderStorage.restoreTemporaryOrder(orderId, order);
+            throw exception;
+        }
+        return order;
     }
 }

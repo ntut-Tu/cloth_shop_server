@@ -113,6 +113,9 @@ databaseChangeLog:
       file: triggers/changelog-trigger-ledger_entry-fix-4.yaml
       relativeToChangelogFile: true
   - include:
+      file: triggers/changelog-trigger-promotion-ledger.yaml
+      relativeToChangelogFile: true
+  - include:
       file: tables/alert/changelog-alert-ledger_entry.yaml
       relativeToChangelogFile: true
   - include:

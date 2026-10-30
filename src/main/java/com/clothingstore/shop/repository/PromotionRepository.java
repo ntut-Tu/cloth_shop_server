@@ -6,6 +6,10 @@ import com.clothingstore.shop.dto.others.tempOrder.TemporaryStoreOrder;
 import com.clothingstore.shop.promotion.PromotionCampaign;
 import com.clothingstore.shop.promotion.PromotionCampaignRequest;
 import com.clothingstore.shop.promotion.PromotionCart;
+import com.clothingstore.shop.promotion.PromotionRule;
+import com.clothingstore.shop.promotion.PromotionRuleEngine;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
@@ -19,9 +23,13 @@ import java.util.Objects;
 @Repository
 public class PromotionRepository {
     private final DSLContext dsl;
+    private final PromotionRuleEngine ruleEngine;
+    private final ObjectMapper mapper;
 
-    public PromotionRepository(DSLContext dsl) {
+    public PromotionRepository(DSLContext dsl, PromotionRuleEngine ruleEngine, ObjectMapper mapper) {
         this.dsl = dsl;
+        this.ruleEngine = ruleEngine;
+        this.mapper = mapper;
     }
 
     public long create(PromotionCampaignRequest request, String ruleJson, String benefitJson) {
@@ -172,10 +180,14 @@ public class PromotionRepository {
     }
 
     public PromotionCart loadCart(TemporaryOrder order, int customerId) {
+        return loadCart(dsl, order, priorOrderCount(customerId));
+    }
+
+    private PromotionCart loadCart(DSLContext context, TemporaryOrder order, int previousOrderCount) {
         List<PromotionCart.Line> lines = new ArrayList<>();
         for (TemporaryStoreOrder store : order.getStoreOrders()) {
             for (TemporaryProductVariant variant : store.getProductVariants()) {
-                Record row = dsl.fetchOne("""
+                Record row = context.fetchOne("""
                         SELECT p.category, p.fk_vendor_id
                         FROM product_variant pv
                         JOIN product p ON p.product_id = pv.fk_product_id
@@ -189,7 +201,7 @@ public class PromotionRepository {
                         variant.getQuantity(), variant.getUnitPrice()));
             }
         }
-        return new PromotionCart(List.copyOf(lines), priorOrderCount(customerId));
+        return new PromotionCart(List.copyOf(lines), previousOrderCount);
     }
 
     /**
@@ -197,7 +209,10 @@ public class PromotionRepository {
      * campaign serializes global and per-customer cap checks across nodes.
      */
     public void redeem(DSLContext tx, int orderId, String quoteId, int customerId,
-                       long campaignId, int version, int amount) {
+                       TemporaryOrder order) {
+        long campaignId = order.getPromotionCampaignId();
+        int version = order.getPromotionVersion();
+        int amount = order.getPromotionDiscountAmount();
         Record row = tx.fetchOne("""
                 SELECT status, published_version, starts_at, ends_at, max_uses,
                        max_uses_per_customer, use_count
@@ -212,6 +227,23 @@ public class PromotionRepository {
                 || (row.get("ends_at", OffsetDateTime.class) != null
                     && !row.get("ends_at", OffsetDateTime.class).isAfter(now))) {
             throw new IllegalStateException("Promotion is no longer active");
+        }
+        int previousOrderCount = tx.fetchOne("""
+                SELECT count(*) AS total FROM "order"
+                WHERE fk_customer_id = ? AND order_id <> ?
+                """, customerId, orderId).get("total", Integer.class);
+        Record versionRow = tx.fetchOne("""
+                SELECT rule_json FROM promotion_version
+                WHERE campaign_id = ? AND version = ?
+                """, campaignId, version);
+        if (versionRow == null) throw new IllegalStateException("Promotion version is missing");
+        try {
+            PromotionRule rule = mapper.readValue(versionRow.get("rule_json", String.class), PromotionRule.class);
+            if (!ruleEngine.compile(rule).test(loadCart(tx, order, previousOrderCount))) {
+                throw new IllegalStateException("Promotion conditions are no longer met");
+            }
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Stored promotion definition is invalid", e);
         }
         Integer maxUses = row.get("max_uses", Integer.class);
         if (maxUses != null && row.get("use_count", Integer.class) >= maxUses) {

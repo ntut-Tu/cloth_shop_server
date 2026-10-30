@@ -72,6 +72,10 @@ public class CheckoutRepository {
                         .from(CUSTOMER)
                         .where(CUSTOMER.FK_USER_ID.eq(userId))
                         .fetchOneInto(Integer.class);
+                if (customerId == null || temp_dsl.fetchOne(
+                        "SELECT 1 FROM customer WHERE customer_id = ? FOR UPDATE", customerId) == null) {
+                    throw new SharedException("Customer not found");
+                }
                 Integer orderId = temp_dsl.insertInto(ORDER)
                         .set(ORDER.FK_CUSTOMER_ID, customerId)
                         .set(ORDER.PAYMENT_METHOD, requestDTO.getPayment_method())
@@ -120,9 +124,7 @@ public class CheckoutRepository {
                     }
                 }
                 if (tempOrder.getPromotionCampaignId() != null) {
-                    promotionRepository.redeem(temp_dsl, orderId, requestDTO.getOrder_id(), customerId,
-                            tempOrder.getPromotionCampaignId(), tempOrder.getPromotionVersion(),
-                            tempOrder.getPromotionDiscountAmount());
+                    promotionRepository.redeem(temp_dsl, orderId, requestDTO.getOrder_id(), customerId, tempOrder);
                 }
                 return orderId;
             });

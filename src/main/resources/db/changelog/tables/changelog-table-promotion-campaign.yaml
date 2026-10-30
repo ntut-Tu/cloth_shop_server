@@ -96,6 +96,12 @@ databaseChangeLog:
             constraintName: fk_promotion_version_campaign
             referencedTableName: promotion_campaign
             referencedColumnNames: campaign_id
+        - addForeignKeyConstraint:
+            baseTableName: promotion_campaign
+            baseColumnNames: campaign_id, published_version
+            constraintName: fk_promotion_published_version
+            referencedTableName: promotion_version
+            referencedColumnNames: campaign_id, version
         - addColumn:
             tableName: order
             columns:
@@ -113,10 +119,15 @@ databaseChangeLog:
                     nullable: false
         - addForeignKeyConstraint:
             baseTableName: order
-            baseColumnNames: promotion_campaign_id
-            constraintName: fk_order_promotion_campaign
-            referencedTableName: promotion_campaign
-            referencedColumnNames: campaign_id
+            baseColumnNames: promotion_campaign_id, promotion_version
+            constraintName: fk_order_promotion_version
+            referencedTableName: promotion_version
+            referencedColumnNames: campaign_id, version
+        - sql:
+            sql: |
+              ALTER TABLE "order"
+              ADD CONSTRAINT ck_order_promotion_pair
+              CHECK ((promotion_campaign_id IS NULL) = (promotion_version IS NULL));
         - createTable:
             tableName: promotion_redemption
             columns:
@@ -166,10 +177,10 @@ databaseChangeLog:
                     nullable: false
         - addForeignKeyConstraint:
             baseTableName: promotion_redemption
-            baseColumnNames: campaign_id
-            constraintName: fk_promotion_redemption_campaign
-            referencedTableName: promotion_campaign
-            referencedColumnNames: campaign_id
+            baseColumnNames: campaign_id, version
+            constraintName: fk_promotion_redemption_version
+            referencedTableName: promotion_version
+            referencedColumnNames: campaign_id, version
         - addForeignKeyConstraint:
             baseTableName: promotion_redemption
             baseColumnNames: customer_id

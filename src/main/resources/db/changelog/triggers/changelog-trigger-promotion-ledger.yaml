@@ -1,0 +1,92 @@
+databaseChangeLog:
+  - changeSet:
+      id: promotion-platform-ledger-20261031-1
+      author: development
+      preConditions:
+        - onFail: CONTINUE
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE OR REPLACE FUNCTION create_platform_ledger()
+              RETURNS TRIGGER AS $$
+              DECLARE
+                current_balance NUMERIC(10, 2);
+                merchandise_total NUMERIC(10, 2);
+                commission NUMERIC(10, 2);
+                temp_ledger_entry_id INT;
+              BEGIN
+                PERFORM pg_advisory_xact_lock(20261031, 1);
+
+                SELECT COALESCE(total_balance, 0) INTO current_balance
+                FROM ledger_entry
+                WHERE ledger_type = 'platform'
+                ORDER BY ledger_entry_id DESC
+                LIMIT 1;
+
+                SELECT COALESCE(SUM(store_net_amount), 0) INTO merchandise_total
+                FROM store_order
+                WHERE fk_order_id = NEW.order_id;
+                commission := merchandise_total * 0.05;
+
+                IF commission <> 0 THEN
+                  INSERT INTO ledger_entry (
+                    ledger_type, transaction_type, amount, total_balance,
+                    transaction_date, notes, coupon_id
+                  ) VALUES (
+                    'platform', 'income', commission,
+                    COALESCE(current_balance, 0) + commission,
+                    NOW(), '平台抽成', NULL
+                  ) RETURNING ledger_entry_id INTO temp_ledger_entry_id;
+
+                  SELECT total_balance INTO current_balance
+                  FROM ledger_entry WHERE ledger_entry_id = temp_ledger_entry_id;
+
+                  INSERT INTO platform_ledger_entry (ledger_entry_id, order_id)
+                  VALUES (temp_ledger_entry_id, NEW.order_id);
+                END IF;
+
+                IF NEW.shipping_discount_amount <> 0 THEN
+                  INSERT INTO ledger_entry (
+                    ledger_type, transaction_type, amount, total_balance,
+                    transaction_date, notes, coupon_id
+                  ) VALUES (
+                    'platform', 'fee', NEW.shipping_discount_amount,
+                    COALESCE(current_balance, 0) - NEW.shipping_discount_amount,
+                    NOW(), '平台優惠費用', NEW.fk_shipping_discount_id
+                  ) RETURNING ledger_entry_id INTO temp_ledger_entry_id;
+
+                  SELECT total_balance INTO current_balance
+                  FROM ledger_entry WHERE ledger_entry_id = temp_ledger_entry_id;
+
+                  INSERT INTO platform_ledger_entry (ledger_entry_id, order_id)
+                  VALUES (temp_ledger_entry_id, NEW.order_id);
+                END IF;
+
+                IF NEW.promotion_discount_amount <> 0 THEN
+                  INSERT INTO ledger_entry (
+                    ledger_type, transaction_type, amount, total_balance,
+                    transaction_date, notes, coupon_id
+                  ) VALUES (
+                    'platform', 'fee', NEW.promotion_discount_amount,
+                    COALESCE(current_balance, 0) - NEW.promotion_discount_amount,
+                    NOW(), '平台促銷費用', NULL
+                  ) RETURNING ledger_entry_id INTO temp_ledger_entry_id;
+
+                  INSERT INTO platform_ledger_entry (ledger_entry_id, order_id)
+                  VALUES (temp_ledger_entry_id, NEW.order_id);
+                END IF;
+
+                RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+
+              DROP TRIGGER IF EXISTS order_ship_status_trigger ON "order";
+              CREATE TRIGGER order_ship_status_trigger
+              AFTER UPDATE OF ship_status ON "order"
+              FOR EACH ROW
+              WHEN (NEW.ship_status = 'Completed'
+                    AND OLD.ship_status IS DISTINCT FROM NEW.ship_status)
+              EXECUTE FUNCTION create_platform_ledger();
