@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: product-filter-attribute-1
+      author: catalog
+      changes:
+        - createTable:
+            tableName: product_filter_attribute
+            columns:
+              - column:
+                  name: product_id
+                  type: integer
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_product_filter_attribute
+              - column:
+                  name: attribute_key
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_product_filter_attribute
+              - column:
+                  name: attribute_value
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: product_filter_attribute
+            baseColumnNames: product_id
+            constraintName: fk_product_filter_attribute_product
+            referencedTableName: product
+            referencedColumnNames: product_id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: product_filter_attribute
+            indexName: idx_product_filter_attribute_lookup
+            columns:
+              - column:
+                  name: attribute_key
+              - column:
+                  name: attribute_value
