@@ -44,13 +44,18 @@ public class AuthController {
 
     @PostMapping("/registerDetails")
     public ResponseEntity<ApiResponseDTO<Object>> registerDetails(@RequestBody RegisterRequestDTO registerRequestDTO) {
-        boolean success = authService.register(registerRequestDTO);
-        if (success) {
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ApiResponseDTO<>(true, "User registered successfully", null));
-        } else {
+        try {
+            boolean success = authService.register(registerRequestDTO);
+            if (success) {
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(new ApiResponseDTO<>(true, "User registered successfully", null));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponseDTO<>(false, "Registration failed. User may already exist.", null));
+            }
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponseDTO<>(false, "Registration failed. User may already exist.", null));
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
     }
 }

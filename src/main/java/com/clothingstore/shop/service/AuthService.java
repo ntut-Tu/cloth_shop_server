@@ -50,10 +50,22 @@ public class AuthService {
             return false;
         }
 
+        String phoneNumber = registerRequestDTO.getPhoneNumber();
+        if (phoneNumber != null) {
+            phoneNumber = phoneNumber.trim();
+            if (phoneNumber.length() > 50) {
+                throw new IllegalArgumentException("Phone number must be at most 50 characters.");
+            }
+            if (phoneNumber.isEmpty()) {
+                phoneNumber = null;
+            }
+        }
+
         UserRepositoryDTO newUserRepositoryDTO = new UserRepositoryDTO();
         newUserRepositoryDTO.setAccount(registerRequestDTO.getAccount());
         newUserRepositoryDTO.setPassword(registerRequestDTO.getPassword());
         newUserRepositoryDTO.setEmail(registerRequestDTO.getEmail());
+        newUserRepositoryDTO.setPhoneNumber(phoneNumber);
         newUserRepositoryDTO.setUserType(registerRequestDTO.getRole());
         newUserRepositoryDTO.setCreatedAt(OffsetDateTime.now());
         newUserRepositoryDTO.setIsActive(true);
