@@ -7,11 +7,14 @@ import com.clothingstore.shop.service.LedgerService;
 import com.clothingstore.shop.utils.TokenUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -27,7 +30,9 @@ public class LedgerController {
     // 只有管理員可以取得
     @GetMapping("/platform")
     public ResponseEntity<ApiResponseDTO<List<PlatformLedgerResponseDTO>>> getPlatformLedger(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
     ) {
         try {
             // 解析 token
@@ -35,7 +40,9 @@ public class LedgerController {
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Platform ledger fetched successfully", ledgerService.findAllPlatformLedgerEntries(token)));
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Platform ledger fetched successfully", ledgerService.findAllPlatformLedgerEntries(token, fromDate, toDate)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
@@ -45,7 +52,9 @@ public class LedgerController {
     // 只有商家可以取得
     @GetMapping("/vendor")
     public ResponseEntity<ApiResponseDTO<List<VendorLedgerResponseDTO>>> getVendorLedger(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
     ) {
         try {
             // 解析 token
@@ -53,7 +62,9 @@ public class LedgerController {
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Vendor ledger fetched successfully", ledgerService.findAllVendorLedgerEntries(token)));
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Vendor ledger fetched successfully", ledgerService.findAllVendorLedgerEntries(token, fromDate, toDate)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
