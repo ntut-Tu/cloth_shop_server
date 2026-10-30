@@ -6,6 +6,7 @@ import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.repository.products.ProductDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.response.product.PaginatedResponse;
+import com.clothingstore.shop.dto.response.product.ProductCategoryCountResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductInfoResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.service.ProductService;
@@ -106,6 +107,17 @@ public class ProductController {
             return ResponseEntity.ok(new ApiResponseDTO<>(true,"Product v2 fetch successfully",products));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/category-counts")
+    public ResponseEntity<ApiResponseDTO<List<ProductCategoryCountResponseDTO>>> getPublicCategoryCounts() {
+        try {
+            List<ProductCategoryCountResponseDTO> counts = productService.getPublicCategoryCounts();
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Product category counts retrieved successfully", counts));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
     }
 
