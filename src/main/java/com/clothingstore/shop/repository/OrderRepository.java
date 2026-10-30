@@ -8,6 +8,7 @@ import com.clothingstore.shop.dto.response.vendorOrder.VendorOrderResponseDTO;
 import com.clothingstore.shop.dto.response.vendorOrder.vendorUserOrder.VendorProductVariantDTO;
 import com.clothingstore.shop.dto.response.vendorOrder.vendorUserOrder.VendorUserOrderDTO;
 import com.clothingstore.shop.enums.PayStatus;
+import com.clothingstore.shop.enums.PayMethod;
 import com.clothingstore.shop.enums.RoleType;
 import com.clothingstore.shop.enums.ShipStatus;
 import com.clothingstore.shop.enums.StoreOrderStatus;
@@ -133,11 +134,15 @@ public class OrderRepository {
     }
 
     public void updateOrderStatus(Integer orderId, String status) {
-        String payStatus = dsl.select(ORDER.PAY_STATUS)
+        Record2<String, String> payment = dsl.select(ORDER.PAY_STATUS, ORDER.PAYMENT_METHOD)
                 .from(ORDER)
                 .where(ORDER.ORDER_ID.eq(orderId))
-                .fetchOneInto(String.class);
-        if(payStatus.equalsIgnoreCase(PayStatus.PENDING.toString())){
+                .fetchOne();
+        if (payment == null) {
+            throw new IllegalArgumentException("Order not found");
+        }
+        if (payment.value1().equalsIgnoreCase(PayStatus.PENDING.toString())
+                && PayMethod.CASH.getMethod().equalsIgnoreCase(payment.value2())) {
             dsl.update(ORDER)
                     .set(ORDER.PAY_STATUS, PayStatus.PAID.toString())
                     .where(ORDER.ORDER_ID.eq(orderId))
