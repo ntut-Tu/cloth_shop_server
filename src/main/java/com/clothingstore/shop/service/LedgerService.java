@@ -6,6 +6,7 @@ import com.clothingstore.shop.repository.LedgerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -21,8 +22,9 @@ public class LedgerService {
         this.authService = authService;
     }
 
-    public List<PlatformLedgerResponseDTO> findAllPlatformLedgerEntries(String token) {
+    public List<PlatformLedgerResponseDTO> findAllPlatformLedgerEntries(String token, LocalDate fromDate, LocalDate toDate) {
         try {
+            validateDateRange(fromDate, toDate);
             Integer userId = jwtService.extractUserId(token);
             String role = jwtService.extractRole(token);
             if (userId == null) {
@@ -31,14 +33,15 @@ public class LedgerService {
             if(!role.equals("admin")) {
                 throw new IllegalArgumentException("Invalid role");
             }
-            return ledgerRepository.findAllPlatformLedgerEntries();
+            return ledgerRepository.findAllPlatformLedgerEntries(fromDate, toDate);
         } catch (Exception e) {
             throw e;
         }
     }
 
-    public List<VendorLedgerResponseDTO> findAllVendorLedgerEntries(String token) {
+    public List<VendorLedgerResponseDTO> findAllVendorLedgerEntries(String token, LocalDate fromDate, LocalDate toDate) {
         try {
+            validateDateRange(fromDate, toDate);
             Integer userId = jwtService.extractUserId(token);
             String role = jwtService.extractRole(token);
             if (userId == null) {
@@ -47,10 +50,15 @@ public class LedgerService {
             if(!role.equals("vendor")) {
                 throw new IllegalArgumentException("Invalid role");
             }
-            return ledgerRepository.findAllVendorLedgerEntries(authService.getVendorId(userId));
+            return ledgerRepository.findAllVendorLedgerEntries(authService.getVendorId(userId), fromDate, toDate);
         } catch (Exception e) {
             throw e;
         }
     }
-}
 
+    private void validateDateRange(LocalDate fromDate, LocalDate toDate) {
+        if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
+            throw new IllegalArgumentException("fromDate must be on or before toDate");
+        }
+    }
+}
