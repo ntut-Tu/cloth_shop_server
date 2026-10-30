@@ -4,6 +4,7 @@ import com.clothingstore.shop.dto.repository.products.ProductDetailRepositoryDTO
 import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
 import com.clothingstore.shop.dto.request.product.FetchProductsParams;
+import com.clothingstore.shop.dto.request.product.ProductStockUpdateRequestDTO;
 import com.clothingstore.shop.dto.response.product.PaginatedResponse;
 import com.clothingstore.shop.dto.response.product.ProductInfoResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
@@ -11,8 +12,11 @@ import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Service
@@ -93,6 +97,44 @@ public class ProductService {
         if (!authService.checkUserExists(userId,"vendor")) {
             throw new IllegalArgumentException("User is not authorized to update product stock.");
         }
+        validateStockUpdate(productVariantId, newStock);
         productRepository.updateProductStock(authService.getVendorId(userId),productVariantId,newStock);
+    }
+
+    @Transactional
+    public int updateProductStockBulk(String token, List<ProductStockUpdateRequestDTO> updates) {
+        Integer userId = jwtService.extractUserId(token);
+        if (!authService.checkUserExists(userId, "vendor")) {
+            throw new SecurityException("User is not authorized to update product stock.");
+        }
+        if (updates == null || updates.isEmpty()) {
+            throw new IllegalArgumentException("At least one stock update is required.");
+        }
+
+        Set<Integer> variantIds = new HashSet<>();
+        for (ProductStockUpdateRequestDTO update : updates) {
+            if (update == null) {
+                throw new IllegalArgumentException("Stock update cannot be null.");
+            }
+            validateStockUpdate(update.productVariantId(), update.newStock());
+            if (!variantIds.add(update.productVariantId())) {
+                throw new IllegalArgumentException("Duplicate product variant ID: " + update.productVariantId());
+            }
+        }
+
+        Integer vendorId = authService.getVendorId(userId);
+        for (ProductStockUpdateRequestDTO update : updates) {
+            productRepository.updateProductStock(vendorId, update.productVariantId(), update.newStock());
+        }
+        return updates.size();
+    }
+
+    private void validateStockUpdate(Integer productVariantId, Integer newStock) {
+        if (productVariantId == null || productVariantId <= 0) {
+            throw new IllegalArgumentException("Product variant ID must be positive.");
+        }
+        if (newStock == null || newStock < 0) {
+            throw new IllegalArgumentException("Product stock must be non-negative.");
+        }
     }
 }
