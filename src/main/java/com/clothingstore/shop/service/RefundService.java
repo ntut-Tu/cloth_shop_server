@@ -5,6 +5,7 @@ import com.clothingstore.shop.dto.response.refund.RefundListSumResponse;
 import com.clothingstore.shop.repository.RefundRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class RefundService {
         this.authService = authService;
     }
 
+    @Transactional
     public Integer createRefund(RefundDetailResponseDTO refundDetailResponseDTO, String token) {
         String role = jwtService.extractRole(token);
         Integer userId = jwtService.extractUserId(token);
