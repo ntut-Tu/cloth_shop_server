@@ -2,10 +2,12 @@ package com.clothingstore.shop.service;
 
 import com.clothingstore.shop.dto.request.auth.RegisterRequestDTO;
 import com.clothingstore.shop.dto.repository.users.UserRepositoryDTO;
+import com.clothingstore.shop.dto.response.auth.CurrentUserResponseDTO;
 import com.clothingstore.shop.repository.AuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -43,6 +45,18 @@ public class AuthService {
 
     public boolean checkUserExists(Integer userId,String role) {
         return authRepository.findByUserIDAndRole(userId, role).isPresent();
+    }
+
+    public Optional<CurrentUserResponseDTO> getCurrentUser(String token) {
+        Integer userId = jwtService.extractUserId(token);
+        String role = jwtService.extractRole(token);
+        if (userId == null || role == null) {
+            return Optional.empty();
+        }
+        return authRepository.findByUserIDAndRole(userId, role)
+                .filter(UserRepositoryDTO::getIsActive)
+                .map(user -> new CurrentUserResponseDTO(
+                        user.getId(), user.getAccount(), user.getEmail(), user.getUserType()));
     }
 
     public boolean register(RegisterRequestDTO registerRequestDTO) {

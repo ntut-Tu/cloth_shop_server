@@ -2,16 +2,23 @@ package com.clothingstore.shop.controller;
 
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.response.JwtResponseDTO;
+import com.clothingstore.shop.dto.response.auth.CurrentUserResponseDTO;
 import com.clothingstore.shop.dto.request.auth.LoginRequestDTO;
 import com.clothingstore.shop.dto.request.auth.RegisterRequestDTO;
 import com.clothingstore.shop.service.AuthService;
+import com.clothingstore.shop.utils.TokenUtils;
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -19,6 +26,26 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponseDTO<CurrentUserResponseDTO>> currentUser(HttpServletRequest request) {
+        String token = TokenUtils.extractTokenFromCookies(request);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponseDTO<>(false, "Authentication required", null));
+        }
+        try {
+            Optional<CurrentUserResponseDTO> user = authService.getCurrentUser(token);
+            if (user.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new ApiResponseDTO<>(false, "Authentication required", null));
+            }
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Current user retrieved successfully", user.get()));
+        } catch (JwtException | IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponseDTO<>(false, "Authentication required", null));
+        }
+    }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponseDTO<JwtResponseDTO>> login(@RequestBody LoginRequestDTO loginRequestDTO) {
