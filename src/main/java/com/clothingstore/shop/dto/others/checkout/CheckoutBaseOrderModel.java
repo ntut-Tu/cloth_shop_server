@@ -5,6 +5,7 @@ import java.util.List;
 public class CheckoutBaseOrderModel {
     private String order_date;
     private String shipping_discount_code;
+    private String promotion_code;
     private List<CheckoutBaseStoreOrderModel> store_orders;
 
     // Getters and setters
@@ -22,6 +23,14 @@ public class CheckoutBaseOrderModel {
 
     public void setShipping_discount_code(String shipping_discount_code) {
         this.shipping_discount_code = shipping_discount_code;
+    }
+
+    public String getPromotion_code() {
+        return promotion_code;
+    }
+
+    public void setPromotion_code(String promotion_code) {
+        this.promotion_code = promotion_code;
     }
 
     public List<CheckoutBaseStoreOrderModel> getStore_orders() {

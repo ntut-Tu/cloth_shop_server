@@ -18,6 +18,9 @@ public class TemporaryOrder {
     private Integer shippingDiscountAmount;
     private String shippingDiscountCode;
     private Integer totalStoreDiscountAmount;
+    private Long promotionCampaignId;
+    private Integer promotionVersion;
+    private Integer promotionDiscountAmount = 0;
     private long expirationTime; // 用於超時清理
 
     public TemporaryOrder(DiscountRepository discountRepository) {
@@ -82,6 +85,30 @@ public class TemporaryOrder {
         this.totalStoreDiscountAmount = totalStoreDiscountAmount;
     }
 
+    public Long getPromotionCampaignId() {
+        return promotionCampaignId;
+    }
+
+    public void setPromotionCampaignId(Long promotionCampaignId) {
+        this.promotionCampaignId = promotionCampaignId;
+    }
+
+    public Integer getPromotionVersion() {
+        return promotionVersion;
+    }
+
+    public void setPromotionVersion(Integer promotionVersion) {
+        this.promotionVersion = promotionVersion;
+    }
+
+    public Integer getPromotionDiscountAmount() {
+        return promotionDiscountAmount;
+    }
+
+    public void setPromotionDiscountAmount(Integer promotionDiscountAmount) {
+        this.promotionDiscountAmount = promotionDiscountAmount;
+    }
+
     public long getExpirationTime() {
         return expirationTime;
     }
@@ -108,4 +135,3 @@ public class TemporaryOrder {
     }
 
 }
-

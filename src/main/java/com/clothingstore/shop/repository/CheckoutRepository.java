@@ -19,10 +19,12 @@ import static com.clothingstore.shop.jooq.Tables.*;
 @Repository
 public class CheckoutRepository {
     private final DSLContext dsl;
+    private final PromotionRepository promotionRepository;
     private final Integer shippingFee = 60;
     @Autowired
-    public CheckoutRepository(DSLContext dslContext) {
+    public CheckoutRepository(DSLContext dslContext, PromotionRepository promotionRepository) {
         this.dsl = dslContext;
+        this.promotionRepository = promotionRepository;
     }
 
     public Boolean queryProductIsAvailable(Integer productId){
@@ -70,6 +72,10 @@ public class CheckoutRepository {
                         .from(CUSTOMER)
                         .where(CUSTOMER.FK_USER_ID.eq(userId))
                         .fetchOneInto(Integer.class);
+                if (customerId == null || temp_dsl.fetchOne(
+                        "SELECT 1 FROM customer WHERE customer_id = ? FOR UPDATE", customerId) == null) {
+                    throw new SharedException("Customer not found");
+                }
                 Integer orderId = temp_dsl.insertInto(ORDER)
                         .set(ORDER.FK_CUSTOMER_ID, customerId)
                         .set(ORDER.PAYMENT_METHOD, requestDTO.getPayment_method())
@@ -84,6 +90,9 @@ public class CheckoutRepository {
                         .set(ORDER.SHIPPING_DISCOUNT_AMOUNT, tempOrder.getShippingDiscountAmount())
                         .set(ORDER.FK_SHIPPING_DISCOUNT_ID, tempOrder.getShippingDiscountId())
                         .set(ORDER.TOTAL_AMOUNT, tempOrder.getTotalAmount())
+                        .set(DSL.field(DSL.name("promotion_campaign_id"), Long.class), tempOrder.getPromotionCampaignId())
+                        .set(DSL.field(DSL.name("promotion_version"), Integer.class), tempOrder.getPromotionVersion())
+                        .set(DSL.field(DSL.name("promotion_discount_amount"), Integer.class), tempOrder.getPromotionDiscountAmount())
                         .returning(ORDER.ORDER_ID)
                         .fetchOptional().orElseThrow(() -> new SharedException("Failed to insert order"))
                         .getOrderId();
@@ -113,6 +122,9 @@ public class CheckoutRepository {
                                 .set(ORDER_ITEM.FK_ORDER_ID, orderId)
                                 .execute();
                     }
+                }
+                if (tempOrder.getPromotionCampaignId() != null) {
+                    promotionRepository.redeem(temp_dsl, orderId, requestDTO.getOrder_id(), customerId, tempOrder);
                 }
                 return orderId;
             });

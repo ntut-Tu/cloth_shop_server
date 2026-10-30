@@ -10,6 +10,7 @@ import com.clothingstore.shop.dto.response.checkout.SubmitOrderResponseDTO;
 import com.clothingstore.shop.service.CheckoutService;
 import com.clothingstore.shop.service.DiscountService;
 import com.clothingstore.shop.service.JwtService;
+import com.clothingstore.shop.promotion.PromotionNotApplicableException;
 import com.clothingstore.shop.utils.TokenUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +47,9 @@ public class CheckoutController {
             // 返回處理結果（此處用 null 作為示例）
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount confirmed successfully", checkoutService.saveTemporaryOrder(confirmAmountRequestDTO, token)));
 
+        } catch (PromotionNotApplicableException e) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));
@@ -110,7 +114,7 @@ public class CheckoutController {
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order canceled successfully", checkoutService.cancelOrder(orderId)));
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order canceled successfully", checkoutService.cancelOrder(orderId, token)));
         }catch (IllegalArgumentException e) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(new ApiResponseDTO<>(false, e.getMessage(), null));

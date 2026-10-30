@@ -66,6 +66,9 @@ databaseChangeLog:
   - include:
       file: tables/changelog-table-refund.yaml
       relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-promotion-campaign.yaml
+      relativeToChangelogFile: true
 #------------------INDEXES------------------
   - include:
       file: index/changelog-index-product.yaml
@@ -108,6 +111,9 @@ databaseChangeLog:
       relativeToChangelogFile: true
   - include:
       file: triggers/changelog-trigger-ledger_entry-fix-4.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: triggers/changelog-trigger-promotion-ledger.yaml
       relativeToChangelogFile: true
   - include:
       file: tables/alert/changelog-alert-ledger_entry.yaml

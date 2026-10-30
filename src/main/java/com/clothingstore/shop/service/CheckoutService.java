@@ -20,27 +20,34 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 
 @Service
 public class CheckoutService {
+    private static final Logger logger = LoggerFactory.getLogger(CheckoutService.class);
     private final JwtService jwtService;
     private final CheckoutRepository checkoutRepository;
     private final TemporaryOrderStorage temporaryOrderStorage;
     private final InventoryRepository inventoryRepository;
     private final DiscountService discountService;
     private final DiscountRepository discountRepository;
+    private final PromotionService promotionService;
 
     @Autowired
-    public CheckoutService(JwtService jwtService, CheckoutRepository checkoutRepository, TemporaryOrderStorage temporaryOrderStorage, InventoryRepository inventoryRepository, @Lazy DiscountService discountService, DiscountRepository discountRepository) {
+    public CheckoutService(JwtService jwtService, CheckoutRepository checkoutRepository, TemporaryOrderStorage temporaryOrderStorage, InventoryRepository inventoryRepository, @Lazy DiscountService discountService, DiscountRepository discountRepository, PromotionService promotionService) {
         this.jwtService = jwtService;
         this.checkoutRepository = checkoutRepository;
         this.temporaryOrderStorage = temporaryOrderStorage;
         this.inventoryRepository = inventoryRepository;
         this.discountService = discountService;
         this.discountRepository = discountRepository;
+        this.promotionService = promotionService;
     }
+    @Transactional(rollbackFor = Exception.class)
     public ConfirmAmountResponseDTO saveTemporaryOrder(ConfirmAmountRequestDTO requestDTO, String jwtToken) throws SharedException {
         Integer customerId = jwtService.extractUserId(jwtToken);
         // 驗證訂單
@@ -55,10 +62,12 @@ public class CheckoutService {
 
         // 計算暫存訂單
         TemporaryOrder tempOrder = calculateTemporaryOrder(requestDTO, customerId);
+        promotionService.applyToOrder(tempOrder, requestDTO.getPromotion_code());
 
         // 存入 RAM，返回訂單 ID
 
-        return new ConfirmAmountResponseDTO(tempOrder.getSubtotal(), tempOrder.getShippingFee(), tempOrder.getShippingDiscountAmount()+ tempOrder.getTotalStoreDiscountAmount(),tempOrder.getTotalAmount(), temporaryOrderStorage.saveTemporaryOrder(tempOrder));
+        String quoteId = temporaryOrderStorage.saveTemporaryOrder(tempOrder);
+        return new ConfirmAmountResponseDTO(tempOrder.getSubtotal(), tempOrder.getShippingFee(), tempOrder.getShippingDiscountAmount()+ tempOrder.getTotalStoreDiscountAmount() + tempOrder.getPromotionDiscountAmount(),tempOrder.getTotalAmount(), quoteId);
     }
 
     private TemporaryOrder calculateTemporaryOrder(ConfirmAmountRequestDTO requestDTO, Integer customerId) throws SharedException {
@@ -149,15 +158,17 @@ public class CheckoutService {
             if (storeOrder.getProduct_variants() == null || storeOrder.getProduct_variants().isEmpty()) {
                 throw new SharedException("Order is empty");
             }
+            for (CheckoutBaseProductVariantModel productVariant : storeOrder.getProduct_variants()) {
+                if (productVariant.getProduct_variant_id() <= 0 || productVariant.getQuantity() <= 0) {
+                    throw new SharedException("Product variant and quantity must be positive");
+                }
+            }
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public SubmitOrderResponseDTO confirmOrder(SubmitOrderRequestDTO requestDTO, String customerId) throws SharedException {
-        // 取出暫存訂單
-        TemporaryOrder tempOrder = temporaryOrderStorage.getTemporaryOrder(requestDTO.getOrder_id());
-        if (tempOrder == null) {
-            throw new SharedException("Temporary order expired or not found");
-        }
+        TemporaryOrder tempOrder = claimOwnedOrder(requestDTO.getOrder_id(), customerId);
 
         // 確認庫存，扣減正式庫存
         for (TemporaryStoreOrder storeOrder : tempOrder.getStoreOrders()) {
@@ -169,17 +180,12 @@ public class CheckoutService {
         // 將訂單寫入數據庫
         Integer orderId = checkoutRepository.saveOrder( requestDTO, tempOrder, tempOrder.getCustomerId());
 
-        // 刪除暫存訂單
-        temporaryOrderStorage.confirmOrder(requestDTO.getOrder_id());
-
-        return new SubmitOrderResponseDTO(orderId, PayStatus.PENDING.toString(), tempOrder.getTotalAmount(),tempOrder.getTotalStoreDiscountAmount()+tempOrder.getShippingDiscountAmount(),tempOrder.getTotalAmount(),"2024/12/31 23:59:59");
+        return new SubmitOrderResponseDTO(orderId, PayStatus.PENDING.toString(), tempOrder.getTotalAmount(),tempOrder.getTotalStoreDiscountAmount()+tempOrder.getShippingDiscountAmount()+tempOrder.getPromotionDiscountAmount(),tempOrder.getTotalAmount(),"2024/12/31 23:59:59");
     }
 
-    public String cancelOrder(String tempOrderId) throws SharedException {
-        TemporaryOrder tempOrder = temporaryOrderStorage.getTemporaryOrder(tempOrderId);
-        if (tempOrder == null) {
-            throw new SharedException("Temporary order expired or not found");
-        }
+    @Transactional(rollbackFor = Exception.class)
+    public String cancelOrder(String tempOrderId, String token) throws SharedException {
+        TemporaryOrder tempOrder = claimOwnedOrder(tempOrderId, token);
 
         // 回滾預留庫存
         for (TemporaryStoreOrder storeOrder : tempOrder.getStoreOrders()) {
@@ -188,8 +194,36 @@ public class CheckoutService {
             }
         }
 
-        // 刪除暫存訂單
-        temporaryOrderStorage.confirmOrder(tempOrderId);
         return "Order canceled successfully";
+    }
+
+    private TemporaryOrder claimOwnedOrder(String orderId, String token) throws SharedException {
+        TemporaryOrder order = temporaryOrderStorage.getTemporaryOrder(orderId);
+        if (order == null) {
+            throw new SharedException("Temporary order expired or not found");
+        }
+        if (!order.getCustomerId().equals(jwtService.extractUserId(token))) {
+            throw new IllegalArgumentException("Temporary order belongs to another customer");
+        }
+        if (!temporaryOrderStorage.claimTemporaryOrder(orderId, order)) {
+            throw new SharedException("Temporary order expired or not found");
+        }
+
+        try {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_ROLLED_BACK) {
+                        temporaryOrderStorage.restoreTemporaryOrder(orderId, order);
+                    } else if (status == STATUS_UNKNOWN) {
+                        logger.error("Transaction outcome unknown for claimed temporary order {}", orderId);
+                    }
+                }
+            });
+        } catch (RuntimeException exception) {
+            temporaryOrderStorage.restoreTemporaryOrder(orderId, order);
+            throw exception;
+        }
+        return order;
     }
 }

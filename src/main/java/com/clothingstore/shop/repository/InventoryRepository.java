@@ -29,17 +29,22 @@ public class InventoryRepository {
     }
 
     public void finalizeStock(Integer productVariantId, Integer quantity) {
-        dsl.update(PRODUCT_VARIANT)
+        int changed = dsl.update(PRODUCT_VARIANT)
                 .set(PRODUCT_VARIANT.RESERVED_STOCK, PRODUCT_VARIANT.RESERVED_STOCK.minus(quantity))
                 .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
+                .and(PRODUCT_VARIANT.RESERVED_STOCK.greaterOrEqual(quantity))
                 .execute();
+        if (changed != 1) throw new IllegalStateException("Reserved stock is unavailable");
     }
 
     public void rollbackStock(Integer productVariantId, Integer quantity) {
-        dsl.update(PRODUCT_VARIANT)
+        int changed = dsl.update(PRODUCT_VARIANT)
                 .set(PRODUCT_VARIANT.RESERVED_STOCK, PRODUCT_VARIANT.RESERVED_STOCK.minus(quantity))
                 .set(PRODUCT_VARIANT.STOCK, PRODUCT_VARIANT.STOCK.plus(quantity))
+                .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
+                .and(PRODUCT_VARIANT.RESERVED_STOCK.greaterOrEqual(quantity))
                 .execute();
+        if (changed != 1) throw new IllegalStateException("Reserved stock is unavailable");
     }
     public Integer getUnitPrice(Integer productVariantId) {
         return dsl.select(PRODUCT_VARIANT.PRICE)
