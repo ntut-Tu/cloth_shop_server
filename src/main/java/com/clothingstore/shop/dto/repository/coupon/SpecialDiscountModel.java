@@ -5,7 +5,7 @@ public class SpecialDiscountModel extends BaseDiscountModel {
     private int buyQuantity;
     private int giftQuantity;
     private int buyVariantId;
-    private int giftVariantId;
+    private Integer giftVariantId;
 
     // Getters and Setters
     public int getSpecialDiscountId() { return specialDiscountId; }
@@ -19,8 +19,7 @@ public class SpecialDiscountModel extends BaseDiscountModel {
     public int getBuyVariantId() { return buyVariantId; }
     public void setBuyVariantId(int buyVariantId) { this.buyVariantId = buyVariantId; }
 
-    public int getGiftVariantId() { return giftVariantId; }
-    public void setGiftVariantId(int giftVariantId) { this.giftVariantId = giftVariantId; }
+    public Integer getGiftVariantId() { return giftVariantId; }
+    public void setGiftVariantId(Integer giftVariantId) { this.giftVariantId = giftVariantId; }
 }
-
 
