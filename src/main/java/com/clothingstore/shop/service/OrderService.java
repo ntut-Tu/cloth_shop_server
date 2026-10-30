@@ -4,12 +4,14 @@ import com.clothingstore.shop.dto.repository.orders.OrderDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.OrderSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.response.vendorOrder.VendorOrderResponseDTO;
+import com.clothingstore.shop.enums.PayStatus;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class OrderService {
@@ -26,16 +28,36 @@ public class OrderService {
     }
 
     // 取得使用者訂單列表（訂單簡介）
-    public List<OrderSummaryRepositoryDTO> getUserOrderSummaries(String jwtToken, int page, int size) throws SharedException {
+    public List<OrderSummaryRepositoryDTO> getUserOrderSummaries(String jwtToken, int page, int size,
+                                                                  String payStatus) throws SharedException {
+        if (page < 1 || size < 1 || size > 100) {
+            throw new IllegalArgumentException("Page must be positive and size must be between 1 and 100");
+        }
+        long offsetValue = (long) (page - 1) * size;
+        if (offsetValue > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Page offset is too large");
+        }
+        String normalizedPayStatus = normalizePayStatus(payStatus);
         Integer userId = jwtService.extractUserId(jwtToken);
         String role = jwtService.extractRole(jwtToken);
-        int offset = (page - 1) * size;
+        int offset = (int) offsetValue;
         if(role.equals("customer")) {
-            return orderRepository.findOrderSummariesByCustomerId(userId, size, offset);
+            return orderRepository.findOrderSummariesByCustomerId(userId, size, offset, normalizedPayStatus);
         } else if(role.equals("admin")) {
-            return orderRepository.findAllOrderSummaries(size, offset);
+            return orderRepository.findAllOrderSummaries(size, offset, normalizedPayStatus);
         }else {
             throw new IllegalArgumentException("Invalid role cannot get order summaries");
+        }
+    }
+
+    private String normalizePayStatus(String payStatus) {
+        if (payStatus == null || payStatus.isBlank()) {
+            return null;
+        }
+        try {
+            return PayStatus.valueOf(payStatus.trim().toUpperCase(Locale.ROOT)).name();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unsupported payment status: " + payStatus);
         }
     }
 

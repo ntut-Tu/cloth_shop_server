@@ -35,7 +35,8 @@ public class OrderRepository {
     }
 
     // 查詢訂單簡介
-    public List<OrderSummaryRepositoryDTO> findOrderSummariesByCustomerId(Integer userId, int limit, int offset) throws SharedException {
+    public List<OrderSummaryRepositoryDTO> findOrderSummariesByCustomerId(Integer userId, int limit, int offset,
+                                                                          String payStatus) throws SharedException {
         try {
             return dsl.select(
                             ORDER.ORDER_ID,
@@ -51,7 +52,8 @@ public class OrderRepository {
                     .from(ORDER)
                     .join(CUSTOMER).on(ORDER.FK_CUSTOMER_ID.eq(CUSTOMER.CUSTOMER_ID))
                     .leftOuterJoin(COUPON).on(ORDER.FK_SHIPPING_DISCOUNT_ID.eq(COUPON.COUPON_ID))
-                    .where(CUSTOMER.FK_USER_ID.eq(userId))
+                    .where(CUSTOMER.FK_USER_ID.eq(userId)
+                            .and(payStatus == null ? trueCondition() : ORDER.PAY_STATUS.eq(payStatus)))
                     .orderBy(ORDER.ORDER_DATE.desc())
                     .limit(limit)
                     .offset(offset)
@@ -70,7 +72,7 @@ public class OrderRepository {
         }
     }
 
-    public List<OrderSummaryRepositoryDTO> findAllOrderSummaries(int size, int offset) {
+    public List<OrderSummaryRepositoryDTO> findAllOrderSummaries(int size, int offset, String payStatus) {
         return dsl.select(
                         ORDER.ORDER_ID,
                         ORDER.ORDER_DATE,
@@ -84,6 +86,7 @@ public class OrderRepository {
                         ORDER.DELIVER_TYPE)
                 .from(ORDER)
                 .leftOuterJoin(COUPON).on(ORDER.FK_SHIPPING_DISCOUNT_ID.eq(COUPON.COUPON_ID))
+                .where(payStatus == null ? trueCondition() : ORDER.PAY_STATUS.eq(payStatus))
                 .orderBy(ORDER.ORDER_DATE.desc())
                 .limit(size)
                 .offset(offset)

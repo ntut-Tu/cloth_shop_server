@@ -36,11 +36,14 @@ public class OrderController {
     public ResponseEntity<ApiResponseDTO<List<OrderSummaryRepositoryDTO>>> getUserOrderSummaries(
             HttpServletRequest request,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String payStatus) {
         String token = TokenUtils.extractTokenFromCookies(request);
         try {
-            List<OrderSummaryRepositoryDTO> orderSummaries = orderService.getUserOrderSummaries(token, page, size);
+            List<OrderSummaryRepositoryDTO> orderSummaries = orderService.getUserOrderSummaries(token, page, size, payStatus);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order summaries retrieved successfully", orderSummaries));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ApiResponseDTO<>(false, e.getMessage(), null));
         }catch (Exception e){
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
