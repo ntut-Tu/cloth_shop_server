@@ -14,6 +14,8 @@ public class StandardDiscountModel extends BaseDiscountModel {
     private Integer discount_amount;
     @JsonProperty("minimum_spend")
     private Integer minimum_spend;
+    @JsonProperty("applicable_shipping_methods")
+    private String applicable_shipping_methods;
 
     //getters and setters
     public Integer getStandard_discount_id() {
@@ -54,5 +56,13 @@ public class StandardDiscountModel extends BaseDiscountModel {
 
     public void setMinimum_spend(Integer minimum_spend) {
         this.minimum_spend = minimum_spend;
+    }
+
+    public String getApplicable_shipping_methods() {
+        return applicable_shipping_methods;
+    }
+
+    public void setApplicable_shipping_methods(String applicable_shipping_methods) {
+        this.applicable_shipping_methods = applicable_shipping_methods;
     }
 }

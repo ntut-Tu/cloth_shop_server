@@ -8,12 +8,14 @@ import com.clothingstore.shop.dto.response.coupon.DiscountSummaryResponseDTO;
 import com.clothingstore.shop.enums.RoleType;
 import com.clothingstore.shop.exceptions.SharedException;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Locale;
 
 import static com.clothingstore.shop.jooq.Tables.*;
 @Repository
@@ -116,13 +118,40 @@ public class CouponRepository {
     }
 
     public DiscountDetailResponseDTO fetchCouponDetails(Integer couponId) {
-        try {
-            DiscountDetailResponseDTO coupon= dsl.fetchOne(COUPON, COUPON.COUPON_ID.eq(couponId)).into(DiscountDetailResponseDTO.class);
-            coupon.setDiscount(dsl.fetchOne(SPECIAL_DISCOUNT, SPECIAL_DISCOUNT.FK_COUPON_ID.eq(couponId)).into(SpecialDiscountModel.class));
-            return coupon;
-        }catch (Exception e){
-            throw e;
+        Record couponRecord = dsl.fetchOne(COUPON, COUPON.COUPON_ID.eq(couponId));
+        if (couponRecord == null) {
+            throw new IllegalArgumentException("Coupon not found");
         }
+
+        DiscountDetailResponseDTO coupon = new DiscountDetailResponseDTO();
+        coupon.setCouponId(couponRecord.get(COUPON.COUPON_ID));
+        coupon.setCode(couponRecord.get(COUPON.CODE));
+        coupon.setType(couponRecord.get(COUPON.TYPE));
+        coupon.setStartDate(couponRecord.get(COUPON.START_DATE) == null
+                ? null : couponRecord.get(COUPON.START_DATE).toString());
+        coupon.setEndDate(couponRecord.get(COUPON.END_DATE) == null
+                ? null : couponRecord.get(COUPON.END_DATE).toString());
+        coupon.setList(Boolean.TRUE.equals(couponRecord.get(COUPON.IS_LIST)));
+        coupon.setMaximumUsagePerCustomer(couponRecord.get(COUPON.MAXIMUM_USAGE_PER_CUSTOMER));
+
+        String type = coupon.getType().toLowerCase(Locale.ROOT);
+        Record discountRecord;
+        switch (type) {
+            case "special_discount" -> discountRecord = dsl.fetchOne(SPECIAL_DISCOUNT,
+                    SPECIAL_DISCOUNT.FK_COUPON_ID.eq(couponId));
+            case "seasonal_discount" -> discountRecord = dsl.fetchOne(SEASONAL_DISCOUNT,
+                    SEASONAL_DISCOUNT.FK_COUPON_ID.eq(couponId));
+            case "shipping_discount" -> discountRecord = dsl.fetchOne(SHIPPING_DISCOUNT,
+                    SHIPPING_DISCOUNT.FK_COUPON_ID.eq(couponId));
+            default -> throw new IllegalArgumentException("Unsupported discount type: " + coupon.getType());
+        }
+        if (discountRecord == null) {
+            throw new IllegalStateException("Coupon discount details not found");
+        }
+        coupon.setDiscount(type.equals("special_discount")
+                ? discountRecord.into(SpecialDiscountModel.class)
+                : discountRecord.into(StandardDiscountModel.class));
+        return coupon;
     }
 
     public Boolean updateCouponStatus(Integer couponId, Integer userId, RoleType role, Boolean isActive)throws SharedException {
