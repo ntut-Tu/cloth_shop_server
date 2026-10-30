@@ -7,10 +7,13 @@ import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.ConfirmAmountResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.ConfirmDiscountResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.SubmitOrderResponseDTO;
+import com.clothingstore.shop.dto.response.checkout.TemporaryOrderQuoteResponseDTO;
 import com.clothingstore.shop.service.CheckoutService;
 import com.clothingstore.shop.service.DiscountService;
 import com.clothingstore.shop.service.JwtService;
 import com.clothingstore.shop.utils.TokenUtils;
+import com.clothingstore.shop.exceptions.SharedException;
+import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +33,31 @@ public class CheckoutController {
         this.discountService = discountService;
         this.jwtService = jwtService;
         this.checkoutService = checkoutService;
+    }
+
+    @GetMapping("/quotes/{orderId}")
+    public ResponseEntity<ApiResponseDTO<TemporaryOrderQuoteResponseDTO>> getTemporaryQuote(
+            HttpServletRequest request, @PathVariable String orderId) {
+        try {
+            String token = TokenUtils.extractTokenFromCookies(request);
+            if (token == null || token.isBlank()) {
+                throw new JwtException("Token not found");
+            }
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Temporary quote retrieved successfully",
+                    checkoutService.getTemporaryQuote(orderId, token)));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponseDTO<>(false, "Invalid or missing token", null));
+        } catch (SharedException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
     }
 
     @PostMapping("/confirm-amount")
