@@ -3,12 +3,14 @@ package com.clothingstore.shop.repository;
 import com.clothingstore.shop.dto.response.users.UserSummaryResponseDTO;
 import com.clothingstore.shop.dto.response.users.UserLogResponseDTO;
 import org.jooq.DSLContext;
+import org.jooq.Condition;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 import static com.clothingstore.shop.jooq.tables.UserLog.*;
 import static com.clothingstore.shop.jooq.tables.Users.*;
+import static org.jooq.impl.DSL.noCondition;
 @Repository
 public class UserRepository {
     private final DSLContext dsl;
@@ -17,7 +19,10 @@ public class UserRepository {
         this.dsl = dsl;
     }
 
-    public List<UserSummaryResponseDTO> fetchUsers(Integer page, Integer size) {
+    public List<UserSummaryResponseDTO> fetchUsers(Integer page, Integer size, String search) {
+        Condition filter = search == null || search.isEmpty()
+                ? noCondition()
+                : USERS.ACCOUNT.containsIgnoreCase(search).or(USERS.EMAIL.containsIgnoreCase(search));
         return dsl.select(
                 USERS.USER_ID.as("id"),
                 USERS.ACCOUNT.as("username"),
@@ -26,6 +31,8 @@ public class UserRepository {
                 USERS.CREATED_AT.as("establishDate"),
                 USERS.IS_ACTIVE.as("isActive"))
                 .from(USERS)
+                .where(filter)
+                .orderBy(USERS.USER_ID.asc())
                 .limit(size)
                 .offset(page * size)
                 .fetchInto(UserSummaryResponseDTO.class);
