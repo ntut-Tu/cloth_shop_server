@@ -1,0 +1,98 @@
+databaseChangeLog:
+  - changeSet:
+      id: order-webhook-outbox-1
+      author: cloth-shop
+      dbms: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE TABLE webhook_subscription (
+                subscription_id bigserial PRIMARY KEY,
+                vendor_id integer NOT NULL REFERENCES vendor(vendor_id),
+                endpoint_url varchar(2048) NOT NULL,
+                secret varchar(128) NOT NULL,
+                active boolean NOT NULL DEFAULT true,
+                created_at timestamptz NOT NULL DEFAULT now(),
+                deleted_at timestamptz
+              );
+              CREATE INDEX webhook_subscription_vendor_idx ON webhook_subscription(vendor_id);
+
+              CREATE TABLE webhook_subscription_event (
+                subscription_id bigint NOT NULL REFERENCES webhook_subscription(subscription_id),
+                event_type varchar(60) NOT NULL CHECK (event_type IN ('STORE_ORDER_CREATED', 'STORE_ORDER_STATUS_CHANGED')),
+                PRIMARY KEY (subscription_id, event_type)
+              );
+
+              CREATE TABLE webhook_outbox (
+                event_id bigserial PRIMARY KEY,
+                vendor_id integer NOT NULL REFERENCES vendor(vendor_id),
+                event_type varchar(60) NOT NULL,
+                payload jsonb NOT NULL,
+                created_at timestamptz NOT NULL DEFAULT now()
+              );
+
+              CREATE TABLE webhook_delivery (
+                delivery_id bigserial PRIMARY KEY,
+                event_id bigint NOT NULL REFERENCES webhook_outbox(event_id),
+                subscription_id bigint NOT NULL REFERENCES webhook_subscription(subscription_id),
+                status varchar(20) NOT NULL DEFAULT 'PENDING'
+                  CHECK (status IN ('PENDING', 'SENDING', 'DELIVERED', 'DEAD', 'CANCELLED')),
+                attempt_count integer NOT NULL DEFAULT 0,
+                next_attempt_at timestamptz NOT NULL DEFAULT now(),
+                lease_token uuid,
+                lease_until timestamptz,
+                response_status integer,
+                last_error varchar(512),
+                delivered_at timestamptz,
+                updated_at timestamptz NOT NULL DEFAULT now(),
+                UNIQUE (event_id, subscription_id)
+              );
+              CREATE INDEX webhook_delivery_due_idx
+                ON webhook_delivery(next_attempt_at, delivery_id)
+                WHERE status IN ('PENDING', 'SENDING');
+              CREATE INDEX webhook_delivery_subscription_idx
+                ON webhook_delivery(subscription_id, delivery_id DESC);
+
+              CREATE OR REPLACE FUNCTION queue_store_order_webhooks() RETURNS trigger AS $$
+              DECLARE
+                event_kind varchar(60);
+                outbox_id bigint;
+                previous_status varchar(50);
+              BEGIN
+                IF TG_OP = 'INSERT' THEN
+                  event_kind := 'STORE_ORDER_CREATED';
+                ELSIF OLD.store_order_status IS DISTINCT FROM NEW.store_order_status THEN
+                  event_kind := 'STORE_ORDER_STATUS_CHANGED';
+                  previous_status := OLD.store_order_status;
+                ELSE
+                  RETURN NEW;
+                END IF;
+
+                INSERT INTO webhook_outbox(vendor_id, event_type, payload)
+                VALUES (NEW.fk_vendor_id, event_kind, jsonb_build_object(
+                  'eventType', event_kind,
+                  'orderId', NEW.fk_order_id,
+                  'storeOrderId', NEW.store_order_id,
+                  'vendorId', NEW.fk_vendor_id,
+                  'previousStatus', previous_status,
+                  'status', NEW.store_order_status,
+                  'netAmount', NEW.store_net_amount,
+                  'occurredAt', now()
+                )) RETURNING event_id INTO outbox_id;
+
+                INSERT INTO webhook_delivery(event_id, subscription_id)
+                SELECT outbox_id, s.subscription_id
+                FROM webhook_subscription s
+                JOIN webhook_subscription_event se ON se.subscription_id = s.subscription_id
+                WHERE s.vendor_id = NEW.fk_vendor_id
+                  AND s.active = true
+                  AND s.deleted_at IS NULL
+                  AND se.event_type = event_kind;
+                RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+
+              CREATE TRIGGER trg_queue_store_order_webhooks
+                AFTER INSERT OR UPDATE OF store_order_status ON store_order
+                FOR EACH ROW EXECUTE FUNCTION queue_store_order_webhooks();
