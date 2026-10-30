@@ -34,11 +34,21 @@ public class UserService {
         return userRepository.banUser(banUserId);
     }
 
-    public List<UserLogResponseDTO> getUserLogs(int page, int size, String token) {
+    public List<UserLogResponseDTO> getUserLogs(int page, int size, Integer targetUserId, String action, String token) {
         Integer userId = jwtService.extractUserId(token);
         if (!authService.checkUserExists(userId, "admin")) {
             throw new IllegalArgumentException("User is not authorized to view logs.");
         }
-        return userRepository.fetchUserLogs(page, size);
+        if (page < 0 || size < 1 || size > 100 || page > Integer.MAX_VALUE / size) {
+            throw new IllegalArgumentException("Page must be non-negative and size must be between 1 and 100.");
+        }
+        if (targetUserId != null && targetUserId < 1) {
+            throw new IllegalArgumentException("User ID must be positive.");
+        }
+        String normalizedAction = action == null ? null : action.trim();
+        if (normalizedAction != null && normalizedAction.length() > 100) {
+            throw new IllegalArgumentException("Action must be at most 100 characters.");
+        }
+        return userRepository.fetchUserLogs(page, size, targetUserId, normalizedAction);
     }
 }
