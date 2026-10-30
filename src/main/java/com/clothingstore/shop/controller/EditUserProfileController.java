@@ -24,7 +24,7 @@ public class EditUserProfileController {
             HttpServletRequest request,
             @RequestBody EditUserDataRequestDTO editUserDataRequestDTO){
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -38,7 +38,7 @@ public class EditUserProfileController {
     @GetMapping("/")
     public ResponseEntity<ApiResponseDTO<EditUserDataResponseDTO>> getUserData(HttpServletRequest request){
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }

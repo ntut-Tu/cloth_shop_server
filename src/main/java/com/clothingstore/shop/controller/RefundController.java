@@ -25,7 +25,7 @@ public class RefundController {
             HttpServletRequest request,
             @RequestBody RefundDetailResponseDTO refundDetailResponseDTO) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -42,7 +42,7 @@ public class RefundController {
             @PathVariable Integer orderItemId
     ){
         try{
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -57,7 +57,7 @@ public class RefundController {
             HttpServletRequest request,
             @PathVariable Integer refundId) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -73,7 +73,7 @@ public class RefundController {
             HttpServletRequest request,
             @PathVariable Integer orderItemId) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -90,7 +90,7 @@ public class RefundController {
             @PathVariable Integer refundId,
             @RequestBody RefundDetailResponseDTO refundDetailResponseDTO) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -105,7 +105,7 @@ public class RefundController {
     public ResponseEntity<ApiResponseDTO<List<RefundListSumResponse>>> getRefundList(
             HttpServletRequest request) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }

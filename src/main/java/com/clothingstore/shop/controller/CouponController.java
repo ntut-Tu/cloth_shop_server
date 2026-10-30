@@ -31,7 +31,7 @@ public class CouponController {
             @RequestBody DiscountDetailResponseDTO discountDetailResponseDTO) {
         try {
             // 解析 token
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -46,7 +46,7 @@ public class CouponController {
     public ResponseEntity<ApiResponseDTO<List<DiscountSummaryResponseDTO>>> getCoupons(
             HttpServletRequest request) {
         try {
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -62,7 +62,7 @@ public class CouponController {
             HttpServletRequest request,
             @PathVariable Integer couponId) {
         try{
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -79,7 +79,7 @@ public class CouponController {
             @PathVariable Integer couponId,
             @RequestBody UpdateCouponRequestDTO requestDTO) {
         try{
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }

@@ -26,8 +26,8 @@ public class OrderController {
     }
 
     /**
-     * 從 cookie 中取得使用者的訂單簡介列表
-     * @param request - HttpServletRequest 用於從 cookie 中取得 token
+     * 從請求中取得使用者的訂單簡介列表
+     * @param request - HttpServletRequest 用於從請求中取得 token
      * @param page - 分頁的頁碼
      * @param size - 每頁的訂單數量
      * @return 包含訂單摘要的 ApiResponseDTO
@@ -37,7 +37,7 @@ public class OrderController {
             HttpServletRequest request,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        String token = TokenUtils.extractTokenFromCookies(request);
+        String token = TokenUtils.extractToken(request);
         try {
             List<OrderSummaryRepositoryDTO> orderSummaries = orderService.getUserOrderSummaries(token, page, size);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order summaries retrieved successfully", orderSummaries));
@@ -47,8 +47,8 @@ public class OrderController {
     }
 
     /**
-     * 根據訂單 ID 從 cookie 中取得商家訂單列表
-     * @param request - HttpServletRequest 用於從 cookie 中取得 token
+     * 根據訂單 ID 從請求中取得商家訂單列表
+     * @param request - HttpServletRequest 用於從請求中取得 token
      * @param orderId - 訂單的唯一標識符
      * @return 包含商家訂單摘要的 ApiResponseDTO
      */
@@ -57,7 +57,7 @@ public class OrderController {
             HttpServletRequest request,
             @PathVariable Integer orderId) {
         try{
-        String token = TokenUtils.extractTokenFromCookies(request);
+        String token = TokenUtils.extractToken(request);
         List<StoreOrderSummaryRepositoryDTO> storeOrders = orderService.getStoreOrdersByOrderId(token, orderId);
         return ResponseEntity.ok(new ApiResponseDTO<>(true, "Store orders retrieved successfully", storeOrders));
         }catch (Exception e){
@@ -67,8 +67,8 @@ public class OrderController {
 
 
     /**
-     * 根據商家訂單 ID 從 cookie 中取得商品詳情
-     * @param request - HttpServletRequest 用於從 cookie 中取得 token
+     * 根據商家訂單 ID 從請求中取得商品詳情
+     * @param request - HttpServletRequest 用於從請求中取得 token
      * @param storeOrderId - 商家訂單的唯一標識符
      * @return 包含商品詳情的 ApiResponseDTO
      */
@@ -76,7 +76,7 @@ public class OrderController {
     public ResponseEntity<ApiResponseDTO<List<OrderDetailRepositoryDTO>>> getOrderDetailsByStoreOrderId(
             HttpServletRequest request,
             @PathVariable Integer storeOrderId) {
-        String token = TokenUtils.extractTokenFromCookies(request);
+        String token = TokenUtils.extractToken(request);
         List<OrderDetailRepositoryDTO> orderDetails = orderService.getOrderDetailsByOrderId(token, storeOrderId);
         return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order details retrieved successfully", orderDetails));
     }
@@ -88,7 +88,7 @@ public class OrderController {
             @RequestBody String status) {
         try {
             //用於顧客完成及商家、管理員回應退款(未完成)
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             orderService.updateOrderStatus(token, orderId, status);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order status updated successfully", null));
         }catch (Exception e){
@@ -103,7 +103,7 @@ public class OrderController {
             @RequestBody String status) {
         try {
             //用於商家回應訂單(未完成)
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             orderService.updateStoreOrderStatus(token, storeOrderId, status);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Store order status updated successfully", null));
         }catch (Exception e){
@@ -116,7 +116,7 @@ public class OrderController {
             HttpServletRequest request,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        String token = TokenUtils.extractTokenFromCookies(request);
+        String token = TokenUtils.extractToken(request);
         try {
             List<VendorOrderResponseDTO> orderSummaries = orderService.getVendorStoreOrders(token, page, size);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order summaries retrieved successfully", orderSummaries));

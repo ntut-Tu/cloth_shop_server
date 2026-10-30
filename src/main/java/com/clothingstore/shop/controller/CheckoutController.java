@@ -37,8 +37,8 @@ public class CheckoutController {
             HttpServletRequest request,
             @RequestBody ConfirmAmountRequestDTO confirmAmountRequestDTO) {
         try {
-            // 從 cookie 中提取 token
-            String token = TokenUtils.extractTokenFromCookies(request);
+            // 從請求中提取 token
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -59,8 +59,8 @@ public class CheckoutController {
             HttpServletRequest request,
             @RequestBody ConfirmDiscountRequestDTO confirmDiscountRequestDTO) {
         try {
-            // 從 cookie 中提取 token
-            String token = TokenUtils.extractTokenFromCookies(request);
+            // 從請求中提取 token
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -86,8 +86,8 @@ public class CheckoutController {
             HttpServletRequest request,
             @RequestBody SubmitOrderRequestDTO submitOrderRequestDTO) {
         try {
-            // 從 cookie 中提取 token
-            String token = TokenUtils.extractTokenFromCookies(request);
+            // 從請求中提取 token
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -105,8 +105,8 @@ public class CheckoutController {
             HttpServletRequest request,
             @RequestBody String orderId) {
         try {
-            // 從 cookie 中提取 token
-            String token = TokenUtils.extractTokenFromCookies(request);
+            // 從請求中提取 token
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }

@@ -31,7 +31,7 @@ public class LedgerController {
     ) {
         try {
             // 解析 token
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
@@ -49,7 +49,7 @@ public class LedgerController {
     ) {
         try {
             // 解析 token
-            String token = TokenUtils.extractTokenFromCookies(request);
+            String token = TokenUtils.extractToken(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
