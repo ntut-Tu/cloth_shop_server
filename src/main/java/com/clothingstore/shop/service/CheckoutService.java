@@ -10,11 +10,13 @@ import com.clothingstore.shop.dto.request.checkout.ConfirmAmountRequestDTO;
 import com.clothingstore.shop.dto.request.checkout.SubmitOrderRequestDTO;
 import com.clothingstore.shop.dto.response.checkout.ConfirmAmountResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.SubmitOrderResponseDTO;
+import com.clothingstore.shop.dto.response.checkout.TemporaryOrderQuoteResponseDTO;
 import com.clothingstore.shop.enums.PayStatus;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.CheckoutRepository;
 import com.clothingstore.shop.repository.DiscountRepository;
 import com.clothingstore.shop.repository.InventoryRepository;
+import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.time.Instant;
+import java.util.Objects;
 
 @Service
 public class CheckoutService {
@@ -150,6 +154,29 @@ public class CheckoutService {
                 throw new SharedException("Order is empty");
             }
         }
+    }
+
+    public TemporaryOrderQuoteResponseDTO getTemporaryQuote(String orderId, String token) throws SharedException {
+        if (orderId == null || orderId.isBlank()) {
+            throw new IllegalArgumentException("Order ID is required");
+        }
+        if (token == null || token.isBlank()) {
+            throw new JwtException("Token not found");
+        }
+        Integer customerId = jwtService.extractUserId(token);
+        if (customerId == null) {
+            throw new JwtException("Invalid token");
+        }
+        TemporaryOrder tempOrder = temporaryOrderStorage.getTemporaryOrder(orderId);
+        if (tempOrder == null || tempOrder.getExpirationTime() <= System.currentTimeMillis()) {
+            throw new SharedException("Temporary order expired or not found");
+        }
+        if (!Objects.equals(tempOrder.getCustomerId(), customerId)) {
+            throw new SecurityException("Order does not belong to customer");
+        }
+        return new TemporaryOrderQuoteResponseDTO(orderId, tempOrder.getSubtotal(),
+                tempOrder.getShippingFee(), tempOrder.getTotalStoreDiscountAmount(),
+                tempOrder.getTotalAmount(), Instant.ofEpochMilli(tempOrder.getExpirationTime()).toString());
     }
 
     public SubmitOrderResponseDTO confirmOrder(SubmitOrderRequestDTO requestDTO, String customerId) throws SharedException {
