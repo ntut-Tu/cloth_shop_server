@@ -45,6 +45,12 @@ public class AuthService {
         return authRepository.findByUserIDAndRole(userId, role).isPresent();
     }
 
+    public boolean checkActiveUserExists(Integer userId, String role) {
+        return authRepository.findByUserIDAndRole(userId, role)
+                .filter(UserRepositoryDTO::getIsActive)
+                .isPresent();
+    }
+
     public boolean register(RegisterRequestDTO registerRequestDTO) {
         if (authRepository.findByUserAccountAndRole(registerRequestDTO.getAccount(), registerRequestDTO.getRole()).isPresent()) {
             return false;
