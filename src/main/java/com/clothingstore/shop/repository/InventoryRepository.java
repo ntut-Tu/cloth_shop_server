@@ -39,6 +39,7 @@ public class InventoryRepository {
         dsl.update(PRODUCT_VARIANT)
                 .set(PRODUCT_VARIANT.RESERVED_STOCK, PRODUCT_VARIANT.RESERVED_STOCK.minus(quantity))
                 .set(PRODUCT_VARIANT.STOCK, PRODUCT_VARIANT.STOCK.plus(quantity))
+                .where(PRODUCT_VARIANT.PRODUCT_VARIANT_ID.eq(productVariantId))
                 .execute();
     }
     public Integer getUnitPrice(Integer productVariantId) {

@@ -1,0 +1,192 @@
+databaseChangeLog:
+  - changeSet:
+      id: promotion-campaign-20261030-1
+      author: development
+      changes:
+        - createTable:
+            tableName: promotion_campaign
+            columns:
+              - column:
+                  name: campaign_id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: status
+                  type: varchar(16)
+                  defaultValue: DRAFT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: latest_version
+                  type: integer
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: false
+              - column:
+                  name: published_version
+                  type: integer
+              - column:
+                  name: starts_at
+                  type: timestamptz
+              - column:
+                  name: ends_at
+                  type: timestamptz
+              - column:
+                  name: max_uses
+                  type: integer
+              - column:
+                  name: max_uses_per_customer
+                  type: integer
+              - column:
+                  name: use_count
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: promotion_version
+            columns:
+              - column:
+                  name: campaign_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rule_json
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: benefit_json
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: promotion_version
+            columnNames: campaign_id, version
+            constraintName: pk_promotion_version
+        - addForeignKeyConstraint:
+            baseTableName: promotion_version
+            baseColumnNames: campaign_id
+            constraintName: fk_promotion_version_campaign
+            referencedTableName: promotion_campaign
+            referencedColumnNames: campaign_id
+        - addColumn:
+            tableName: order
+            columns:
+              - column:
+                  name: promotion_campaign_id
+                  type: bigint
+              - column:
+                  name: promotion_version
+                  type: integer
+              - column:
+                  name: promotion_discount_amount
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: order
+            baseColumnNames: promotion_campaign_id
+            constraintName: fk_order_promotion_campaign
+            referencedTableName: promotion_campaign
+            referencedColumnNames: campaign_id
+        - createTable:
+            tableName: promotion_redemption
+            columns:
+              - column:
+                  name: redemption_id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: campaign_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: customer_id
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: order_id
+                  type: integer
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: quote_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: discount_amount
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: promotion_redemption
+            baseColumnNames: campaign_id
+            constraintName: fk_promotion_redemption_campaign
+            referencedTableName: promotion_campaign
+            referencedColumnNames: campaign_id
+        - addForeignKeyConstraint:
+            baseTableName: promotion_redemption
+            baseColumnNames: customer_id
+            constraintName: fk_promotion_redemption_customer
+            referencedTableName: customer
+            referencedColumnNames: customer_id
+        - addForeignKeyConstraint:
+            baseTableName: promotion_redemption
+            baseColumnNames: order_id
+            constraintName: fk_promotion_redemption_order
+            referencedTableName: order
+            referencedColumnNames: order_id
+        - createIndex:
+            tableName: promotion_redemption
+            indexName: idx_promotion_customer
+            columns:
+              - column:
+                  name: campaign_id
+              - column:
+                  name: customer_id
