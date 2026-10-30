@@ -2,6 +2,7 @@ package com.clothingstore.shop.controller;
 
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
 import com.clothingstore.shop.dto.request.product.FetchProductsParams;
+import com.clothingstore.shop.dto.request.product.ProductStockUpdateRequestDTO;
 import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.repository.products.ProductDetailRepositoryDTO;
 import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDTO;
@@ -10,6 +11,7 @@ import com.clothingstore.shop.dto.response.product.ProductInfoResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.service.ProductService;
 import com.clothingstore.shop.utils.TokenUtils;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -158,6 +160,31 @@ public class ProductController {
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Product stock updated successfully", true));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/update-stock/bulk")
+    public ResponseEntity<ApiResponseDTO<Integer>> updateProductStockBulk(
+            HttpServletRequest request,
+            @RequestBody List<ProductStockUpdateRequestDTO> updates
+    ) {
+        String token = TokenUtils.extractTokenFromCookies(request);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponseDTO<>(false, "Token not found", null));
+        }
+        try {
+            int updatedCount = productService.updateProductStockBulk(token, updates);
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Product stock updated successfully", updatedCount));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponseDTO<>(false, "Invalid token", null));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
     }
 }
