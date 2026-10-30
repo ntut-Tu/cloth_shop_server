@@ -66,6 +66,9 @@ databaseChangeLog:
   - include:
       file: tables/changelog-table-refund.yaml
       relativeToChangelogFile: true
+  - include:
+      file: tables/changelog-table-checkout_reservation.yaml
+      relativeToChangelogFile: true
 #------------------INDEXES------------------
   - include:
       file: index/changelog-index-product.yaml

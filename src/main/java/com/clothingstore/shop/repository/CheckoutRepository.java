@@ -1,16 +1,12 @@
 package com.clothingstore.shop.repository;
 
-import com.clothingstore.shop.dto.others.checkout.*;
-
-import com.clothingstore.shop.dto.others.tempOrder.TemporaryOrder;
-import com.clothingstore.shop.dto.others.tempOrder.TemporaryProductVariant;
-import com.clothingstore.shop.dto.others.tempOrder.TemporaryStoreOrder;
+import com.clothingstore.shop.dto.others.checkout.ProductVariantDTO;
+import com.clothingstore.shop.dto.others.checkout.ReservationSnapshot;
 import com.clothingstore.shop.dto.request.checkout.SubmitOrderRequestDTO;
 import com.clothingstore.shop.enums.*;
 import com.clothingstore.shop.exceptions.SharedException;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -60,65 +56,60 @@ public class CheckoutRepository {
         return shippingFee;
     }
 
-    public Integer saveOrder(SubmitOrderRequestDTO requestDTO, TemporaryOrder tempOrder, Integer userId) throws SharedException {
-        try {
-            return dsl.transactionResult(configuration -> {
-                DSLContext temp_dsl = DSL.using(configuration);
-
-                //插入訂單
-                Integer customerId = temp_dsl.select(CUSTOMER.CUSTOMER_ID)
-                        .from(CUSTOMER)
-                        .where(CUSTOMER.FK_USER_ID.eq(userId))
-                        .fetchOneInto(Integer.class);
-                Integer orderId = temp_dsl.insertInto(ORDER)
-                        .set(ORDER.FK_CUSTOMER_ID, customerId)
-                        .set(ORDER.PAYMENT_METHOD, requestDTO.getPayment_method())
-                        .set(ORDER.PAY_STATUS, requestDTO.getPayment_method().equals(PayMethod.CARD.getMethod())
-                                ? PayStatus.PAID.toString()
-                                : PayStatus.PENDING.toString())
-                        .set(ORDER.DELIVER_TYPE, requestDTO.getDelivery_type())
-                        .set(ORDER.PICKUP_STORE, requestDTO.getPickup_store())
-                        .set(ORDER.SHIP_STATUS, ShipStatus.PENDING.getStatus())
-                        .set(ORDER.SHIPPING_ADDRESS, requestDTO.getShipping_address())
-                        .set(ORDER.SUBTOTAL, tempOrder.getSubtotal())
-                        .set(ORDER.SHIPPING_DISCOUNT_AMOUNT, tempOrder.getShippingDiscountAmount())
-                        .set(ORDER.FK_SHIPPING_DISCOUNT_ID, tempOrder.getShippingDiscountId())
-                        .set(ORDER.TOTAL_AMOUNT, tempOrder.getTotalAmount())
-                        .returning(ORDER.ORDER_ID)
-                        .fetchOptional().orElseThrow(() -> new SharedException("Failed to insert order"))
-                        .getOrderId();
-
-                //插入商店訂單和商品數據
-                for (TemporaryStoreOrder storeOrderResult : tempOrder.getStoreOrders()) {
-                    Integer storeOrderId = temp_dsl.insertInto(STORE_ORDER)
-                            .set(STORE_ORDER.FK_ORDER_ID, orderId)
-                            .set(STORE_ORDER.FK_VENDOR_ID, storeOrderResult.getStoreId())
-                            .set(STORE_ORDER.STORE_DISCOUNT_AMOUNT, storeOrderResult.getDiscountAmount())
-                            .set(STORE_ORDER.STORE_SUBTOTAL_AMOUNT, storeOrderResult.getSubtotal())
-                            .set(STORE_ORDER.STORE_NET_AMOUNT, storeOrderResult.getTotalAmount())
-                            .set(STORE_ORDER.SPECIAL_DISCOUNT_ID, storeOrderResult.getSpecialDiscountId())
-                            .set(STORE_ORDER.SEASONAL_DISCOUNT_ID, storeOrderResult.getSeasonalDiscountId())
-                            .set(STORE_ORDER.STORE_ORDER_STATUS, StoreOrderStatus.PENDING.getStatus())
-                            .returning(STORE_ORDER.STORE_ORDER_ID)
-                            .fetchOne()
-                            .getStoreOrderId();
-
-                    for (TemporaryProductVariant product : storeOrderResult.getProductVariants()) {
-                        temp_dsl.insertInto(ORDER_ITEM)
-                                .set(ORDER_ITEM.FK_STORE_ORDER_ID, storeOrderId)
-                                .set(ORDER_ITEM.FK_PRODUCT_VARIANT_ID, product.getProductVariantId())
-                                .set(ORDER_ITEM.QUANTITY, product.getQuantity())
-                                .set(ORDER_ITEM.UNIT_PRICE, product.getUnitPrice())
-                                .set(ORDER_ITEM.TOTAL_PRICE, product.getTotalAmount())
-                                .set(ORDER_ITEM.FK_ORDER_ID, orderId)
-                                .execute();
-                    }
-                }
-                return orderId;
-            });
-        } catch (Exception e) {
-            throw e;
+    /** Must be called from the reservation transaction so order and stock changes commit together. */
+    public Integer saveOrder(DSLContext transaction, SubmitOrderRequestDTO requestDTO,
+                             ReservationSnapshot quote) throws SharedException {
+        Integer customerId = transaction.select(CUSTOMER.CUSTOMER_ID)
+                .from(CUSTOMER)
+                .where(CUSTOMER.FK_USER_ID.eq(quote.userId()))
+                .fetchOneInto(Integer.class);
+        if (customerId == null) {
+            throw new SharedException("Customer account not found");
         }
+        Integer orderId = transaction.insertInto(ORDER)
+                .set(ORDER.FK_CUSTOMER_ID, customerId)
+                .set(ORDER.PAYMENT_METHOD, requestDTO.getPayment_method())
+                .set(ORDER.PAY_STATUS, requestDTO.getPayment_method().equals(PayMethod.CARD.getMethod())
+                        ? PayStatus.PAID.toString()
+                        : PayStatus.PENDING.toString())
+                .set(ORDER.DELIVER_TYPE, requestDTO.getDelivery_type())
+                .set(ORDER.PICKUP_STORE, requestDTO.getPickup_store())
+                .set(ORDER.SHIP_STATUS, ShipStatus.PENDING.getStatus())
+                .set(ORDER.SHIPPING_ADDRESS, requestDTO.getShipping_address())
+                .set(ORDER.SUBTOTAL, quote.subtotal())
+                .set(ORDER.SHIPPING_DISCOUNT_AMOUNT, quote.shippingDiscountAmount())
+                .set(ORDER.FK_SHIPPING_DISCOUNT_ID, quote.shippingDiscountId())
+                .set(ORDER.TOTAL_AMOUNT, quote.totalAmount())
+                .returning(ORDER.ORDER_ID)
+                .fetchOptional().orElseThrow(() -> new SharedException("Failed to insert order"))
+                .getOrderId();
+
+        for (ReservationSnapshot.StoreQuote storeOrderResult : quote.stores()) {
+            Integer storeOrderId = transaction.insertInto(STORE_ORDER)
+                    .set(STORE_ORDER.FK_ORDER_ID, orderId)
+                    .set(STORE_ORDER.FK_VENDOR_ID, storeOrderResult.storeId())
+                    .set(STORE_ORDER.STORE_DISCOUNT_AMOUNT, storeOrderResult.discountAmount())
+                    .set(STORE_ORDER.STORE_SUBTOTAL_AMOUNT, storeOrderResult.subtotal())
+                    .set(STORE_ORDER.STORE_NET_AMOUNT, storeOrderResult.totalAmount())
+                    .set(STORE_ORDER.SPECIAL_DISCOUNT_ID, storeOrderResult.specialDiscountId())
+                    .set(STORE_ORDER.SEASONAL_DISCOUNT_ID, storeOrderResult.seasonalDiscountId())
+                    .set(STORE_ORDER.STORE_ORDER_STATUS, StoreOrderStatus.PENDING.getStatus())
+                    .returning(STORE_ORDER.STORE_ORDER_ID)
+                    .fetchOne()
+                    .getStoreOrderId();
+
+            for (ReservationSnapshot.ItemQuote product : storeOrderResult.items()) {
+                transaction.insertInto(ORDER_ITEM)
+                        .set(ORDER_ITEM.FK_STORE_ORDER_ID, storeOrderId)
+                        .set(ORDER_ITEM.FK_PRODUCT_VARIANT_ID, product.variantId())
+                        .set(ORDER_ITEM.QUANTITY, product.quantity())
+                        .set(ORDER_ITEM.UNIT_PRICE, product.unitPrice())
+                        .set(ORDER_ITEM.TOTAL_PRICE, product.totalAmount())
+                        .set(ORDER_ITEM.FK_ORDER_ID, orderId)
+                        .execute();
+            }
+        }
+        return orderId;
     }
 
 }

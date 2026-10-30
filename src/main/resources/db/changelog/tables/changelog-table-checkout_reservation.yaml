@@ -1,0 +1,119 @@
+databaseChangeLog:
+  - changeSet:
+      id: checkout-reservation-1
+      author: checkout
+      changes:
+        - createTable:
+            tableName: checkout_reservation
+            columns:
+              - column:
+                  name: reservation_id
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: owner_user_id
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: snapshot
+                  type: jsonb
+                  constraints:
+                    nullable: false
+              - column:
+                  name: order_id
+                  type: integer
+              - column:
+                  name: confirmation_fingerprint
+                  type: varchar(64)
+              - column:
+                  name: created_at
+                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: checkout_reservation
+            baseColumnNames: owner_user_id
+            constraintName: fk_checkout_reservation_owner
+            referencedTableName: users
+            referencedColumnNames: user_id
+        - addForeignKeyConstraint:
+            baseTableName: checkout_reservation
+            baseColumnNames: order_id
+            constraintName: fk_checkout_reservation_order
+            referencedTableName: order
+            referencedColumnNames: order_id
+        - createIndex:
+            tableName: checkout_reservation
+            indexName: idx_checkout_reservation_expiry
+            columns:
+              - column:
+                  name: status
+              - column:
+                  name: expires_at
+        - sql:
+            sql: >-
+              ALTER TABLE checkout_reservation ADD CONSTRAINT chk_checkout_reservation_status
+              CHECK (status IN ('HELD', 'CONFIRMED', 'CANCELLED', 'EXPIRED'))
+        - sql:
+            sql: >-
+              ALTER TABLE checkout_reservation ADD CONSTRAINT chk_checkout_reservation_confirmation
+              CHECK ((status = 'CONFIRMED' AND order_id IS NOT NULL AND confirmation_fingerprint IS NOT NULL)
+              OR (status <> 'CONFIRMED' AND order_id IS NULL AND confirmation_fingerprint IS NULL))
+        - createTable:
+            tableName: checkout_reservation_item
+            columns:
+              - column:
+                  name: reservation_id
+                  type: varchar(36)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: product_variant_id
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: integer
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: checkout_reservation_item
+            columnNames: reservation_id, product_variant_id
+            constraintName: pk_checkout_reservation_item
+        - addForeignKeyConstraint:
+            baseTableName: checkout_reservation_item
+            baseColumnNames: reservation_id
+            constraintName: fk_checkout_reservation_item_reservation
+            referencedTableName: checkout_reservation
+            referencedColumnNames: reservation_id
+        - addForeignKeyConstraint:
+            baseTableName: checkout_reservation_item
+            baseColumnNames: product_variant_id
+            constraintName: fk_checkout_reservation_item_variant
+            referencedTableName: product_variant
+            referencedColumnNames: product_variant_id
+        - createIndex:
+            tableName: checkout_reservation_item
+            indexName: idx_checkout_reservation_item_variant
+            columns:
+              - column:
+                  name: product_variant_id
+        - sql:
+            sql: >-
+              ALTER TABLE checkout_reservation_item ADD CONSTRAINT chk_checkout_reservation_item_quantity
+              CHECK (quantity > 0)

@@ -7,6 +7,8 @@ import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.ConfirmAmountResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.ConfirmDiscountResponseDTO;
 import com.clothingstore.shop.dto.response.checkout.SubmitOrderResponseDTO;
+import com.clothingstore.shop.exceptions.ReservationException;
+import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.service.CheckoutService;
 import com.clothingstore.shop.service.DiscountService;
 import com.clothingstore.shop.service.JwtService;
@@ -46,8 +48,14 @@ public class CheckoutController {
             // 返回處理結果（此處用 null 作為示例）
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount confirmed successfully", checkoutService.saveTemporaryOrder(confirmAmountRequestDTO, token)));
 
+        } catch (ReservationException e) {
+            return ResponseEntity.status(e.getStatus())
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
+        } catch (SharedException e) {
+            return ResponseEntity.badRequest()
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -91,9 +99,15 @@ public class CheckoutController {
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Amount discount successfully", checkoutService.confirmOrder(submitOrderRequestDTO, token)));
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order submitted successfully", checkoutService.confirmOrder(submitOrderRequestDTO, token)));
+        }catch (ReservationException e) {
+            return ResponseEntity.status(e.getStatus())
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         }catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
+        }catch (SharedException e) {
+            return ResponseEntity.badRequest()
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -110,9 +124,15 @@ public class CheckoutController {
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order canceled successfully", checkoutService.cancelOrder(orderId)));
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Order canceled successfully", checkoutService.cancelOrder(orderId, token)));
+        }catch (ReservationException e) {
+                return ResponseEntity.status(e.getStatus())
+                        .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         }catch (IllegalArgumentException e) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new ApiResponseDTO<>(false, e.getMessage(), null));
+            } catch (SharedException e) {
+                return ResponseEntity.badRequest()
                         .body(new ApiResponseDTO<>(false, e.getMessage(), null));
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
