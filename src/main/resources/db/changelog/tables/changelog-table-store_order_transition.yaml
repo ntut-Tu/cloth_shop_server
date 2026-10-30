@@ -1,0 +1,93 @@
+databaseChangeLog:
+  - changeSet:
+      id: store-order-transition-1
+      author: clothing-store
+      changes:
+        - addColumn:
+            tableName: store_order
+            columns:
+              - column:
+                  name: status_version
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: store_order_transition
+            columns:
+              - column:
+                  name: transition_id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: store_order_id
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actor_user_id
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: idempotency_key
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: from_status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: to_status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expected_version
+                  type: integer
+                  constraints:
+                    nullable: true
+              - column:
+                  name: resulting_version
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reason
+                  type: varchar(500)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: transitioned_at
+                  type: java.sql.Types.TIMESTAMP_WITH_TIMEZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: store_order_transition
+            baseColumnNames: store_order_id
+            referencedTableName: store_order
+            referencedColumnNames: store_order_id
+            constraintName: fk_transition_store_order
+        - addForeignKeyConstraint:
+            baseTableName: store_order_transition
+            baseColumnNames: actor_user_id
+            referencedTableName: users
+            referencedColumnNames: user_id
+            constraintName: fk_transition_actor
+        - addUniqueConstraint:
+            tableName: store_order_transition
+            columnNames: store_order_id, idempotency_key
+            constraintName: uq_store_order_transition_key
+        - createIndex:
+            tableName: store_order_transition
+            indexName: idx_store_order_transition_history
+            columns:
+              - column:
+                  name: store_order_id
+              - column:
+                  name: transition_id
