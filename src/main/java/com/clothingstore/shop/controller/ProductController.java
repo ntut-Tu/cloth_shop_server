@@ -70,6 +70,7 @@ public class ProductController {
      * @param category 商品分类
      * @param sort     排序条件（如price_asc, price_desc）
      * @param search   搜索关键字
+     * @param inStockOnly 是否只顯示有可售庫存的商品
      * @return 包含商品摘要的响应
      */
     @GetMapping("/v2")
@@ -80,10 +81,12 @@ public class ProductController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "false") boolean inStockOnly,
             @RequestParam String role
     ) {
         try {
-            FetchProductsParams fetchParams = new FetchProductsParams(page, pageSize, category, sort, search,role);
+            FetchProductsParams fetchParams = new FetchProductsParams(
+                    page, pageSize, category, sort, search, role, inStockOnly);
             String token = TokenUtils.extractTokenFromCookies(request);
             PaginatedResponse<ProductSummaryV2ResponseDTO> products;
             switch (fetchParams.getRole()){

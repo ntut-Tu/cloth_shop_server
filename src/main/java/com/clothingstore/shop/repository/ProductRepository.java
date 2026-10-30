@@ -153,6 +153,14 @@ public class ProductRepository {
             if (fetchParams.getSearch() != null && !fetchParams.getSearch().isEmpty()) {
                 baseCondition = baseCondition.and(PRODUCT.NAME.likeIgnoreCase("%" + fetchParams.getSearch() + "%"));
             }
+            if (fetchParams.isInStockOnly()) {
+                ProductVariant stockVariant = PRODUCT_VARIANT.as("stock_variant");
+                baseCondition = baseCondition.and(DSL.exists(
+                        DSL.selectOne()
+                                .from(stockVariant)
+                                .where(stockVariant.FK_PRODUCT_ID.eq(PRODUCT.PRODUCT_ID))
+                                .and(stockVariant.STOCK.gt(0))));
+            }
             switch (fetchParams.getRole()){
                 case "admin":
                     break;
@@ -172,12 +180,16 @@ public class ProductRepository {
                                     .where(USERS.IS_ACTIVE.isTrue())));
                     break;
             }
+            Condition variantJoinCondition = PRODUCT.PRODUCT_ID.eq(PRODUCT_VARIANT.FK_PRODUCT_ID);
+            if (fetchParams.isInStockOnly()) {
+                variantJoinCondition = variantJoinCondition.and(PRODUCT_VARIANT.STOCK.gt(0));
+            }
             // 計算搜尋總數
             int totalRecords = dsl.select(DSL.countDistinct(PRODUCT.PRODUCT_ID))
                     .from(PRODUCT)
                     .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
                     .join(USERS).on(VENDOR.FK_USER_ID.eq(USERS.USER_ID))
-                    .leftJoin(PRODUCT_VARIANT).on(PRODUCT.PRODUCT_ID.eq(PRODUCT_VARIANT.FK_PRODUCT_ID))
+                    .leftJoin(PRODUCT_VARIANT).on(variantJoinCondition)
                     .where(baseCondition)
                     .fetchOne(0, int.class);
 
@@ -197,7 +209,7 @@ public class ProductRepository {
                     .from(PRODUCT)
                     .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
                     .join(USERS).on(VENDOR.FK_USER_ID.eq(USERS.USER_ID))
-                    .leftJoin(PRODUCT_VARIANT).on(PRODUCT.PRODUCT_ID.eq(PRODUCT_VARIANT.FK_PRODUCT_ID))
+                    .leftJoin(PRODUCT_VARIANT).on(variantJoinCondition)
                     .where(baseCondition)
                     .groupBy(
                             PRODUCT.PRODUCT_ID,

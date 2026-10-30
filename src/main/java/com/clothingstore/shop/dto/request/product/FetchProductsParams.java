@@ -7,14 +7,17 @@ public class FetchProductsParams {
     private String sort;
     private String search;
     private String role;
+    private boolean inStockOnly;
 
-    public FetchProductsParams(int page, int pageSize, String category, String sort, String search, String role) {
+    public FetchProductsParams(int page, int pageSize, String category, String sort, String search, String role,
+                               boolean inStockOnly) {
         this.page = page;
         this.pageSize = pageSize;
         this.category = category;
         this.sort = sort;
         this.search = search;
         this.role = role;
+        this.inStockOnly = inStockOnly;
     }
 
     // Getters and Setters
@@ -65,5 +68,12 @@ public class FetchProductsParams {
     public void setRole(String role) {
         this.role = role;
     }
-}
 
+    public boolean isInStockOnly() {
+        return inStockOnly;
+    }
+
+    public void setInStockOnly(boolean inStockOnly) {
+        this.inStockOnly = inStockOnly;
+    }
+}
