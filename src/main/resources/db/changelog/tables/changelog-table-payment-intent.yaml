@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: payment-intent-1
+      author: clothing-shop
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE payment_intent (
+                intent_id uuid PRIMARY KEY,
+                order_id integer NOT NULL UNIQUE REFERENCES "order"(order_id),
+                customer_user_id integer NOT NULL REFERENCES users(user_id),
+                amount integer NOT NULL CHECK (amount > 0),
+                currency varchar(3) NOT NULL CHECK (currency = 'TWD'),
+                status varchar(24) NOT NULL CHECK (status IN ('REQUIRES_PAYMENT', 'PROCESSING', 'CAPTURED', 'SETTLED', 'FAILED', 'CANCELLED')),
+                create_key varchar(128) NOT NULL,
+                created_at timestamptz NOT NULL DEFAULT now(),
+                updated_at timestamptz NOT NULL DEFAULT now(),
+                CONSTRAINT uq_payment_intent_customer_key UNIQUE (customer_user_id, create_key)
+              );
+              CREATE TABLE payment_attempt (
+                attempt_id uuid PRIMARY KEY,
+                intent_id uuid NOT NULL REFERENCES payment_intent(intent_id),
+                idempotency_key varchar(128) NOT NULL,
+                status varchar(16) NOT NULL CHECK (status IN ('PENDING', 'SUCCEEDED', 'FAILED')),
+                provider_reference varchar(128) UNIQUE,
+                failure_code varchar(128),
+                created_at timestamptz NOT NULL DEFAULT now(),
+                resolved_at timestamptz,
+                CONSTRAINT uq_payment_attempt_intent_key UNIQUE (intent_id, idempotency_key)
+              );
+              CREATE TABLE payment_provider_event (
+                event_id varchar(128) PRIMARY KEY,
+                attempt_id uuid NOT NULL REFERENCES payment_attempt(attempt_id),
+                event_type varchar(24) NOT NULL CHECK (event_type IN ('CAPTURE_SUCCEEDED', 'CAPTURE_FAILED', 'SETTLED')),
+                payload_sha256 char(64) NOT NULL,
+                received_at timestamptz NOT NULL DEFAULT now()
+              );
+              CREATE INDEX ix_payment_attempt_intent ON payment_attempt(intent_id, created_at DESC);
+              CREATE INDEX ix_payment_provider_event_attempt ON payment_provider_event(attempt_id);
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE payment_provider_event;
+              DROP TABLE payment_attempt;
+              DROP TABLE payment_intent;
