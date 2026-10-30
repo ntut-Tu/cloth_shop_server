@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      id: rbac-roles-privileges-1
+      author: cloth-shop
+      changes:
+        - sql:
+            splitStatements: true
+            sql: |
+              CREATE TABLE rbac_role (
+                role_name varchar(40) PRIMARY KEY,
+                system_role boolean NOT NULL DEFAULT false
+              );
+              CREATE TABLE rbac_privilege (
+                privilege_code varchar(60) PRIMARY KEY
+              );
+              CREATE TABLE rbac_role_privilege (
+                role_name varchar(40) NOT NULL REFERENCES rbac_role(role_name) ON DELETE CASCADE,
+                privilege_code varchar(60) NOT NULL REFERENCES rbac_privilege(privilege_code),
+                PRIMARY KEY (role_name, privilege_code)
+              );
+              CREATE TABLE rbac_user_role (
+                user_id integer NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                role_name varchar(40) NOT NULL REFERENCES rbac_role(role_name) ON DELETE CASCADE,
+                PRIMARY KEY (user_id, role_name)
+              );
+              CREATE INDEX rbac_user_role_role_idx ON rbac_user_role(role_name);
+              INSERT INTO rbac_role(role_name, system_role) VALUES
+                ('ADMIN', true), ('VENDOR', true), ('CUSTOMER', true);
+              INSERT INTO rbac_privilege(privilege_code) VALUES
+                ('RBAC_MANAGE'), ('ADMIN_USERS_READ'), ('ADMIN_USERS_BAN'),
+                ('ADMIN_LOGS_READ'), ('PLATFORM_LEDGER_READ'),
+                ('ADMIN_PRODUCTS_READ'), ('PRODUCT_STATUS_MANAGE'),
+                ('ADMIN_ORDERS_READ'), ('ADMIN_REFUNDS_MANAGE');
+              INSERT INTO rbac_role_privilege(role_name, privilege_code)
+                SELECT 'ADMIN', privilege_code FROM rbac_privilege;
+              INSERT INTO rbac_user_role(user_id, role_name)
+                SELECT user_id, UPPER(user_type) FROM users
+                WHERE user_type IN ('admin', 'vendor', 'customer');

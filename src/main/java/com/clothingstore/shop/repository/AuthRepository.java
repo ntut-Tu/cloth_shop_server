@@ -145,6 +145,9 @@ public class AuthRepository {
                 break;
         }
 
+        dsl.execute("INSERT INTO rbac_user_role(user_id, role_name) VALUES (?, ?)",
+                userId, userRepositoryDTO.getUserType().toUpperCase(java.util.Locale.ROOT));
+
         return true;
     }
 

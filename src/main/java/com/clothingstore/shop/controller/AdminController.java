@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -29,11 +30,11 @@ public class AdminController {
     ) {
         try {
             String token = TokenUtils.extractTokenFromCookies(request);
-            if (token == null) {
-                throw new IllegalArgumentException("Token not found");
-            }
             List<UserSummaryResponseDTO> users = userService.getUsers(page,size,token);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Users fetched successfully", users));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(new ApiResponseDTO<>(false, e.getReason(), null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));
@@ -47,11 +48,11 @@ public class AdminController {
     ) {
         try {
             String token = TokenUtils.extractTokenFromCookies(request);
-            if (token == null) {
-                throw new IllegalArgumentException("Token not found");
-            }
             Boolean banned = userService.banUser(userId, token);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "User banned successfully", banned));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(new ApiResponseDTO<>(false, e.getReason(), null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));
@@ -67,11 +68,11 @@ public class AdminController {
     ) {
         try {
             String token = TokenUtils.extractTokenFromCookies(request);
-            if (token == null) {
-                throw new IllegalArgumentException("Token not found");
-            }
             List<UserLogResponseDTO> userLogs = userService.getUserLogs(page,size,token);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "User logs fetched successfully", userLogs));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(new ApiResponseDTO<>(false, e.getReason(), null));
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));

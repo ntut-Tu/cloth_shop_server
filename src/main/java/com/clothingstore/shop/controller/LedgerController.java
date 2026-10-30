@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -32,10 +33,10 @@ public class LedgerController {
         try {
             // 解析 token
             String token = TokenUtils.extractTokenFromCookies(request);
-            if (token == null) {
-                throw new IllegalArgumentException("Token not found");
-            }
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Platform ledger fetched successfully", ledgerService.findAllPlatformLedgerEntries(token)));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(new ApiResponseDTO<>(false, e.getReason(), null));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
