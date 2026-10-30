@@ -5,6 +5,7 @@ public class RegisterRequestDTO {
     private String email;
     private String password;
     private String role;
+    private String phoneNumber;
 
     public String getAccount() { return account; }
     public void setAccount(String account) { this.account = account; }
@@ -17,6 +18,9 @@ public class RegisterRequestDTO {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
     // vendor
     private String storeAddress;

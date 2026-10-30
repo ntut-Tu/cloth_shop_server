@@ -114,6 +114,7 @@ public class AuthRepository {
                 .set(USERS.ACCOUNT, userRepositoryDTO.getAccount())
                 .set(USERS.PASSWORD, userRepositoryDTO.getPassword())
                 .set(USERS.EMAIL, userRepositoryDTO.getEmail())
+                .set(USERS.PHONE_NUMBER, userRepositoryDTO.getPhoneNumber())
                 .set(USERS.USER_TYPE, userRepositoryDTO.getUserType())
                 .set(USERS.CREATED_AT, userRepositoryDTO.getCreatedAt())
                 .set(USERS.IS_ACTIVE, userRepositoryDTO.getIsActive())
