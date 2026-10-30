@@ -3,12 +3,14 @@ package com.clothingstore.shop.repository;
 import com.clothingstore.shop.dto.response.users.UserSummaryResponseDTO;
 import com.clothingstore.shop.dto.response.users.UserLogResponseDTO;
 import org.jooq.DSLContext;
+import org.jooq.Condition;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 import static com.clothingstore.shop.jooq.tables.UserLog.*;
 import static com.clothingstore.shop.jooq.tables.Users.*;
+import static org.jooq.impl.DSL.noCondition;
 @Repository
 public class UserRepository {
     private final DSLContext dsl;
@@ -38,7 +40,14 @@ public class UserRepository {
                 .execute() == 1;
     }
 
-    public List<UserLogResponseDTO> fetchUserLogs(int page, int size) {
+    public List<UserLogResponseDTO> fetchUserLogs(int page, int size, Integer userId, String action) {
+        Condition filter = noCondition();
+        if (userId != null) {
+            filter = filter.and(USER_LOG.FK_USER_ID.eq(userId));
+        }
+        if (action != null && !action.isEmpty()) {
+            filter = filter.and(USER_LOG.ACTION.containsIgnoreCase(action));
+        }
         return dsl.select(
                 USER_LOG.USER_LOG_ID.as("log_id"),
                 USER_LOG.FK_USER_ID.as("user_id"),
@@ -47,6 +56,8 @@ public class UserRepository {
                 USER_LOG.DATE.as("date"))
                 .from(USER_LOG)
                 .join(USERS).on(USER_LOG.FK_USER_ID.eq(USERS.USER_ID))
+                .where(filter)
+                .orderBy(USER_LOG.USER_LOG_ID.desc())
                 .limit(size)
                 .offset(page * size)
                 .fetchInto(UserLogResponseDTO.class);
