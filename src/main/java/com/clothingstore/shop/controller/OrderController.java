@@ -5,11 +5,14 @@ import com.clothingstore.shop.dto.response.ApiResponseDTO;
 import com.clothingstore.shop.dto.repository.orders.OrderSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryDTO;
 import com.clothingstore.shop.dto.response.vendorOrder.VendorOrderResponseDTO;
+import com.clothingstore.shop.exceptions.StoreOrderTransitionException;
 import com.clothingstore.shop.service.OrderService;
 import com.clothingstore.shop.utils.TokenUtils;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -106,8 +109,15 @@ public class OrderController {
             String token = TokenUtils.extractTokenFromCookies(request);
             orderService.updateStoreOrderStatus(token, storeOrderId, status);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Store order status updated successfully", null));
-        }catch (Exception e){
-            return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
+        } catch (StoreOrderTransitionException e) {
+            return ResponseEntity.status(e.getStatus())
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponseDTO<>(false, "Invalid token", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponseDTO<>(false, "Unable to update store order status", null));
         }
     }
 

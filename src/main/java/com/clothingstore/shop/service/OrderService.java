@@ -17,12 +17,15 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final JwtService jwtService;
     private final AuthService authService;
+    private final StoreOrderTransitionService transitionService;
 
     @Autowired
-    public OrderService(OrderRepository orderRepository, JwtService jwtService, AuthService authService) {
+    public OrderService(OrderRepository orderRepository, JwtService jwtService, AuthService authService,
+                        StoreOrderTransitionService transitionService) {
         this.orderRepository = orderRepository;
         this.jwtService = jwtService;
         this.authService = authService;
+        this.transitionService = transitionService;
     }
 
     // 取得使用者訂單列表（訂單簡介）
@@ -72,11 +75,7 @@ public class OrderService {
     }
 
     public void updateStoreOrderStatus(String token, Integer storeOrderId, String status) throws SharedException {
-        Integer userId = jwtService.extractUserId(token);
-        if(!orderRepository.isStoreOrderBelongToVendor(userId, storeOrderId)) {
-            throw new IllegalArgumentException("Order does not belong to vendor");
-        }
-        orderRepository.updateStoreOrderStatus(storeOrderId, status);
+        transitionService.transitionLegacy(token, storeOrderId, status);
     }
 
     public List<VendorOrderResponseDTO> getVendorStoreOrders(String token, int page, int size) throws SharedException {

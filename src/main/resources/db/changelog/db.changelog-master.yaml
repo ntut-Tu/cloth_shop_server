@@ -52,6 +52,9 @@ databaseChangeLog:
       file: tables/changelog-table-store_order.yaml
       relativeToChangelogFile: true
   - include:
+      file: tables/changelog-table-store_order_transition.yaml
+      relativeToChangelogFile: true
+  - include:
       file: tables/changelog-table-order_item.yaml
       relativeToChangelogFile: true
   - include:
