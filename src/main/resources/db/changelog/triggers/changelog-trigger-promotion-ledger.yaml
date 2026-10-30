@@ -20,6 +20,17 @@ databaseChangeLog:
               BEGIN
                 PERFORM pg_advisory_xact_lock(20261031, 1);
 
+                IF EXISTS (
+                  SELECT 1
+                  FROM platform_ledger_entry ple
+                  JOIN ledger_entry le ON le.ledger_entry_id = ple.ledger_entry_id
+                  WHERE ple.order_id = NEW.order_id
+                    AND le.transaction_type = 'income'
+                    AND le.notes = '平台抽成'
+                ) THEN
+                  RETURN NEW;
+                END IF;
+
                 SELECT COALESCE(total_balance, 0) INTO current_balance
                 FROM ledger_entry
                 WHERE ledger_type = 'platform'
@@ -90,3 +101,29 @@ databaseChangeLog:
               WHEN (NEW.ship_status = 'Completed'
                     AND OLD.ship_status IS DISTINCT FROM NEW.ship_status)
               EXECUTE FUNCTION create_platform_ledger();
+
+              CREATE OR REPLACE FUNCTION update_order_status()
+              RETURNS TRIGGER AS $$
+              BEGIN
+                IF NEW.store_order_status = 'Shipped' THEN
+                  UPDATE "order"
+                  SET ship_status = 'Delivered'
+                  WHERE order_id = NEW.fk_order_id
+                    AND ship_status IS DISTINCT FROM 'Completed'
+                    AND NOT EXISTS (
+                      SELECT 1 FROM store_order
+                      WHERE fk_order_id = NEW.fk_order_id
+                        AND store_order_status != 'Shipped'
+                    );
+                END IF;
+                RETURN NEW;
+              END;
+              $$ LANGUAGE plpgsql;
+
+              DROP TRIGGER IF EXISTS store_order_status_trigger ON "order";
+              CREATE TRIGGER store_order_status_trigger
+              AFTER UPDATE OF ship_status ON "order"
+              FOR EACH ROW
+              WHEN (NEW.ship_status = 'Completed'
+                    AND OLD.ship_status IS DISTINCT FROM NEW.ship_status)
+              EXECUTE FUNCTION create_vendor_ledger();
