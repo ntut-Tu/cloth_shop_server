@@ -6,6 +6,7 @@ import com.clothingstore.shop.dto.repository.products.ProductVariantRepositoryDT
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
 import com.clothingstore.shop.dto.request.product.FetchProductsParams;
 import com.clothingstore.shop.dto.response.product.PaginatedResponse;
+import com.clothingstore.shop.dto.response.product.ProductCategoryCountResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductInfoResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.enums.CategorizedProduct;
@@ -243,6 +244,17 @@ public class ProductRepository {
         } catch (Exception e) {
             throw e;
         }
+    }
+
+    public List<ProductCategoryCountResponseDTO> getPublicCategoryCounts() {
+        return dsl.select(PRODUCT.CATEGORY, DSL.count())
+                .from(PRODUCT)
+                .join(VENDOR).on(PRODUCT.FK_VENDOR_ID.eq(VENDOR.VENDOR_ID))
+                .join(USERS).on(VENDOR.FK_USER_ID.eq(USERS.USER_ID))
+                .where(PRODUCT.IS_LIST.isTrue().and(USERS.IS_ACTIVE.isTrue()))
+                .groupBy(PRODUCT.CATEGORY)
+                .orderBy(PRODUCT.CATEGORY.asc())
+                .fetch(record -> new ProductCategoryCountResponseDTO(record.value1(), record.value2()));
     }
 
     public List<ProductInfoResponseDTO> getProductListForCoupon(Integer vendorId) {

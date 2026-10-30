@@ -5,6 +5,7 @@ import com.clothingstore.shop.dto.repository.products.ProductSummaryRepositoryDT
 import com.clothingstore.shop.dto.request.AddProductRequestDTO;
 import com.clothingstore.shop.dto.request.product.FetchProductsParams;
 import com.clothingstore.shop.dto.response.product.PaginatedResponse;
+import com.clothingstore.shop.dto.response.product.ProductCategoryCountResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductInfoResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.exceptions.SharedException;
@@ -48,6 +49,10 @@ public class ProductService {
 
     public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchProductsV2(FetchProductsParams fetchParams) {
         return productRepository.fetchProductsV2(fetchParams,null,"customer");
+    }
+
+    public List<ProductCategoryCountResponseDTO> getPublicCategoryCounts() {
+        return productRepository.getPublicCategoryCounts();
     }
 
     public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchAdminProductsV2(String token,FetchProductsParams fetchParams) {
