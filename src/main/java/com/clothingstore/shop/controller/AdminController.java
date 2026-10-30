@@ -25,15 +25,19 @@ public class AdminController {
     public ResponseEntity<ApiResponseDTO<List<UserSummaryResponseDTO>>> getUsers(
             HttpServletRequest request,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String search
     ) {
         try {
             String token = TokenUtils.extractTokenFromCookies(request);
             if (token == null) {
                 throw new IllegalArgumentException("Token not found");
             }
-            List<UserSummaryResponseDTO> users = userService.getUsers(page,size,token);
+            List<UserSummaryResponseDTO> users = userService.getUsers(page, size, search, token);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Users fetched successfully", users));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponseDTO<>(false, e.getMessage(), null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponseDTO<>(false, e.getMessage(), null));
