@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -91,11 +92,11 @@ public class RefundController {
             @RequestBody RefundDetailResponseDTO refundDetailResponseDTO) {
         try {
             String token = TokenUtils.extractTokenFromCookies(request);
-            if (token == null) {
-                throw new IllegalArgumentException("Token not found");
-            }
             Integer ret = refundService.updateRefund(refundDetailResponseDTO, token, refundId);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, ret.toString(), null));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(new ApiResponseDTO<>(false, e.getReason(), null));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }

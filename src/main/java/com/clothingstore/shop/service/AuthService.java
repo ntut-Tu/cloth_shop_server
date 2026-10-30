@@ -5,6 +5,7 @@ import com.clothingstore.shop.dto.repository.users.UserRepositoryDTO;
 import com.clothingstore.shop.repository.AuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 
 @Service
@@ -42,10 +43,17 @@ public class AuthService {
     }
 
     public boolean checkUserExists(Integer userId,String role) {
-        return authRepository.findByUserIDAndRole(userId, role).isPresent();
+        return authRepository.findByUserIDAndRole(userId, role)
+                .map(user -> Boolean.TRUE.equals(user.getIsActive())).orElse(false);
     }
 
+    @Transactional
     public boolean register(RegisterRequestDTO registerRequestDTO) {
+        // Administrative identities are provisioned outside the public registration flow.
+        if (registerRequestDTO == null ||
+                !("customer".equals(registerRequestDTO.getRole()) || "vendor".equals(registerRequestDTO.getRole()))) {
+            return false;
+        }
         if (authRepository.findByUserAccountAndRole(registerRequestDTO.getAccount(), registerRequestDTO.getRole()).isPresent()) {
             return false;
         }

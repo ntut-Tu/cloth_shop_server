@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -88,9 +89,6 @@ public class ProductController {
             PaginatedResponse<ProductSummaryV2ResponseDTO> products;
             switch (fetchParams.getRole()){
                 case "admin":
-                    if (token == null) {
-                        throw new IllegalArgumentException("Token not found");
-                    }
                     products = productService.fetchAdminProductsV2(token,fetchParams);
                     break;
                 case "vendor":
@@ -104,6 +102,9 @@ public class ProductController {
                     break;
             }
             return ResponseEntity.ok(new ApiResponseDTO<>(true,"Product v2 fetch successfully",products));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(new ApiResponseDTO<>(false, e.getReason(), null));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }
@@ -134,10 +135,13 @@ public class ProductController {
         try {
             String token = TokenUtils.extractTokenFromCookies(request);
             if (token == null) {
-                throw new IllegalArgumentException("Token not found");
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
             }
             productService.updateProductStatus(token, productVariantId,updatedStatus);
             return ResponseEntity.ok(new ApiResponseDTO<>(true, "Product status updated successfully", true));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(new ApiResponseDTO<>(false, e.getReason(), null));
         } catch (Exception e) {
             return ResponseEntity.ok(new ApiResponseDTO<>(false, e.getMessage(), null));
         }

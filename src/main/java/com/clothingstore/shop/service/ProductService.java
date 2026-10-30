@@ -9,6 +9,7 @@ import com.clothingstore.shop.dto.response.product.ProductInfoResponseDTO;
 import com.clothingstore.shop.dto.response.product.ProductSummaryV2ResponseDTO;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.ProductRepository;
+import com.clothingstore.shop.security.Privilege;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,12 +22,15 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final JwtService jwtService;
     private final AuthService authService;
+    private final RbacService rbacService;
 
     @Autowired
-    public ProductService(ProductRepository productRepository, JwtService jwtService, AuthService authService) {
+    public ProductService(ProductRepository productRepository, JwtService jwtService, AuthService authService,
+                          RbacService rbacService) {
         this.productRepository = productRepository;
         this.jwtService = jwtService;
         this.authService = authService;
+        this.rbacService = rbacService;
     }
 
     public ProductDetailRepositoryDTO getProductDetails(int productId) {
@@ -51,10 +55,7 @@ public class ProductService {
     }
 
     public PaginatedResponse<ProductSummaryV2ResponseDTO> fetchAdminProductsV2(String token,FetchProductsParams fetchParams) {
-        Integer userId = jwtService.extractUserId(token);
-        if (!authService.checkUserExists(userId,"admin")) {
-            throw new IllegalArgumentException("User is not authorized to search products.");
-        }
+        Integer userId = rbacService.requirePermission(token, Privilege.ADMIN_PRODUCTS_READ);
         return productRepository.fetchProductsV2(fetchParams,userId,"admin");
     }
 
@@ -75,14 +76,15 @@ public class ProductService {
     }
 
     public void updateProductStatus(String token, Integer productVariantId, Boolean updatedStatus) {
-        Integer userId = jwtService.extractUserId(token);
+        Integer userId = rbacService.requireActiveUser(token);
         String role = jwtService.extractRole(token);
-        if (!authService.checkUserExists(userId,"vendor") && !role.equals("admin")) {
-            throw new IllegalArgumentException("User is not authorized to update product status.");
-        }
         if(role.equals("admin")) {
+            rbacService.requirePermission(token, Privilege.PRODUCT_STATUS_MANAGE);
             productRepository.updateProductStatus(null,productVariantId,updatedStatus,role);
             return;
+        }
+        if (!authService.checkUserExists(userId,"vendor")) {
+            throw new IllegalArgumentException("User is not authorized to update product status.");
         }
         productRepository.updateProductStatus(authService.getVendorId(userId),productVariantId,updatedStatus,role);
     }

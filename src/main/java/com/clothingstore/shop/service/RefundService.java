@@ -3,6 +3,7 @@ package com.clothingstore.shop.service;
 import com.clothingstore.shop.dto.request.refund.RefundDetailResponseDTO;
 import com.clothingstore.shop.dto.response.refund.RefundListSumResponse;
 import com.clothingstore.shop.repository.RefundRepository;
+import com.clothingstore.shop.security.Privilege;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,12 +14,15 @@ public class RefundService {
     private final JwtService jwtService;
     private final RefundRepository refundRepository;
     private final AuthService authService;
+    private final RbacService rbacService;
 
     @Autowired
-    public RefundService(JwtService jwtService, RefundRepository refundRepository, AuthService authService) {
+    public RefundService(JwtService jwtService, RefundRepository refundRepository, AuthService authService,
+                         RbacService rbacService) {
         this.jwtService = jwtService;
         this.refundRepository = refundRepository;
         this.authService = authService;
+        this.rbacService = rbacService;
     }
 
     public Integer createRefund(RefundDetailResponseDTO refundDetailResponseDTO, String token) {
@@ -39,8 +43,11 @@ public class RefundService {
     }
 
     public Integer updateRefund(RefundDetailResponseDTO refundDetailResponseDTO, String token, Integer refundId) {
+        Integer userId = rbacService.requireActiveUser(token);
         String role = jwtService.extractRole(token);
-        Integer userId = jwtService.extractUserId(token);
+        if ("admin".equals(role)) {
+            rbacService.requirePermission(token, Privilege.ADMIN_REFUNDS_MANAGE);
+        }
         String status = refundRepository.getRefundStatus(refundId);
         if(refundRepository.isRefundNotClose(refundId)){
             throw new IllegalArgumentException("Refund is already closed");

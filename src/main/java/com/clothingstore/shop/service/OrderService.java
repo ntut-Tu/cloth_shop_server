@@ -6,6 +6,7 @@ import com.clothingstore.shop.dto.repository.orders.StoreOrderSummaryRepositoryD
 import com.clothingstore.shop.dto.response.vendorOrder.VendorOrderResponseDTO;
 import com.clothingstore.shop.exceptions.SharedException;
 import com.clothingstore.shop.repository.OrderRepository;
+import com.clothingstore.shop.security.Privilege;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,22 +18,26 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final JwtService jwtService;
     private final AuthService authService;
+    private final RbacService rbacService;
 
     @Autowired
-    public OrderService(OrderRepository orderRepository, JwtService jwtService, AuthService authService) {
+    public OrderService(OrderRepository orderRepository, JwtService jwtService, AuthService authService,
+                        RbacService rbacService) {
         this.orderRepository = orderRepository;
         this.jwtService = jwtService;
         this.authService = authService;
+        this.rbacService = rbacService;
     }
 
     // 取得使用者訂單列表（訂單簡介）
     public List<OrderSummaryRepositoryDTO> getUserOrderSummaries(String jwtToken, int page, int size) throws SharedException {
-        Integer userId = jwtService.extractUserId(jwtToken);
+        Integer userId = rbacService.requireActiveUser(jwtToken);
         String role = jwtService.extractRole(jwtToken);
         int offset = (page - 1) * size;
         if(role.equals("customer")) {
             return orderRepository.findOrderSummariesByCustomerId(userId, size, offset);
         } else if(role.equals("admin")) {
+            rbacService.requirePermission(jwtToken, Privilege.ADMIN_ORDERS_READ);
             return orderRepository.findAllOrderSummaries(size, offset);
         }else {
             throw new IllegalArgumentException("Invalid role cannot get order summaries");
