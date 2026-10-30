@@ -1,0 +1,92 @@
+databaseChangeLog:
+  - changeSet:
+      id: return-case-1
+      author: clothing-shop
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE return_case (
+                case_id uuid PRIMARY KEY,
+                order_item_id integer NOT NULL REFERENCES order_item(order_item_id),
+                order_id integer NOT NULL REFERENCES "order"(order_id),
+                customer_user_id integer NOT NULL REFERENCES users(user_id),
+                vendor_user_id integer NOT NULL REFERENCES users(user_id),
+                requested_quantity integer NOT NULL CHECK (requested_quantity > 0),
+                gross_amount integer NOT NULL CHECK (gross_amount >= 0),
+                approved_amount integer NOT NULL CHECK (approved_amount >= 0 AND approved_amount <= gross_amount),
+                currency varchar(3) NOT NULL CHECK (currency = 'TWD'),
+                status varchar(24) NOT NULL CHECK (status IN (
+                  'VENDOR_PENDING', 'VENDOR_REJECTED', 'VENDOR_APPROVED',
+                  'ADMIN_PENDING', 'ADMIN_REJECTED', 'ADMIN_APPROVED', 'EXPIRED', 'WITHDRAWN'
+                )),
+                reason text NOT NULL,
+                vendor_response text,
+                admin_response text,
+                create_key varchar(128) NOT NULL,
+                request_hash char(64) NOT NULL,
+                created_at timestamptz NOT NULL DEFAULT now(),
+                updated_at timestamptz NOT NULL DEFAULT now(),
+                vendor_deadline timestamptz NOT NULL,
+                appeal_deadline timestamptz,
+                closed_at timestamptz,
+                CONSTRAINT uq_return_case_customer_key UNIQUE (customer_user_id, create_key)
+              );
+              CREATE TABLE return_case_action (
+                action_id uuid PRIMARY KEY,
+                case_id uuid NOT NULL REFERENCES return_case(case_id),
+                actor_user_id integer REFERENCES users(user_id),
+                actor_role varchar(16) NOT NULL CHECK (actor_role IN ('customer', 'vendor', 'admin', 'system')),
+                action_key varchar(128) NOT NULL,
+                action_type varchar(32) NOT NULL,
+                from_status varchar(24),
+                to_status varchar(24) NOT NULL,
+                payload_hash char(64) NOT NULL,
+                note text,
+                created_at timestamptz NOT NULL DEFAULT now(),
+                CONSTRAINT uq_return_case_action_actor_key UNIQUE (actor_user_id, action_key)
+              );
+              CREATE TABLE return_settlement_decision (
+                case_id uuid PRIMARY KEY REFERENCES return_case(case_id),
+                order_id integer NOT NULL REFERENCES "order"(order_id),
+                order_item_id integer NOT NULL REFERENCES order_item(order_item_id),
+                approved_quantity integer NOT NULL CHECK (approved_quantity > 0),
+                amount integer NOT NULL CHECK (amount >= 0),
+                currency varchar(3) NOT NULL CHECK (currency = 'TWD'),
+                decision_source varchar(16) NOT NULL CHECK (decision_source IN ('vendor', 'admin')),
+                decided_by_user_id integer NOT NULL REFERENCES users(user_id),
+                created_at timestamptz NOT NULL DEFAULT now()
+              );
+              CREATE INDEX ix_return_case_item_status ON return_case(order_item_id, status);
+              CREATE INDEX ix_return_case_vendor_queue ON return_case(vendor_user_id, status, vendor_deadline);
+              CREATE INDEX ix_return_case_appeal_expiry ON return_case(status, appeal_deadline);
+              CREATE INDEX ix_return_case_action_case ON return_case_action(case_id, created_at);
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE return_settlement_decision;
+              DROP TABLE return_case_action;
+              DROP TABLE return_case;
+  - changeSet:
+      id: return-case-2-immutable-records
+      author: clothing-shop
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE FUNCTION prevent_return_record_mutation() RETURNS trigger AS $$
+              BEGIN
+                RAISE EXCEPTION 'Return action and settlement records are immutable';
+              END;
+              $$ LANGUAGE plpgsql;
+              CREATE TRIGGER return_case_action_immutable
+                BEFORE UPDATE OR DELETE ON return_case_action
+                FOR EACH ROW EXECUTE FUNCTION prevent_return_record_mutation();
+              CREATE TRIGGER return_settlement_decision_immutable
+                BEFORE UPDATE OR DELETE ON return_settlement_decision
+                FOR EACH ROW EXECUTE FUNCTION prevent_return_record_mutation();
+      rollback:
+        - sql:
+            sql: |
+              DROP TRIGGER return_case_action_immutable ON return_case_action;
+              DROP TRIGGER return_settlement_decision_immutable ON return_settlement_decision;
+              DROP FUNCTION prevent_return_record_mutation();

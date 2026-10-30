@@ -3,6 +3,7 @@ package com.clothingstore.shop.repository;
 import com.clothingstore.shop.dto.request.refund.RefundDetailResponseDTO;
 import com.clothingstore.shop.dto.response.refund.RefundListSumResponse;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,6 +20,21 @@ public class RefundRepository {
     }
 
     public Integer createRefund(Integer userId, RefundDetailResponseDTO refundDetailResponseDTO) {
+        Record ownedItem = dsl.fetchOne("""
+                SELECT oi.order_item_id FROM order_item oi
+                JOIN "order" o ON o.order_id = oi.fk_order_id
+                JOIN customer c ON c.customer_id = o.fk_customer_id
+                WHERE oi.order_item_id = ? AND c.fk_user_id = ? FOR UPDATE OF oi
+                """, refundDetailResponseDTO.getOrder_item_id(), userId);
+        if (ownedItem == null) {
+            throw new IllegalArgumentException("Order item does not belong to customer");
+        }
+        if (Boolean.TRUE.equals(dsl.fetchValue("""
+                SELECT EXISTS (SELECT 1 FROM return_case
+                  WHERE order_item_id = ? AND status NOT IN ('ADMIN_REJECTED', 'EXPIRED', 'WITHDRAWN'))
+                """, refundDetailResponseDTO.getOrder_item_id()))) {
+            throw new IllegalArgumentException("Order item already has an active return case");
+        }
         Integer refundId = dsl.insertInto(REFUND_REQUEST)
                 .set(REFUND_REQUEST.FK_ORDER_ITEM_ID, refundDetailResponseDTO.getOrder_item_id())
                 .set(REFUND_REQUEST.REFUND_REASON, refundDetailResponseDTO.getRefund_reason())
@@ -99,7 +115,11 @@ public class RefundRepository {
         try{
             return dsl.fetchExists(selectOne()
                     .from(REFUND_REQUEST)
-                    .where(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(orderItemId)));
+                    .where(REFUND_REQUEST.FK_ORDER_ITEM_ID.eq(orderItemId)))
+                    || Boolean.TRUE.equals(dsl.fetchValue("""
+                    SELECT EXISTS (SELECT 1 FROM return_case
+                      WHERE order_item_id = ? AND status NOT IN ('ADMIN_REJECTED', 'EXPIRED', 'WITHDRAWN'))
+                    """, orderItemId));
         }catch (Exception e){
             throw  e;
         }
